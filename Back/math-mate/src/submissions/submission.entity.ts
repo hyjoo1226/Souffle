@@ -4,15 +4,21 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+  OneToMany,
 } from 'typeorm';
+import { User } from 'src/users/user.entity';
+import { SubmissionStep } from './submission_step.entity';
 
 @Entity()
 export class Submission extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @Column({ type: 'int' })
-  userId: number;
+  @ManyToOne(() => User, (user) => user.submissions, { nullable: false })
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @Column({ type: 'int' })
   problemId: number;
@@ -20,21 +26,27 @@ export class Submission extends BaseEntity {
   @Column({ type: 'int' })
   solveTime: number;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   answerImageUrl: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   answerConvert: string;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', nullable: true })
   isCorrect: boolean;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   aiAnalysis: string;
 
-  @Column({ type: 'text' })
+  @Column({ type: 'text', nullable: true })
   weakness: string;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
+
+  @OneToMany(
+    () => SubmissionStep,
+    (submissionStep) => submissionStep.submission,
+  )
+  submissionSteps: SubmissionStep[];
 }
