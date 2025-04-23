@@ -11,7 +11,7 @@ import { Submission } from 'src/submissions/submission.entity';
 import { Category } from 'src/categories/category.entity';
 import { Book } from 'src/books/book.entity';
 
-@Entity()
+@Entity({ name: 'problems' })
 export class Problem extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

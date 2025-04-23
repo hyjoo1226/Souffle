@@ -8,7 +8,7 @@ import {
 import { Submission } from 'src/submissions/submission.entity';
 import { UserCategoryProgress } from './user_category_progress.entity';
 
-@Entity()
+@Entity({ name: 'users' })
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;

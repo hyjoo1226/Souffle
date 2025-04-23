@@ -12,7 +12,7 @@ import { User } from 'src/users/user.entity';
 import { Problem } from 'src/problems/problem.entity';
 import { SubmissionStep } from './submission_step.entity';
 
-@Entity()
+@Entity({ name: 'submissions' })
 export class Submission extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;

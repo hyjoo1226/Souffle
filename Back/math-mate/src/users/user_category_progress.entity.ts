@@ -9,7 +9,7 @@ import {
 import { User } from './user.entity';
 import { Category } from 'src/categories/category.entity';
 
-@Entity()
+@Entity({ name: 'user_category_progresses' })
 export class UserCategoryProgress extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;

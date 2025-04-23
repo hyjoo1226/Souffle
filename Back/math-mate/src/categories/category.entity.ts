@@ -10,7 +10,7 @@ import {
 import { Problem } from 'src/problems/problem.entity';
 import { UserCategoryProgress } from 'src/users/user_category_progress.entity';
 
-@Entity()
+@Entity({ name: 'categories' })
 export class Category extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

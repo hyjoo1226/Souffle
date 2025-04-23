@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Submission } from './submission.entity';
 
-@Entity()
+@Entity({ name: 'submission_steps' })
 export class SubmissionStep extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
