@@ -27,8 +27,17 @@ export class Submission extends BaseEntity {
   @JoinColumn({ name: 'problemId' })
   problem: Problem;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
+  totalSolveTime: number;
+
+  @Column({ type: 'int', default: 0 })
+  understandTime: number;
+
+  @Column({ type: 'int', default: 0 })
   solveTime: number;
+
+  @Column({ type: 'int', default: 0 })
+  reviewTime: number;
 
   @Column({ type: 'varchar', length: 255, nullable: false })
   answerImageUrl: string;
