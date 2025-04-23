@@ -1,12 +1,25 @@
-import { BaseEntity, Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  BaseEntity,
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Submission } from 'src/submissions/submission.entity';
+import { Category } from 'src/categories/category.entity';
 
 @Entity()
-export class Submission extends BaseEntity {
+export class Problem extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  categoryId: number;
+  @ManyToOne(() => Category, (category) => category.problems, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'categoryId' })
+  category: Category;
 
   @Column({ type: 'varchar', length: 50, nullable: true })
   problemNo: string;
@@ -43,4 +56,7 @@ export class Submission extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   avgSolveTime: number;
+
+  @OneToMany(() => Submission, (submission) => submission.problem)
+  submissions: Submission[];
 }

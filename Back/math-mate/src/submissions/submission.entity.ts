@@ -9,6 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
+import { Problem } from 'src/problems/problem.entity';
 import { SubmissionStep } from './submission_step.entity';
 
 @Entity()
@@ -20,8 +21,11 @@ export class Submission extends BaseEntity {
   @JoinColumn({ name: 'userId' })
   user: User;
 
-  @Column({ type: 'int' })
-  problemId: number;
+  @ManyToOne(() => Problem, (problem) => problem.submissions, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'problemId' })
+  problem: Problem;
 
   @Column({ type: 'int' })
   solveTime: number;
