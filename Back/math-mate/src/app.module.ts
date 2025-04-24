@@ -7,6 +7,7 @@ import { ProblemsModule } from './problems/problems.module';
 import { CategoriesModule } from './categories/categories.module';
 import { AnalysesModule } from './analyses/analyses.module';
 import { BooksModule } from './books/books.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { BooksModule } from './books/books.module';
     CategoriesModule,
     AnalysesModule,
     BooksModule,
+    FilesModule,
   ],
 })
 export class AppModule {}

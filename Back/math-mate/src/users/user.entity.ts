@@ -5,7 +5,7 @@ import {
   Column,
   OneToMany,
 } from 'typeorm';
-import { Submission } from 'src/submissions/submission.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
 import { UserCategoryProgress } from './user_category_progress.entity';
 
 @Entity({ name: 'users' })

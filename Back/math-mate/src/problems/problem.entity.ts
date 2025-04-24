@@ -7,7 +7,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Submission } from 'src/submissions/submission.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
 import { Category } from 'src/categories/category.entity';
 import { Book } from 'src/books/book.entity';
 
@@ -34,9 +34,6 @@ export class Problem extends BaseEntity {
 
   @Column({ type: 'int', nullable: false })
   type: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: false })
-  source: string;
 
   @Column({ type: 'text', nullable: false })
   content: string;

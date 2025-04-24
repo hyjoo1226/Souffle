@@ -10,7 +10,7 @@ import {
 } from 'typeorm';
 import { User } from 'src/users/user.entity';
 import { Problem } from 'src/problems/problem.entity';
-import { SubmissionStep } from './submission_step.entity';
+import { SubmissionStep } from './submission-step.entity';
 
 @Entity({ name: 'submissions' })
 export class Submission extends BaseEntity {
