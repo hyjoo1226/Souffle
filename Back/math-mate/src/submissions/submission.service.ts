@@ -6,6 +6,7 @@ import { User } from 'src/users/user.entity';
 import { Problem } from '../problems/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
 import { FileService } from 'src/files/file.service';
+import { OcrService } from 'src/ocr/ocr.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class SubmissionService {
     @InjectRepository(SubmissionStep)
     private submissionStepRepository: Repository<SubmissionStep>,
     private fileService: FileService,
+    private ocrService: OcrService,
   ) {}
 
   async createSubmission(
@@ -65,6 +67,11 @@ export class SubmissionService {
     const answerFileName = JSON.parse(submissionDto.answer).file_name;
     savedSubmission.answerImageUrl = fileMap.get(answerFileName);
     await this.submissionRepository.save(savedSubmission);
+
+    // OCR 변환 요청 큐 등록
+    await this.ocrService.addOcrJob({
+      answer_image_url: savedSubmission.answerImageUrl,
+    });
 
     // 풀이 단계 저장(form-data는 수동 매핑)
     const steps: Array<{ step_number: number; file_name: string }> = JSON.parse(
