@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
+import { BullBoardModule } from '@bull-board/nestjs';
+import { ExpressAdapter } from '@bull-board/express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './configs/typeorm.config';
 import { MulterModule } from '@nestjs/platform-express';
@@ -33,6 +35,10 @@ import { join } from 'path';
     }),
     BullModule.forRoot({
       redis: { host: 'localhost', port: 6379 },
+    }),
+    BullBoardModule.forRoot({
+      route: '/queues', // 대시보드 접속 경로 (http://localhost:3000/queues)
+      adapter: ExpressAdapter,
     }),
     OcrModule,
   ],

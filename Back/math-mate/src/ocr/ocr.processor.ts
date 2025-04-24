@@ -1,14 +1,28 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Processor('ocr-queue')
 export class OcrProcessor {
+  constructor(private readonly httpService: HttpService) {}
+
   @Process('ocr')
   async handleOcr(job: Job<{ answer_image_url: string }>) {
     const { answer_image_url } = job.data;
-    // 실제 OCR 처리 로직 (예: 외부 OCR 서버에 HTTP 요청)
-    // const result = await ocrService.runOcr(answer_image_url);
-    // 예시: 임시 반환
-    return { answer_convert: '변환된 텍스트' };
+
+    try {
+      // 데이터 서버 주소
+      const response = await firstValueFrom(
+        this.httpService.post('http://data-server-host/data/api/answer/ocr', {
+          answer_image_url,
+        }),
+      );
+      const answerConvert = response.data.answer_convert;
+
+      return { answer_convert: answerConvert };
+    } catch (error) {
+      console.error('OCR 데이터서버 요청 실패:', error.message);
+    }
   }
 }
