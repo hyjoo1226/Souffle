@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from './entities/submission.entity';
+import { User } from 'src/users/user.entity';
 import { Problem } from '../problems/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
 import { FileService } from 'src/files/file.service';
@@ -12,6 +13,8 @@ export class SubmissionService {
   constructor(
     @InjectRepository(Submission)
     private submissionRepository: Repository<Submission>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
     @InjectRepository(SubmissionStep)
@@ -23,12 +26,11 @@ export class SubmissionService {
     submissionDto: CreateSubmissionDto,
     files: Express.Multer.File[],
   ) {
-    // 파일명-URL 맵핑
-    const fileMap = new Map();
-    for (const file of files) {
-      const url = await this.fileService.uploadFile(file);
-      fileMap.set(file.originalname, url);
-    }
+    // 유저조회 - 현재는 인증 로직 없으므로 직접 할당당
+    const user = await this.userRepository.findOneBy({
+      id: submissionDto.user_id,
+    });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
 
     // 문제 조회
     const problem = await this.problemRepository.findOneBy({
@@ -38,21 +40,42 @@ export class SubmissionService {
 
     // 제출 엔티티 생성
     const submission = this.submissionRepository.create({
+      user,
       problem,
-      // user: 현재 로그인 사용자 정보 필요
       totalSolveTime: submissionDto.total_solve_time,
       understandTime: submissionDto.understand_time,
       solveTime: submissionDto.solve_time,
       reviewTime: submissionDto.review_time,
-      answerImageUrl: fileMap.get(submissionDto.answer.file_name),
     });
     const savedSubmission = await this.submissionRepository.save(submission);
 
-    // 풀이 단계 저장
-    for (const step of submissionDto.steps) {
+    // 파일명-URL 맵핑
+    const fileMap = new Map();
+    for (const file of files) {
+      const url = await this.fileService.uploadFile(
+        file,
+        user.id,
+        problem.id,
+        savedSubmission.id,
+      );
+      fileMap.set(file.originalname, url);
+    }
+
+    // 정답 이미지 url
+    const answerFileName = JSON.parse(submissionDto.answer).file_name;
+    savedSubmission.answerImageUrl = fileMap.get(answerFileName);
+    await this.submissionRepository.save(savedSubmission);
+
+    // 풀이 단계 저장(form-data는 수동 매핑)
+    const steps: Array<{ step_number: number; file_name: string }> = JSON.parse(
+      submissionDto.steps,
+    );
+
+    for (const step of steps) {
       const stepEntity = this.submissionStepRepository.create({
         submission: savedSubmission,
         stepNumber: step.step_number,
+        fileName: step.file_name,
         stepImageUrl: fileMap.get(step.file_name),
       });
       await this.submissionStepRepository.save(stepEntity);

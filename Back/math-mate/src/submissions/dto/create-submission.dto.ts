@@ -1,14 +1,7 @@
-import { IsArray, IsNumber, ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-
-export class StepDto {
-  @IsNumber()
-  step_number: number;
-
-  file_name: string;
-}
+import { IsString, IsNumber } from 'class-validator';
 
 export class AnswerDto {
+  @IsString()
   file_name: string;
 }
 
@@ -20,14 +13,11 @@ export class CreateSubmissionDto {
   @IsNumber()
   problem_id: number;
 
-  @ValidateNested()
-  @Type(() => AnswerDto)
-  answer: AnswerDto;
+  @IsString()
+  answer: string;
 
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => StepDto)
-  steps: StepDto[];
+  @IsString()
+  steps: string;
 
   @IsNumber()
   total_solve_time: number;

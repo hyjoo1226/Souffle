@@ -39,7 +39,7 @@ export class Submission extends BaseEntity {
   @Column({ type: 'int', default: 0 })
   reviewTime: number;
 
-  @Column({ type: 'varchar', length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   answerImageUrl: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
