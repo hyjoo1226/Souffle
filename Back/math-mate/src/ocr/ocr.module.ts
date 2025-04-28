@@ -11,6 +11,10 @@ import { OcrProcessor } from './ocr.processor';
   imports: [
     BullModule.registerQueue({
       name: 'ocr-queue',
+      defaultJobOptions: {
+        attempts: 3, // 3번 재시도
+        backoff: { type: 'exponential', delay: 1000 }, // 1초, 2초, 4초 간격
+      },
     }),
     BullBoardModule.forFeature({
       name: 'ocr-queue',
