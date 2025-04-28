@@ -209,4 +209,22 @@ export class SubmissionService {
       avgReviewTime,
     });
   }
+
+  async getSubmissionAnalysis(submissionId: number) {
+    const submission = await this.submissionRepository.findOne({
+      where: { id: submissionId },
+      relations: ['submissionSteps'],
+    });
+    if (!submission) throw new NotFoundException('제출을 찾을 수 없습니다.');
+
+    return {
+      submissionId: submission.id,
+      steps: submission.submissionSteps.map((step) => ({
+        step_number: step.stepNumber,
+        step_valid: step.isValid,
+      })),
+      ai_analysis: submission.aiAnalysis,
+      weakness: submission.weakness,
+    };
+  }
 }

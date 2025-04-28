@@ -1,7 +1,9 @@
 import {
   Controller,
+  Get,
   Post,
   UseInterceptors,
+  Param,
   Body,
   UploadedFiles,
 } from '@nestjs/common';
@@ -20,5 +22,10 @@ export class SubmissionController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     return this.submissionService.createSubmission(submissionDto, files);
+  }
+
+  @Get(':submissionId')
+  async getSubmissionAnalysis(@Param('submissionId') id: number) {
+    return this.submissionService.getSubmissionAnalysis(id);
   }
 }
