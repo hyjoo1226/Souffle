@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { SubmissionController } from './submission.controller';
-import { SubmissionService } from './submission.service';
+import { SubmissionController } from './submissions.controller';
+import { SubmissionService } from './submissions.service';
 import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/user.entity';
 import { Problem } from 'src/problems/problem.entity';

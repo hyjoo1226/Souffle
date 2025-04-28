@@ -6,7 +6,7 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { SubmissionService } from './submission.service';
+import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Controller('api/v1/submission')

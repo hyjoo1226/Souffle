@@ -5,7 +5,7 @@ import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/user.entity';
 import { Problem } from '../problems/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
-import { FileService } from 'src/files/file.service';
+import { FileService } from 'src/files/files.service';
 import { OcrService } from 'src/ocr/ocr.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 
