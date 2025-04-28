@@ -6,18 +6,18 @@ import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Problem } from 'src/problems/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
-import { FilesModule } from 'src/files/files.module';
+import { FileModule } from 'src/files/files.module';
 import { OcrModule } from 'src/ocr/ocr.module';
-import { AnalysesModule } from 'src/analyses/analyses.module';
+import { AnalysisModule } from 'src/analyses/analyses.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Submission, User, Problem, SubmissionStep]),
-    FilesModule,
+    FileModule,
     OcrModule,
-    AnalysesModule,
+    AnalysisModule,
   ],
   controllers: [SubmissionController],
   providers: [SubmissionService],
 })
-export class SubmissionsModule {}
+export class SubmissionModule {}

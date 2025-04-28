@@ -6,26 +6,26 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeORMConfig } from './configs/typeorm.config';
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { SubmissionsModule } from './submissions/submissions.module';
-import { UsersModule } from './users/users.module';
-import { ProblemsModule } from './problems/problems.module';
-import { CategoriesModule } from './categories/categories.module';
-import { AnalysesModule } from './analyses/analyses.module';
-import { BooksModule } from './books/books.module';
-import { FilesModule } from './files/files.module';
+import { SubmissionModule } from './submissions/submissions.module';
+import { UserModule } from './users/users.module';
+import { ProblemModule } from './problems/problems.module';
+import { CategoryModule } from './categories/categories.module';
+import { AnalysisModule } from './analyses/analyses.module';
+import { BookModule } from './books/books.module';
+import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
 import { join } from 'path';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(typeORMConfig),
-    SubmissionsModule,
-    UsersModule,
-    ProblemsModule,
-    CategoriesModule,
-    AnalysesModule,
-    BooksModule,
-    FilesModule,
+    SubmissionModule,
+    UserModule,
+    ProblemModule,
+    CategoryModule,
+    AnalysisModule,
+    BookModule,
+    FileModule,
     MulterModule.register({
       dest: './uploads', // 파일이 저장될 로컬 경로(폴더)
     }),

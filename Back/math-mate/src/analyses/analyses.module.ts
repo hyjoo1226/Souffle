@@ -24,4 +24,4 @@ import { SubmissionStep } from 'src/submissions/entities/submission-step.entity'
   providers: [AnalysisService, AnalysisProcessor],
   exports: [AnalysisService],
 })
-export class AnalysesModule {}
+export class AnalysisModule {}
