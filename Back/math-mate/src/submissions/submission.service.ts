@@ -101,7 +101,7 @@ export class SubmissionService {
       await this.submissionStepRepository.save(stepEntity);
     }
 
-    // 통계 갱신 (예시)
+    // 문제 통계 갱신
     await this.updateProblemStatistics(problem.id);
 
     return {
@@ -112,7 +112,30 @@ export class SubmissionService {
     };
   }
 
+  // 문제 통계 갱신 로직
   private async updateProblemStatistics(problemId: number) {
-    // 문제별 평균 정답률, 평균 풀이 시간 갱신 로직
+    // 해당 문제의 모든 제출 내역
+    const submissions = await this.submissionRepository.find({
+      where: { problem: { id: problemId } },
+    });
+    if (submissions.length === 0) return;
+
+    // 평균 정답률 계산
+    const correctCount = submissions.filter((s) => s.isCorrect).length;
+    const avgAccuracy =
+      Math.round((correctCount / submissions.length) * 1000) / 10;
+
+    // 평균 풀이시간 계산
+    const totalSolveTime = submissions.reduce(
+      (sum, s) => sum + (s.totalSolveTime || 0),
+      0,
+    );
+    const avgTotalSolveTime = Math.round(totalSolveTime / submissions.length);
+
+    // 저장
+    await this.problemRepository.update(problemId, {
+      avgAccuracy,
+      avgTotalSolveTime,
+    });
   }
 }
