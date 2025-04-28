@@ -27,16 +27,16 @@ export class Submission extends BaseEntity {
   @JoinColumn({ name: 'problemId' })
   problem: Problem;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', nullable: true })
   totalSolveTime: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', nullable: true })
   understandTime: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', nullable: true })
   solveTime: number;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', nullable: true })
   reviewTime: number;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

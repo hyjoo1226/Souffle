@@ -124,12 +124,21 @@ export class SubmissionService {
 
     // 문제 통계 갱신
     await this.updateProblemStatistics(problem.id);
+    const updatedProblem = await this.problemRepository.findOneBy({
+      id: problem.id,
+    });
+    if (!updatedProblem) {
+      throw new NotFoundException('문제 정보를 찾을 수 없습니다.');
+    }
 
     return {
       submissionId: savedSubmission.id,
       is_correct: submission.isCorrect,
-      avg_accuracy: problem.avgAccuracy,
-      avg_solve_time: problem.avgTotalSolveTime,
+      avg_accuracy: updatedProblem.avgAccuracy,
+      avg_total_solve_time: updatedProblem.avgTotalSolveTime,
+      avg_understand_time: updatedProblem.avgUnderstandTime,
+      avg_solve_time: updatedProblem.avgSolveTime,
+      avg_review_time: updatedProblem.avgReviewTime,
     };
   }
 
@@ -142,21 +151,62 @@ export class SubmissionService {
     if (submissions.length === 0) return;
 
     // 평균 정답률 계산
-    const correctCount = submissions.filter((s) => s.isCorrect).length;
-    const avgAccuracy =
-      Math.round((correctCount / submissions.length) * 1000) / 10;
-
-    // 평균 풀이시간 계산
-    const totalSolveTime = submissions.reduce(
-      (sum, s) => sum + (s.totalSolveTime || 0),
-      0,
+    const filtered = submissions.filter(
+      (s) => s.isCorrect !== null && s.isCorrect !== undefined,
     );
-    const avgTotalSolveTime = Math.round(totalSolveTime / submissions.length);
+    const correctCount = filtered.filter((s) => s.isCorrect).length;
+    const avgAccuracy =
+      filtered.length > 0
+        ? Math.round((correctCount / filtered.length) * 1000) / 10
+        : 0;
 
-    // 저장
+    // null 제외 후 평균 계산
+    const totalSolveTimes = submissions
+      .map((s) => s.totalSolveTime)
+      .filter((t) => t !== null);
+    const understandTimes = submissions
+      .map((s) => s.understandTime)
+      .filter((t) => t !== null);
+    const solveTimes = submissions
+      .map((s) => s.solveTime)
+      .filter((t) => t !== null);
+    const reviewTimes = submissions
+      .map((s) => s.reviewTime)
+      .filter((t) => t !== null);
+
+    const avgTotalSolveTime =
+      totalSolveTimes.length > 0
+        ? Math.round(
+            totalSolveTimes.reduce((a, b) => a + b, 0) / totalSolveTimes.length,
+          )
+        : 0;
+
+    const avgUnderstandTime =
+      understandTimes.length > 0
+        ? Math.round(
+            understandTimes.reduce((a, b) => a + b, 0) / understandTimes.length,
+          )
+        : 0;
+
+    const avgSolveTime =
+      solveTimes.length > 0
+        ? Math.round(solveTimes.reduce((a, b) => a + b, 0) / solveTimes.length)
+        : 0;
+
+    const avgReviewTime =
+      reviewTimes.length > 0
+        ? Math.round(
+            reviewTimes.reduce((a, b) => a + b, 0) / reviewTimes.length,
+          )
+        : 0;
+
+    // 문제 엔티티 업데이트
     await this.problemRepository.update(problemId, {
       avgAccuracy,
       avgTotalSolveTime,
+      avgUnderstandTime,
+      avgSolveTime,
+      avgReviewTime,
     });
   }
 }
