@@ -8,7 +8,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { User } from 'src/users/user.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Problem } from 'src/problems/problem.entity';
 import { SubmissionStep } from './submission-step.entity';
 
@@ -46,7 +46,7 @@ export class Submission extends BaseEntity {
   answerConvert: string;
 
   @Column({ type: 'boolean', nullable: true })
-  isCorrect: boolean;
+  isCorrect: boolean | null;
 
   @Column({ type: 'text', nullable: true })
   aiAnalysis: string;

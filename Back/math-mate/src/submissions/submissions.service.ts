@@ -2,12 +2,13 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from './entities/submission.entity';
-import { User } from 'src/users/user.entity';
+import { User } from 'src/users/entities/user.entity';
 import { Problem } from '../problems/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
 import { FileService } from 'src/files/files.service';
 import { OcrService } from 'src/ocr/ocr.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
+import { AnalysisService } from 'src/analyses/analyses.service';
 
 @Injectable()
 export class SubmissionService {
@@ -22,6 +23,7 @@ export class SubmissionService {
     private submissionStepRepository: Repository<SubmissionStep>,
     private fileService: FileService,
     private ocrService: OcrService,
+    private analysisService: AnalysisService,
   ) {}
 
   async createSubmission(
@@ -68,25 +70,6 @@ export class SubmissionService {
     savedSubmission.answerImageUrl = fileMap.get(answerFileName);
     await this.submissionRepository.save(savedSubmission);
 
-    // 동기 OCR 처리
-    try {
-      const answerConvert = await this.ocrService.convertOcr(
-        savedSubmission.answerImageUrl,
-      );
-      savedSubmission.answerConvert = answerConvert;
-      savedSubmission.isCorrect = answerConvert === problem.answer;
-    } catch (error) {
-      console.error('OCR 변환 실패로 채점 생략');
-      savedSubmission.isCorrect = false;
-    }
-    await this.submissionRepository.save(savedSubmission);
-    // // OCR 변환 요청 큐 등록
-    // await this.ocrService.addOcrJob({
-    //   answer_image_url: savedSubmission.answerImageUrl,
-    //   submission_id: savedSubmission.id,
-    //   problem_answer: problem.answer,
-    // });
-
     // 풀이 단계 저장(form-data는 수동 매핑)
     const steps: Array<{ step_number: number; file_name: string }> = JSON.parse(
       submissionDto.steps,
@@ -100,6 +83,44 @@ export class SubmissionService {
       });
       await this.submissionStepRepository.save(stepEntity);
     }
+
+    // 풀이분석 비동기 큐 등록
+    try {
+      await this.analysisService.addAnalysisJob({
+        submission_id: savedSubmission.id,
+        problem_id: problem.id,
+        answer_image_url: savedSubmission.answerImageUrl,
+        steps: steps.map((step) => ({
+          step_number: step.step_number,
+          step_image_url: fileMap.get(step.file_name),
+        })),
+        total_solve_time: submissionDto.total_solve_time,
+        understand_time: submissionDto.understand_time,
+        solve_time: submissionDto.solve_time,
+        review_time: submissionDto.review_time,
+      });
+    } catch (error) {
+      console.error('풀이분석 큐 등록 실패:', error.message);
+    }
+
+    // 동기 OCR 처리
+    try {
+      const answerConvert = await this.ocrService.convertOcr(
+        savedSubmission.answerImageUrl,
+      );
+      savedSubmission.answerConvert = answerConvert;
+      savedSubmission.isCorrect = answerConvert === problem.answer;
+    } catch (error) {
+      console.error('OCR 변환 실패로 채점 생략');
+      savedSubmission.isCorrect = null;
+    }
+    await this.submissionRepository.save(savedSubmission);
+    // // OCR 변환 요청 큐 등록
+    // await this.ocrService.addOcrJob({
+    //   answer_image_url: savedSubmission.answerImageUrl,
+    //   submission_id: savedSubmission.id,
+    //   problem_answer: problem.answer,
+    // });
 
     // 문제 통계 갱신
     await this.updateProblemStatistics(problem.id);
