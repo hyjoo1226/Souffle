@@ -68,12 +68,24 @@ export class SubmissionService {
     savedSubmission.answerImageUrl = fileMap.get(answerFileName);
     await this.submissionRepository.save(savedSubmission);
 
-    // OCR 변환 요청 큐 등록
-    await this.ocrService.addOcrJob({
-      answer_image_url: savedSubmission.answerImageUrl,
-      submission_id: savedSubmission.id,
-      problem_answer: problem.answer,
-    });
+    // 동기 OCR 처리
+    try {
+      const answerConvert = await this.ocrService.convertOcr(
+        savedSubmission.answerImageUrl,
+      );
+      savedSubmission.answerConvert = answerConvert;
+      savedSubmission.isCorrect = answerConvert === problem.answer;
+    } catch (error) {
+      console.error('OCR 변환 실패로 채점 생략');
+      savedSubmission.isCorrect = false;
+    }
+    await this.submissionRepository.save(savedSubmission);
+    // // OCR 변환 요청 큐 등록
+    // await this.ocrService.addOcrJob({
+    //   answer_image_url: savedSubmission.answerImageUrl,
+    //   submission_id: savedSubmission.id,
+    //   problem_answer: problem.answer,
+    // });
 
     // 풀이 단계 저장(form-data는 수동 매핑)
     const steps: Array<{ step_number: number; file_name: string }> = JSON.parse(
