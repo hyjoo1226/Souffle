@@ -1,68 +1,201 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+@theme {
+  /* Uncategorized Colors */
+  --color-background: #011728;
+  --color-negative: #e2695c;
+  --color-positive: #5279bd;
+  --color-neutral: #d3e67e;
+  --color-chart1: #80bf56;
+  --color-chart2: #af5c97;
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Primary Colors */
+  --color-primary-50: #f5f7f9;
+  --color-primary-100: #e7ecf2;
+  --color-primary-200: #d5dce8;
+  --color-primary-300: #b8c6d8;
+  --color-primary-400: #96a9c4;
+  --color-primary-500: #7d90b4;
+  --color-primary-600: #6b7ba5;
+  --color-primary-700: #616e9a;
+  --color-primary-800: #515a7c;
+  --color-primary-900: #444b64;
+  --color-primary-950: #2c303f;
+
+  /* Secondary Colors */
+  --color-secondary-50: #f5f6f8;
+  --color-secondary-100: #eceef3;
+  --color-secondary-200: #dddfe8;
+  --color-secondary-300: #c7cada;
+  --color-secondary-400: #b0b2c9;
+  --color-secondary-500: #9697b6;
+  --color-secondary-600: #8684a7;
+  --color-secondary-700: #747191;
+  --color-secondary-800: #5f5d76;
+  --color-secondary-900: #4f4f60;
+  --color-secondary-950: #2e2e38;
+
+  /* Tetiary Colors */
+  --color-tetiary-50: #f4f4f9;
+  --color-tetiary-100: #ececf3;
+  --color-tetiary-200: #dcdce9;
+  --color-tetiary-300: #c4c5da;
+  --color-tetiary-400: #afaecb;
+  --color-tetiary-500: #9d99bb;
+  --color-tetiary-600: #8982a9;
+  --color-tetiary-700: #776f93;
+  --color-tetiary-800: #615b78;
+  --color-tetiary-900: #514d62;
+  --color-tetiary-950: #302d39;
+
+  /* AmountReference Colors */
+  --color-amount-50: #fff9eb;
+  --color-amount-100: #ffeec6;
+  --color-amount-200: #ffd677;
+  --color-amount-300: #ffc34a;
+  --color-amount-400: #ffaa20;
+  --color-amount-500: #f98607;
+  --color-amount-600: #dd6102;
+  --color-amount-700: #b74106;
+  --color-amount-800: #94310c;
+  --color-amount-900: #7a290d;
+  --color-amount-950: #461302;
+
+  /* System Colors */
+  --color-system-danger: #c22b20;
+  --color-system-warning: #ffe949;
+  --color-system-success: #00c380;
+  --color-system-info: #4fa5ff;
+
+  /* Gray Colors */
+  --color-gray-0: #ffffff;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #e0e0e0;
+  --color-gray-300: #cccccc;
+  --color-gray-400: #afafaf;
+  --color-gray-500: #8c8c8c;
+  --color-gray-600: #6b6b6b;
+  --color-gray-700: #4e4e4e;
+  --color-gray-800: #2c2c2c;
+  --color-gray-900: #000000;
+
+  /* Shadow 설정 */
+  --shadow-xxsmall: 0px 2px 14px 2px rgba(33, 33, 33, 0.03);
+  --shadow-xsmall: 0px 2px 12px 1px rgba(33, 33, 33, 0.09);
+  --shadow-small: 0px 3px 6px 0px rgba(33, 33, 33, 0.23);
+  --shadow-medium: 0px 8px 18px 0px rgba(33, 33, 33, 0.14);
+  --shadow-large: 0px 8px 20px 0px rgba(33, 33, 33, 0.22);
+  --shadow-xlarge: 0px 8px 24px 0px rgba(33, 33, 33, 0.37);
+  --shadow-light: 0px 1px 12px 0px rgba(227, 228, 255, 0.8);
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+@layer utilities {
+  /* Display */
+  .display-xlarge {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 72px;
+    line-height: 74px;
+  }
+
+  .display-large {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 64px;
+    line-height: 70px;
+  }
+
+  .display-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 48px;
+    line-height: 54px;
+  }
+
+  .display-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 40px;
+    line-height: 44px;
+  }
+
+  /* Headline */
+  .headline-xlarge {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 32px;
+    line-height: 36px;
+  }
+
+  .headline-large {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 26px;
+    line-height: 30px;
+  }
+
+  .headline-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 22px;
+    line-height: 26px;
+  }
+
+  .headline-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  /* Body */
+  .body-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .body-medium-bold {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 700; /* Regular */
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .body-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Caption */
+  .caption-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .caption-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 10px;
+    line-height: 12px;
+  }
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  font-family: "Pretendard", sans-serif;
+  color: rgb(255, 255, 255);
+  margin: 0px;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+@font-face {
+  font-family: "Cafe24ClassicType-Regular";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-2@1.0/Cafe24ClassicType-Regular.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-style: normal;
 }
