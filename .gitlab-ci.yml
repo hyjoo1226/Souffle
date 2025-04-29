@@ -50,11 +50,25 @@
 
 stages:
   - test
+  - deploy
 
-test-runner:
+test-before-deploy:
   stage: test
+  script:
+    - echo "🔍 코드 정합성 테스트 중..."
+    - docker-compose -f docker-compose.yml config   # 구성 유효성 검사
   tags:
     - deploy
+
+deploy-on-master:
+  stage: deploy
   script:
-    - echo "✅ Runner 연결 성공!"
+    - echo "🚀 master 브랜치에서 배포 시작"
+    - docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+  tags:
+    - deploy
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+
 
