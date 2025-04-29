@@ -23,11 +23,11 @@
 
 
 stages:
-  - test
+  - ping
 
-test-runner:
-  stage: test
+ping-runner:
+  stage: ping
   tags:
     - deploy
   script:
-    - echo "✅ Runner 연결 성공!"
+    - echo "✅ Runner 연결 성공! 정상 작동 중!"
