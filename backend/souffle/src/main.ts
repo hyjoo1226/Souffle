@@ -1,9 +1,19 @@
+import * as dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
+dotenv.config();
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // 환경에 따라 로깅 레벨 분리
+  if (process.env.NODE_ENV === 'production') {
+    app.useLogger(['error', 'warn', 'log']);
+  } else {
+    app.useLogger(['error', 'warn', 'log', 'debug', 'verbose']);
+  }
 
   const config = new DocumentBuilder()
     .setTitle('풀이 분석 API')

@@ -34,7 +34,10 @@ import { join } from 'path';
       serveRoot: '/uploads',
     }),
     BullModule.forRoot({
-      redis: { host: 'localhost', port: 6379 },
+      redis: {
+        host: process.env.REDIS_HOST ?? 'localhost',
+        port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+      },
     }),
     BullBoardModule.forRoot({
       route: '/queues', // 대시보드 접속 경로 (http://localhost:3000/queues)
