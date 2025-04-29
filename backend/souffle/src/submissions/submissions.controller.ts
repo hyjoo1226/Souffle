@@ -11,7 +11,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('submission')
 @Controller('api/v1/submission')
@@ -21,6 +21,14 @@ export class SubmissionController {
   @Post()
   @ApiOperation({ summary: '제출 생성' })
   @ApiResponse({ status: 201, description: '제출 성공' })
+  @ApiResponse({
+    status: 400,
+    description: '잘못된 요청(파라미터 누락/형식 오류)',
+  })
+  @ApiResponse({ status: 404, description: '존재하지 않는 사용자, 문제' })
+  @ApiResponse({ status: 413, description: '파일 용량 초과' })
+  @ApiResponse({ status: 415, description: '지원하지 않는 파일 형식' })
+  @ApiResponse({ status: 500, description: '서버 내부 오류' })
   @UseInterceptors(FilesInterceptor('files'))
   async createSubmission(
     @Body() submissionDto: CreateSubmissionDto,
@@ -46,6 +54,7 @@ export class SubmissionController {
   })
   @ApiResponse({ status: 400, description: '잘못된 submissionId' })
   @ApiResponse({ status: 404, description: '제출을 찾을 수 없습니다.' })
+  @ApiResponse({ status: 500, description: '서버 내부 오류' })
   async getSubmissionAnalysis(@Param('submissionId', ParseIntPipe) id: number) {
     return this.submissionService.getSubmissionAnalysis(id);
   }
