@@ -11,7 +11,13 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submissions.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
 
 @ApiTags('submission')
 @Controller('api/v1/submission')
@@ -19,7 +25,46 @@ export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   @Post()
-  @ApiOperation({ summary: '제출 생성' })
+  @ApiOperation({ summary: '풀이 데이터 전송' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        user_id: { type: 'integer', example: 1 },
+        problem_id: { type: 'integer', example: 2 },
+        answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
+        steps: {
+          type: 'string',
+          example: '[{"step_number":1,"file_name":"step01.jpg"}]',
+        },
+        total_solve_time: { type: 'integer', example: 120 },
+        understand_time: { type: 'integer', example: 30 },
+        solve_time: { type: 'integer', example: 60 },
+        review_time: { type: 'integer', example: 30 },
+        files: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+          description: '풀이 이미지 파일들',
+        },
+      },
+      required: [
+        'user_id',
+        'problem_id',
+        'answer',
+        'steps',
+        'total_solve_time',
+        'understand_time',
+        'solve_time',
+        'review_time',
+        'files',
+      ],
+    },
+  })
+  @UseInterceptors(FilesInterceptor('files'))
   @ApiResponse({ status: 201, description: '제출 성공' })
   @ApiResponse({
     status: 400,
@@ -29,7 +74,6 @@ export class SubmissionController {
   @ApiResponse({ status: 413, description: '파일 용량 초과' })
   @ApiResponse({ status: 415, description: '지원하지 않는 파일 형식' })
   @ApiResponse({ status: 500, description: '서버 내부 오류' })
-  @UseInterceptors(FilesInterceptor('files'))
   async createSubmission(
     @Body() submissionDto: CreateSubmissionDto,
     @UploadedFiles() files: Express.Multer.File[],
