@@ -55,6 +55,20 @@
   --shadow-large: 0px 8px 20px 0px rgba(33, 33, 33, 0.22);
   --shadow-xlarge: 0px 8px 24px 0px rgba(33, 33, 33, 0.37);
   --shadow-light: 0px 1px 12px 0px rgba(227, 228, 255, 0.8);
+
+  /* Spacing 토큰 추가 */
+  --spacing-4: 1rem; /* 16px gutter */
+  --spacing-6: 1.5rem; /* 24px margin */
+}
+
+@layer base {
+  /* Tailwind 컨테이너에 자동 중앙 정렬 + 좌우 padding */
+  .container {
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+  }
 }
 
 @layer utilities {
@@ -151,6 +165,17 @@
     font-weight: 400; /* Regular */
     font-size: 10px;
     line-height: 12px;
+  }
+
+  /* 12컬럼 그리드 */
+  .grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  /* 수평 gutter 16px */
+  .gap-x-4 {
+    --tw-gap-x: var(--spacing-4);
+    gap: var(--tw-gap-y) var(--tw-gap-x);
   }
 }
 
