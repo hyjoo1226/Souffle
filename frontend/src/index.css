@@ -170,6 +170,21 @@
     /* 가운데 정렬용 auto 마진은 제거 */
     margin: 0;
   }
+
+  /* figma 기준 shadow */
+  .figma-shadow {
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  /* 스크롤바 숨기기 */
+  .scrollbar-none {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE & Edge */
+
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+  }
 }
 
 body {

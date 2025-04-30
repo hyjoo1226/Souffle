@@ -1,34 +1,32 @@
-import { Button } from '@/components/common/Button';
-import SolutionAnalysisHeader from '@/components/solutionAnalysisPage/SolutionAnalysisHeader';
+import SolutionAnalysisHeader from '@/components/solutionAnalysis/SolutionAnalysisHeader';
+import Analysis from '@/components/solutionAnalysis/Analysis';
+import UserSolution from '@/components/solutionAnalysis/UserSolution';
+import TimeAnalysis from '@/components/solutionAnalysis/TimeAnalysis';
+import GraphAnalysis from '@/components/solutionAnalysis/GraphAnalysis';
 
 const SolutionAnalysisPage = () => {
   return (
     <div>
         <SolutionAnalysisHeader />
-        <div className="grid grid-cols-12 gap-x-4 bg-gray-100">
-            <div className="col-span-6 space-x-2 bg-primary-500">
-                {/* 기본 타원형 */}
-                <Button>텍스트 입력</Button>
-
-                {/* 채워진 버튼 */}
-                <Button variant="solid">텍스트 입력</Button>
-
-                {/* 개념학습 버튼 */}
-                <Button variant="sub" size="sm">개념 학습하기</Button>
-
-                {/* 바로가기(링크) 버튼 */}
-                <Button variant="solid">
-                    → 텍스트 입력
-                </Button>
-            </div>
-            <div className='col-span-6 bg-red-500'>
-                gkdldy
-            </div>
+        <div 
+          className="rounded-[12px] px-10 py-10 grid grid-cols-2 gap-x-4"
+          style={{
+            background: 'linear-gradient(to bottom, #EBF2FE 37%, #FFFFFF 100%)',
+          }}
+        >
+            <UserSolution />
+            <Analysis />
+        </div>
+        <div className='grid grid-cols-12 gap-x-4'>
+          <div className="col-span-6 p-10">
+            <TimeAnalysis />
+          </div>
+          <div className="col-span-6 p-10">
+            <GraphAnalysis />
+          </div>
         </div>
     </div>
   );
 };
-
-
 
 export default SolutionAnalysisPage;
