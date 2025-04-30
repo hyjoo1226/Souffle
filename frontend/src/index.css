@@ -61,16 +61,6 @@
   --spacing-6: 1.5rem; /* 24px margin */
 }
 
-@layer base {
-  /* Tailwind 컨테이너에 자동 중앙 정렬 + 좌우 padding */
-  .container {
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: var(--spacing-6);
-    padding-right: var(--spacing-6);
-  }
-}
-
 @layer utilities {
   /* Display */
   .display-xlarge {
@@ -172,10 +162,13 @@
     grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  /* 수평 gutter 16px */
-  .gap-x-4 {
-    --tw-gap-x: var(--spacing-4);
-    gap: var(--tw-gap-y) var(--tw-gap-x);
+  .page-wrapper {
+    /* 가로 100% 풀폭 + 좌우 24px 패딩 */
+    width: 100%;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+    /* 가운데 정렬용 auto 마진은 제거 */
+    margin: 0;
   }
 }
 
