@@ -1,14 +1,13 @@
 import { Button } from '@/components/common/Button';
 
 const SolutionAnalysisPage = () => {
-  return <div className="text-gray-700">
-    SolutionAnalysisPage
+  return <div className="grid grid-cols-12 gap-x-4">
     <div className="space-x-2">
       {/* 기본 타원형 */}
       <Button>텍스트 입력</Button>
 
       {/* 채워진 버튼 */}
-      <Button variant="solid">텍스트 입력         asdfasdfasdf     </Button>
+      <Button variant="solid">텍스트 입력 asdfasdfasdf     </Button>
 
       {/* 개념학습 버튼 */}
       <Button variant="sub" size="sm">개념 학습하기</Button>

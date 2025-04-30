@@ -35,7 +35,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>((
     <button
       ref={ref}
       className={clsx(
-        'rounded-[10px] transition',      // 공통
+        'rounded-[10px]',      // 공통
         variantStyles[variant],                     // variant 별
         sizeStyles[size],                           // size 별
         className,
