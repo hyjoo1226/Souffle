@@ -8,7 +8,7 @@ const SolutionAnalysisPage = () => {
       <Button>텍스트 입력</Button>
 
       {/* 채워진 버튼 */}
-      <Button variant="solid">텍스트 입력</Button>
+      <Button variant="solid">텍스트 입력         asdfasdfasdf     </Button>
 
       {/* 개념학습 버튼 */}
       <Button variant="sub" size="sm">개념 학습하기</Button>
