@@ -20,7 +20,17 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+
+    // [성준] path 추가 좀 할게요
+    "baseUrl": ".",                   // 절대 경로 기준을 프로젝트 루트로
+    "paths": {
+      "@/*": ["src/*"]                // "@/foo" → "src/foo" 매핑
+    },
+    "types": [
+      "vite/client",                  // Vite 전역 타입
+      "node"                          // Node.js 내장 모듈 (path 등)
+    ]
   },
   "include": ["src"]
 }
