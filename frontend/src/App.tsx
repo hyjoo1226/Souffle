@@ -10,7 +10,7 @@ function App() {
         <Link to="/analysis">풀이 분석</Link>
       </nav> */}
 
-      <div className="container">
+      <div className="page-wrapper">
         {/* 라우팅 영역 */}
         <Router />
       </div>
