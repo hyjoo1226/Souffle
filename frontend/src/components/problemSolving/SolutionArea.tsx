@@ -2,14 +2,15 @@ import { useEffect, useRef, useState } from "react";
 
 const SolutionArea = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const blockButtonsRef = useRef<HTMLDivElement>(null);
   const currentStrokeRef = useRef<any[]>([]);
+
   const [strokes, setStrokes] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [drawing, setDrawing] = useState(false);
   const [currentStroke, setCurrentStroke] = useState<any[]>([]);
   const [lastStrokeTime, setLastStrokeTime] = useState<number | null>(null);
   const [lastPoint, setLastPoint] = useState<any>(null);
+  const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -70,7 +71,6 @@ const SolutionArea = () => {
           strokes: [strokeData],
         };
         newBlocks.push(block);
-        addBlockButton(block.block_id);
       } else {
         newBlocks[newBlocks.length - 1].strokes.push(strokeData);
       }
@@ -93,20 +93,17 @@ const SolutionArea = () => {
     };
   }, [drawing, strokes, blocks, currentStroke, lastPoint, lastStrokeTime]);
 
-  const addBlockButton = (id: number) => {
-    const btn = document.createElement("button");
-    btn.textContent = `수식 ${id}`;
-    btn.className = "m-1 px-2 py-1 border rounded text-sm";
-    btn.onclick = () => replayBlock(id);
-    blockButtonsRef.current?.appendChild(btn);
-  };
-
   const replayBlock = async (id: number) => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    console.log("▶️ replayBlock called with id:", id);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
     const block = blocks.find((b) => b.block_id === id);
     if (!block) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     for (const stroke of block.strokes) {
       const isLong = stroke.duration > 2000;
@@ -124,13 +121,35 @@ const SolutionArea = () => {
     }
   };
 
+  const drawAllAtOnce = () => {
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d")!;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const block of blocks) {
+      for (const stroke of block.strokes) {
+        const isLong = stroke.duration > 2000;
+        ctx.strokeStyle = isLong ? "red" : "black";
+        ctx.lineWidth = isLong ? 3 : 1.5;
+
+        ctx.beginPath();
+        for (let i = 0; i < stroke.points.length; i++) {
+          const p = stroke.points[i];
+          if (i === 0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+    }
+  };
+
   const handleClear = () => {
     canvasRef.current?.getContext("2d")?.clearRect(0, 0, 800, 600);
     setStrokes([]);
     setBlocks([]);
     setLastPoint(null);
     setLastStrokeTime(null);
-    blockButtonsRef.current!.innerHTML = "";
+    setActiveBlockId(null);
   };
 
   const handleSave = () => {
@@ -160,6 +179,7 @@ const SolutionArea = () => {
       }
       await new Promise((r) => setTimeout(r, 500));
     }
+    setActiveBlockId(null);
   };
 
   return (
@@ -188,8 +208,27 @@ const SolutionArea = () => {
         >
           전체 재생
         </button>
+        <button
+          onClick={drawAllAtOnce}
+          className="px-3 py-1 bg-gray-100 border rounded"
+        >
+          전체 이미지 보기
+        </button>
       </div>
-      <div ref={blockButtonsRef} className="mb-2 flex flex-wrap gap-1"></div>
+      <div className="mb-2 flex flex-wrap gap-1">
+        {blocks.map((block) => (
+          <button
+            key={block.block_id}
+            onClick={() => {
+              setActiveBlockId(block.block_id);
+              replayBlock(block.block_id);
+            }}
+            className="m-1 px-2 py-1 border rounded text-sm"
+          >
+            수식 {block.block_id}
+          </button>
+        ))}
+      </div>
       <canvas
         id="drawCanvas"
         ref={canvasRef}
