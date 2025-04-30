@@ -1,26 +1,15 @@
-// import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from "react-router-dom";
+import ProblemSolvingPage from "../pages/problemSolving/ProblemSolvingPage";
+import SolutionAnalysisPage from "../pages/problemSolving/SolutionAnalysisPage";
+import EntryPage from "../pages/EntryPage";
+const Router = () => {
+  return (
+    <Routes>
+      <Route path="/" element={<EntryPage />} />
+      <Route path="/solving" element={<ProblemSolvingPage />} />
+      <Route path="/analysis" element={<SolutionAnalysisPage />} />
+    </Routes>
+  );
+};
 
-// const Router = () => {
-//   return (
-//     <Routes>
-//       {/* 헤더가 없는 페이지 */}
-//       <Route element={<AuthLayout />}>
-//         <Route path="/login" element={<LoginPage />} />
-//         <Route path="/" element={<Landing />} />
-//       </Route>
-//       <Route element={<Layout />}>
-//         <Route path="/main" element={<MainPage />} />
-//         <Route path="/koreaAnalysis" element={<KoreaAnalysisPage />} />
-//         <Route element={<PrivateRoute />}>
-//           <Route path="/mypage" element={<MyPage />} />
-//         </Route>
-//         <Route
-//           path="/worldDetail/:country/:category/:period/:keyword/:keyword_mind?"
-//           element={<WorldDetail />}
-//         />
-//       </Route>
-//     </Routes>
-//   );
-// };
-
-// export default Router;
+export default Router;
