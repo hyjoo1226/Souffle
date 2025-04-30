@@ -1,7 +1,7 @@
 // 풀이 분석 페이지 상단 부분
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { ReactComponent as Expand } from '@/assets/icons/expand.svg';
+import { ReactComponent as Expand } from '@/assets/icons/Expand.svg';
 
 const SolutionAnalysisHeader = () => {
   return (

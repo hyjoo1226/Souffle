@@ -1,6 +1,6 @@
 // GPT 분석
 import { Link } from 'react-router-dom';
-import { ReactComponent as Expand } from '@/assets/icons/expand.svg';
+import { ReactComponent as Expand } from '@/assets/icons/Expand.svg';
 
 const Analysis = () => {
     return (
