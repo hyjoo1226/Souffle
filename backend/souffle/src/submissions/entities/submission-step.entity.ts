@@ -23,6 +23,9 @@ export class SubmissionStep extends BaseEntity {
   @Column({ type: 'int' })
   stepNumber: number;
 
+  @Column({ type: 'int', nullable: true })
+  stepTime: number;
+
   @Column({ type: 'varchar', length: 255 })
   fileName: string;
 

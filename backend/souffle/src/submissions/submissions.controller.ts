@@ -36,7 +36,8 @@ export class SubmissionController {
         answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
         steps: {
           type: 'string',
-          example: '[{"step_number":1,"file_name":"step01.jpg"}]',
+          example:
+            '[{"step_number":1, "step_time":10, "file_name":"step01.jpg"}]',
         },
         total_solve_time: { type: 'integer', example: 120 },
         understand_time: { type: 'integer', example: 30 },

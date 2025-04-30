@@ -6,6 +6,9 @@ class StepDto {
   @IsInt()
   step_number: number;
 
+  @IsInt()
+  step_time: number;
+
   @IsString()
   step_image_url: string;
 }

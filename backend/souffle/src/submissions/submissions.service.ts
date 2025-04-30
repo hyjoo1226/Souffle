@@ -72,12 +72,15 @@ export class SubmissionService {
     await this.submissionRepository.save(savedSubmission);
 
     // 풀이 단계 저장(form-data는 수동 매핑)
-    const steps: Array<{ step_number: number; file_name: string }> = JSON.parse(
-      submissionDto.steps,
-    );
+    const steps: Array<{
+      step_number: number;
+      step_time: number;
+      file_name: string;
+    }> = JSON.parse(submissionDto.steps);
     for (const step of steps) {
       const stepEntity = this.submissionStepRepository.create({
         submission: savedSubmission,
+        stepTime: step.step_time,
         stepNumber: step.step_number,
         fileName: step.file_name,
         stepImageUrl: fileMap.get(step.file_name),
@@ -93,6 +96,7 @@ export class SubmissionService {
         answer_image_url: savedSubmission.answerImageUrl,
         steps: steps.map((step) => ({
           step_number: step.step_number,
+          step_time: step.step_time,
           step_image_url: fileMap.get(step.file_name),
         })),
         total_solve_time: submissionDto.total_solve_time,

@@ -11,7 +11,11 @@ interface AnalysisJobData {
   submission_id: number;
   problem_id: number;
   answer_image_url: string;
-  steps: Array<{ step_number: number; step_image_url: string }>;
+  steps: Array<{
+    step_number: number;
+    step_time: number;
+    step_image_url: string;
+  }>;
   total_solve_time: number;
   understand_time: number;
   solve_time: number;
