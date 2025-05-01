@@ -11,6 +11,8 @@ const SolutionArea = () => {
   const [lastStrokeTime, setLastStrokeTime] = useState<number | null>(null);
   const [lastPoint, setLastPoint] = useState<any>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
+  const [eraseMode, setEraseMode] = useState(false);
+  const [lastBlockId, setLastBlockId] = useState<number | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -18,6 +20,65 @@ const SolutionArea = () => {
     ctx.lineCap = "round";
 
     const handlePointerDown = (e: PointerEvent) => {
+      if (eraseMode) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const threshold = 20;
+
+        for (const block of blocks) {
+          for (const stroke of block.strokes) {
+            for (let i = 0; i < stroke.points.length - 1; i++) {
+              const p1 = stroke.points[i];
+              const p2 = stroke.points[i + 1];
+              const dx = p2.x - p1.x;
+              const dy = p2.y - p1.y;
+              const len = Math.hypot(dx, dy);
+              if (len === 0) continue;
+              const t = ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len);
+              if (t < 0 || t > 1) continue;
+              const projX = p1.x + t * dx;
+              const projY = p1.y + t * dy;
+              const dist = Math.hypot(x - projX, y - projY);
+              if (dist < threshold) {
+                const updatedBlocks = blocks
+                  .map((b) => ({
+                    ...b,
+                    strokes: b.strokes.filter(
+                      (s) => s.stroke_id !== stroke.stroke_id
+                    ),
+                  }))
+                  .filter((b) => b.strokes.length > 0);
+                setBlocks(updatedBlocks);
+
+                const updatedStrokes = strokes.filter(
+                  (s) => s.stroke_id !== stroke.stroke_id
+                );
+                setStrokes(updatedStrokes);
+
+                const last = updatedStrokes.at(-1);
+                if (last) {
+                  setLastPoint(last.end);
+                  setLastStrokeTime(last.timestamp);
+                  const containingBlock = updatedBlocks.find((b) =>
+                    b.strokes.some((s) => s.stroke_id === last.stroke_id)
+                  );
+                  setLastBlockId(containingBlock?.block_id ?? null);
+                } else {
+                  setLastPoint(null);
+                  setLastStrokeTime(null);
+                  setLastBlockId(null);
+                }
+
+                drawAllAtOnce();
+                return;
+              }
+            }
+          }
+        }
+        return;
+      }
+
       setDrawing(true);
       const startPoint = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current = [startPoint];
@@ -26,7 +87,7 @@ const SolutionArea = () => {
     };
 
     const handlePointerMove = (e: PointerEvent) => {
-      if (!drawing) return;
+      if (!drawing || eraseMode) return;
       const point = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current.push(point);
       ctx.lineTo(point.x, point.y);
@@ -34,6 +95,7 @@ const SolutionArea = () => {
     };
 
     const handlePointerUp = () => {
+      if (eraseMode) return;
       setDrawing(false);
       if (currentStrokeRef.current.length <= 1) return;
 
@@ -41,10 +103,15 @@ const SolutionArea = () => {
       const first = currentStrokeRef.current[0];
       const last = currentStrokeRef.current.at(-1);
       const duration = last.time - first.time;
+
       const distance = lastPoint
         ? Math.hypot(last.x - lastPoint.x, last.y - lastPoint.y)
         : 0;
       const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
+      const tooFar = distance > 120;
+      const longPause = timeGap > 3000;
+      const directionChanged =
+        Math.abs(last.y - first.y) > 40 && Math.abs(last.x - first.x) < 20;
 
       const strokeData = {
         stroke_id: strokes.length + 1,
@@ -58,21 +125,26 @@ const SolutionArea = () => {
       const newStrokes = [...strokes, strokeData];
       setStrokes(newStrokes);
 
-      const NEW_BLOCK =
-        !lastStrokeTime ||
-        timeGap > 3000 ||
-        distance > 100 ||
-        blocks.length === 0;
-
       let newBlocks = [...blocks];
-      if (NEW_BLOCK) {
+      if (
+        !lastStrokeTime ||
+        blocks.length === 0 ||
+        lastBlockId === null ||
+        longPause ||
+        tooFar ||
+        directionChanged ||
+        !newBlocks.find((b) => b.block_id === lastBlockId)
+      ) {
+        const newBlockId = newBlocks.length + 1;
         const block = {
-          block_id: newBlocks.length + 1,
+          block_id: newBlockId,
           strokes: [strokeData],
         };
         newBlocks.push(block);
+        setLastBlockId(newBlockId);
       } else {
-        newBlocks[newBlocks.length - 1].strokes.push(strokeData);
+        const lastBlock = newBlocks.find((b) => b.block_id === lastBlockId);
+        lastBlock?.strokes.push(strokeData);
       }
 
       setBlocks(newBlocks);
@@ -91,41 +163,26 @@ const SolutionArea = () => {
       canvasEl.removeEventListener("pointermove", handlePointerMove);
       canvasEl.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [drawing, strokes, blocks, currentStroke, lastPoint, lastStrokeTime]);
-
-  const replayBlock = async (id: number) => {
-    console.log("▶️ replayBlock called with id:", id);
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const block = blocks.find((b) => b.block_id === id);
-    if (!block) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    for (const stroke of block.strokes) {
-      const isLong = stroke.duration > 2000;
-      ctx.strokeStyle = isLong ? "red" : "black";
-      ctx.lineWidth = isLong ? 3 : 1.5;
-
-      ctx.beginPath();
-      for (let i = 0; i < stroke.points.length; i++) {
-        const p = stroke.points[i];
-        if (i === 0) ctx.moveTo(p.x, p.y);
-        else ctx.lineTo(p.x, p.y);
-        if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
-      }
-      ctx.stroke();
-    }
-  };
+  }, [
+    drawing,
+    strokes,
+    blocks,
+    currentStroke,
+    lastPoint,
+    lastStrokeTime,
+    eraseMode,
+    lastBlockId,
+  ]);
 
   const drawAllAtOnce = () => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // ✅ 배경을 먼저 흰색으로 칠해줌
+    ctx.fillStyle = "white";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     for (const block of blocks) {
       for (const stroke of block.strokes) {
         const isLong = stroke.duration > 2000;
@@ -143,43 +200,100 @@ const SolutionArea = () => {
     }
   };
 
-  const handleClear = () => {
-    canvasRef.current?.getContext("2d")?.clearRect(0, 0, 800, 600);
-    setStrokes([]);
-    setBlocks([]);
-    setLastPoint(null);
-    setLastStrokeTime(null);
-    setActiveBlockId(null);
+  const exportStepsJson = async () => {
+    const result = {
+      user_id: "example_user",
+      problem_id: 1,
+      answer: {
+        file_name: "answer.jpg",
+      },
+      steps: blocks.map((block, i) => ({
+        step_number: i + 1,
+        step_time: block.strokes.reduce((acc, s) => acc + s.duration, 0),
+        file_name: `step${String(i + 1).padStart(2, "0")}.jpg`,
+      })),
+      total_solve_time: strokes.reduce((acc, s) => acc + s.duration, 0),
+      understand_time: 3000,
+      solve_time: 5000,
+      review_time: 2000,
+    };
+    console.log("📦 export json:", result);
   };
 
-  const handleSave = () => {
-    console.log(JSON.stringify(blocks, null, 2));
-    alert("블록 데이터가 콘솔에 출력되었습니다!");
-  };
+  const handleSubmit = async () => {
+    if (!canvasRef.current) return;
 
-  const handleReplayAll = async () => {
-    const canvas = canvasRef.current!;
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const formData = new FormData();
 
-    for (const block of blocks) {
+    // 전체 이미지 저장 (answer.jpg)
+    drawAllAtOnce(); // 먼저 전체 그리기
+    const answerBlob = await new Promise<Blob>((resolve) =>
+      canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
+    );
+    formData.append("answer.jpg", answerBlob, "answer.jpg");
+
+    // 디버깅용 - 미리 보기
+    const previewUrl = URL.createObjectURL(answerBlob);
+    window.open(previewUrl);
+
+    // 각 step 이미지 저장
+    const steps: any[] = [];
+    for (let i = 0; i < blocks.length; i++) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "white"; // ← 추가
+      ctx.fillRect(0, 0, canvas.width, canvas.height); // ← 추가
+      const block = blocks[i];
+
       for (const stroke of block.strokes) {
-        const isLong = stroke.duration > 2000;
-        ctx.strokeStyle = isLong ? "red" : "black";
-        ctx.lineWidth = isLong ? 3 : 1.5;
+        ctx.strokeStyle = stroke.duration > 2000 ? "red" : "black";
+        ctx.lineWidth = stroke.duration > 2000 ? 3 : 1.5;
 
         ctx.beginPath();
-        for (let i = 0; i < stroke.points.length; i++) {
-          const p = stroke.points[i];
-          if (i === 0) ctx.moveTo(p.x, p.y);
+        for (let j = 0; j < stroke.points.length; j++) {
+          const p = stroke.points[j];
+          if (j === 0) ctx.moveTo(p.x, p.y);
           else ctx.lineTo(p.x, p.y);
-          if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
         }
         ctx.stroke();
       }
-      await new Promise((r) => setTimeout(r, 500));
+
+      const stepBlob = await new Promise<Blob>((resolve) =>
+        canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
+      );
+      const stepFileName = `step${String(i + 1).padStart(2, "0")}.jpg`;
+      formData.append(stepFileName, stepBlob, stepFileName);
+
+      // 🔥 여기 추가: 미리 보기용 새 창 열기
+      const stepUrl = URL.createObjectURL(stepBlob);
+      window.open(stepUrl); // 👉 이 한 줄이면 끝
+
+      steps.push({
+        step_number: i + 1,
+        step_time: 3000, // 예시값, 실제로는 시간 측정해서 넣어야 함
+        file_name: stepFileName,
+      });
     }
-    setActiveBlockId(null);
+
+    // JSON 부분 생성
+    const jsonPayload = {
+      user_id: "example_user_id",
+      problem_id: "example_problem_id",
+      answer: { file_name: "answer.jpg" },
+      steps,
+      total_solve_time: 15000,
+      understand_time: 3000,
+      solve_time: 9000,
+      review_time: 3000,
+    };
+
+    formData.append("json", JSON.stringify(jsonPayload));
+
+    // 디버깅용 로그
+    for (const pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
   };
 
   return (
@@ -191,37 +305,149 @@ const SolutionArea = () => {
       />
       <div className="flex gap-2 mb-2">
         <button
-          onClick={handleClear}
+          onClick={() => {
+            const canvas = canvasRef.current!;
+            canvas
+              .getContext("2d")!
+              .clearRect(0, 0, canvas.width, canvas.height);
+            setStrokes([]);
+            setBlocks([]);
+            setLastPoint(null);
+            setLastStrokeTime(null);
+            setActiveBlockId(null);
+          }}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           전체 지우기
         </button>
         <button
-          onClick={handleSave}
+          onClick={() => {
+            const newStrokes = [...strokes];
+            const removed = newStrokes.pop();
+            setStrokes(newStrokes);
+
+            const newBlocks = [...blocks];
+            for (let i = newBlocks.length - 1; i >= 0; i--) {
+              const strokesInBlock = newBlocks[i].strokes;
+              if (
+                strokesInBlock.some(
+                  (s: any) => s.stroke_id === removed.stroke_id
+                )
+              ) {
+                strokesInBlock.pop();
+                if (strokesInBlock.length === 0) newBlocks.pop();
+                break;
+              }
+            }
+            setBlocks(newBlocks);
+
+            const last = newStrokes.at(-1);
+            if (last) {
+              setLastPoint(last.end);
+              setLastStrokeTime(last.timestamp);
+            } else {
+              setLastPoint(null);
+              setLastStrokeTime(null);
+            }
+
+            drawAllAtOnce();
+          }}
+          className="px-3 py-1 bg-gray-100 border rounded"
+        >
+          한 획 지우기
+        </button>
+        <button
+          onClick={exportStepsJson}
+          className="px-3 py-1 bg-blue-100 border rounded"
+        >
+          JSON 만들기
+        </button>
+        <button
+          onClick={handleSubmit}
+          className="px-3 py-1 bg-blue-200 border rounded"
+        >
+          채점하기
+        </button>
+        <button
+          onClick={() => {
+            console.log(JSON.stringify(blocks, null, 2));
+            alert("블록 데이터가 콘솔에 출력되었습니다!");
+          }}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           데이터 저장
         </button>
         <button
-          onClick={handleReplayAll}
+          onClick={async () => {
+            const canvas = canvasRef.current!;
+            const ctx = canvas.getContext("2d")!;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (const block of blocks) {
+              for (const stroke of block.strokes) {
+                const isLong = stroke.duration > 2000;
+                ctx.strokeStyle = isLong ? "red" : "black";
+                ctx.lineWidth = isLong ? 3 : 1.5;
+
+                ctx.beginPath();
+                for (let i = 0; i < stroke.points.length; i++) {
+                  const p = stroke.points[i];
+                  if (i === 0) ctx.moveTo(p.x, p.y);
+                  else ctx.lineTo(p.x, p.y);
+                  if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
+                }
+                ctx.stroke();
+              }
+              await new Promise((r) => setTimeout(r, 500));
+            }
+            setActiveBlockId(null);
+          }}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           전체 재생
         </button>
         <button
-          onClick={drawAllAtOnce}
+          onClick={() => drawAllAtOnce()}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           전체 이미지 보기
+        </button>
+        <button
+          onClick={() => setEraseMode(!eraseMode)}
+          className={`px-3 py-1 border rounded ${
+            eraseMode ? "bg-red-200" : "bg-gray-100"
+          }`}
+        >
+          {eraseMode ? "지우기 모드 끄기" : "지우기 모드 켜기"}
         </button>
       </div>
       <div className="mb-2 flex flex-wrap gap-1">
         {blocks.map((block) => (
           <button
             key={block.block_id}
-            onClick={() => {
+            onClick={async () => {
               setActiveBlockId(block.block_id);
-              replayBlock(block.block_id);
+              const canvas = canvasRef.current;
+              if (!canvas) return;
+              const ctx = canvas.getContext("2d");
+              if (!ctx) return;
+
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+              for (const stroke of block.strokes) {
+                const isLong = stroke.duration > 2000;
+                ctx.strokeStyle = isLong ? "red" : "black";
+                ctx.lineWidth = isLong ? 3 : 1.5;
+
+                ctx.beginPath();
+                for (let i = 0; i < stroke.points.length; i++) {
+                  const p = stroke.points[i];
+                  if (i === 0) ctx.moveTo(p.x, p.y);
+                  else ctx.lineTo(p.x, p.y);
+                  if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
+                }
+                ctx.stroke();
+              }
             }}
             className="m-1 px-2 py-1 border rounded text-sm"
           >
