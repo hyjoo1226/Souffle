@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 
 const SolutionArea = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // 현재 그리고 있는 획을 담을 임시 저장소입니다.
   const currentStrokeRef = useRef<any[]>([]);
 
+  // 전체 획, 블록, 그리고 기타 상태들입니다.
   const [strokes, setStrokes] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [drawing, setDrawing] = useState(false);
@@ -14,105 +17,113 @@ const SolutionArea = () => {
   const [eraseMode, setEraseMode] = useState(false);
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
 
+  // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     ctx.lineCap = "round";
 
+    // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
-      if (eraseMode) {
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const threshold = 20;
+      // if (eraseMode) {
+      //   const rect = canvas.getBoundingClientRect();
+      //   const x = e.clientX - rect.left;
+      //   const y = e.clientY - rect.top;
+      //   const threshold = 20;
 
-        for (const block of blocks) {
-          for (const stroke of block.strokes) {
-            for (let i = 0; i < stroke.points.length - 1; i++) {
-              const p1 = stroke.points[i];
-              const p2 = stroke.points[i + 1];
-              const dx = p2.x - p1.x;
-              const dy = p2.y - p1.y;
-              const len = Math.hypot(dx, dy);
-              if (len === 0) continue;
-              const t = ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len);
-              if (t < 0 || t > 1) continue;
-              const projX = p1.x + t * dx;
-              const projY = p1.y + t * dy;
-              const dist = Math.hypot(x - projX, y - projY);
-              if (dist < threshold) {
-                const updatedBlocks = blocks
-                  .map((b) => ({
-                    ...b,
-                    strokes: b.strokes.filter(
-                      (s) => s.stroke_id !== stroke.stroke_id
-                    ),
-                  }))
-                  .filter((b) => b.strokes.length > 0);
-                setBlocks(updatedBlocks);
+      //   for (const block of blocks) {
+      //     for (const stroke of block.strokes) {
+      //       for (let i = 0; i < stroke.points.length - 1; i++) {
+      //         const p1 = stroke.points[i];
+      //         const p2 = stroke.points[i + 1];
+      //         const dx = p2.x - p1.x;
+      //         const dy = p2.y - p1.y;
+      //         const len = Math.hypot(dx, dy);
+      //         if (len === 0) continue;
+      //         const t = ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len);
+      //         if (t < 0 || t > 1) continue;
+      //         const projX = p1.x + t * dx;
+      //         const projY = p1.y + t * dy;
+      //         const dist = Math.hypot(x - projX, y - projY);
+      //         if (dist < threshold) {
+      //           const updatedBlocks = blocks
+      //             .map((b) => ({
+      //               ...b,
+      //               strokes: b.strokes.filter(
+      //                 (s) => s.stroke_id !== stroke.stroke_id
+      //               ),
+      //             }))
+      //             .filter((b) => b.strokes.length > 0);
+      //           setBlocks(updatedBlocks);
 
-                const updatedStrokes = strokes.filter(
-                  (s) => s.stroke_id !== stroke.stroke_id
-                );
-                setStrokes(updatedStrokes);
+      //           const updatedStrokes = strokes.filter(
+      //             (s) => s.stroke_id !== stroke.stroke_id
+      //           );
+      //           setStrokes(updatedStrokes);
 
-                const last = updatedStrokes.at(-1);
-                if (last) {
-                  setLastPoint(last.end);
-                  setLastStrokeTime(last.timestamp);
-                  const containingBlock = updatedBlocks.find((b) =>
-                    b.strokes.some((s) => s.stroke_id === last.stroke_id)
-                  );
-                  setLastBlockId(containingBlock?.block_id ?? null);
-                } else {
-                  setLastPoint(null);
-                  setLastStrokeTime(null);
-                  setLastBlockId(null);
-                }
+      //           const last = updatedStrokes.at(-1);
+      //           if (last) {
+      //             setLastPoint(last.end);
+      //             setLastStrokeTime(last.timestamp);
+      //             const containingBlock = updatedBlocks.find((b) =>
+      //               b.strokes.some((s) => s.stroke_id === last.stroke_id)
+      //             );
+      //             setLastBlockId(containingBlock?.block_id ?? null);
+      //           } else {
+      //             setLastPoint(null);
+      //             setLastStrokeTime(null);
+      //             setLastBlockId(null);
+      //           }
 
-                drawAllAtOnce();
-                return;
-              }
-            }
-          }
-        }
-        return;
-      }
+      //           drawAllAtOnce();
+      //           return;
+      //         }
+      //       }
+      //     }
+      //   }
+      //   return;
+      // }
 
       setDrawing(true);
       const startPoint = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current = [startPoint];
-      ctx.beginPath();
-      ctx.moveTo(startPoint.x, startPoint.y);
+      ctx.beginPath(); // 이전 선과 분리된 새 경로 시작
+      ctx.moveTo(startPoint.x, startPoint.y); // 새 선의 시작점 지정
     };
 
+    // 선 그리기 중
     const handlePointerMove = (e: PointerEvent) => {
       if (!drawing || eraseMode) return;
       const point = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current.push(point);
-      ctx.lineTo(point.x, point.y);
-      ctx.stroke();
+      ctx.lineTo(point.x, point.y); // 이후 선을 긋기 시작
+      ctx.stroke(); // 실제 그리기
     };
 
+    // 그리기 종료 및 블록 판단
     const handlePointerUp = () => {
       if (eraseMode) return;
       setDrawing(false);
       if (currentStrokeRef.current.length <= 1) return;
 
       const now = Date.now();
-      const first = currentStrokeRef.current[0];
-      const last = currentStrokeRef.current.at(-1);
+      const first = currentStrokeRef.current[0]; // 획을 그리기 시작한 첫 지점의 정보
+      const last = currentStrokeRef.current.at(-1); // 획을 그리기 끝낸 마지막 지점의 정보
       const duration = last.time - first.time;
 
+      // 블록 분리 조건
       const distance = lastPoint
         ? Math.hypot(last.x - lastPoint.x, last.y - lastPoint.y)
-        : 0;
-      const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
-      const tooFar = distance > 120;
-      const longPause = timeGap > 3000;
-      const directionChanged =
-        Math.abs(last.y - first.y) > 40 && Math.abs(last.x - first.x) < 20;
+        : 0; //이전 획의 끝점(lastPoint)과 현재 획의 시작점(first) 사이 거리
+      const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0; // 이전 획을 끝낸 시간과 지금 획을 시작한 시간의 간격
+      const movedLeft = lastPoint && first.x < lastPoint.x - 10; // x축이 왼쪽으로 이동
+      const movedDown = lastPoint && first.y > lastPoint.y + 10; // y축이 아래로 이동
 
+      const tooFar = distance > 100; // 100px 이상 멀어짐
+      const longPause = timeGap > 3000; // 3초 이상 멈춤
+      const newLineDetected = movedLeft && movedDown; // 왼쪽으로 이동 후 아래로 이동(줄바꿈)
+
+      // 하나의 획에 대한 정보
       const strokeData = {
         stroke_id: strokes.length + 1,
         timestamp: now,
@@ -122,19 +133,18 @@ const SolutionArea = () => {
         end: last,
       };
 
-      const newStrokes = [...strokes, strokeData];
-      setStrokes(newStrokes);
+      const newStrokes = [...strokes, strokeData]; // 기존 배열에 새로운 획을 추가
+      setStrokes(newStrokes); // 전체 획 배열 업데이트
 
       let newBlocks = [...blocks];
       if (
-        !lastStrokeTime ||
-        blocks.length === 0 ||
-        lastBlockId === null ||
+        blocks.length === 0 || // 블록이 없거나
         longPause ||
         tooFar ||
-        directionChanged ||
+        newLineDetected || // 줄바꿈 감지 조건
         !newBlocks.find((b) => b.block_id === lastBlockId)
       ) {
+        // 새 블록 생성
         const newBlockId = newBlocks.length + 1;
         const block = {
           block_id: newBlockId,
@@ -143,6 +153,7 @@ const SolutionArea = () => {
         newBlocks.push(block);
         setLastBlockId(newBlockId);
       } else {
+        // 기존 블록에 추가
         const lastBlock = newBlocks.find((b) => b.block_id === lastBlockId);
         lastBlock?.strokes.push(strokeData);
       }
@@ -174,6 +185,7 @@ const SolutionArea = () => {
     lastBlockId,
   ]);
 
+  // 전체 블록 다시 그리기
   const drawAllAtOnce = () => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
@@ -200,6 +212,7 @@ const SolutionArea = () => {
     }
   };
 
+  // JSON 추출 버튼 클릭 시
   const exportStepsJson = async () => {
     const result = {
       user_id: "example_user",
@@ -219,6 +232,8 @@ const SolutionArea = () => {
     };
     console.log("📦 export json:", result);
   };
+
+  // 채점(제출) 핸들러 - 이미지와 JSON 생성
 
   const handleSubmit = async () => {
     if (!canvasRef.current) return;
