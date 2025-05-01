@@ -189,18 +189,20 @@ const SolutionArea = () => {
   const drawAllAtOnce = () => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 초기화
 
     // ✅ 배경을 먼저 흰색으로 칠해줌
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // 각 블록을 순회하며 그리기
     for (const block of blocks) {
       for (const stroke of block.strokes) {
         const isLong = stroke.duration > 2000;
         ctx.strokeStyle = isLong ? "red" : "black";
         ctx.lineWidth = isLong ? 3 : 1.5;
 
+        // 각 획을 그리기
         ctx.beginPath();
         for (let i = 0; i < stroke.points.length; i++) {
           const p = stroke.points[i];
@@ -244,6 +246,9 @@ const SolutionArea = () => {
 
     // 전체 이미지 저장 (answer.jpg)
     drawAllAtOnce(); // 먼저 전체 그리기
+    // 캔버스에서 Blob 생성
+    // Blob는 파일과 유사한 객체로, 바이너리 데이터를 다룰 수 있게 해줌
+    // resolve는 비동기 작업이 완료되면 호출되는 함수
     const answerBlob = await new Promise<Blob>((resolve) =>
       canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
     );
@@ -280,16 +285,26 @@ const SolutionArea = () => {
       const stepFileName = `step${String(i + 1).padStart(2, "0")}.jpg`;
       formData.append(stepFileName, stepBlob, stepFileName);
 
-      // 🔥 여기 추가: 미리 보기용 새 창 열기
+      const stepTime = Math.round(
+        block.strokes.reduce((acc, s) => acc + s.duration, 0) / 1000
+      );
+
+      // 미리 보기용 새 창 열기
       const stepUrl = URL.createObjectURL(stepBlob);
-      window.open(stepUrl); // 👉 이 한 줄이면 끝
+      window.open(stepUrl);
 
       steps.push({
         step_number: i + 1,
-        step_time: 3000, // 예시값, 실제로는 시간 측정해서 넣어야 함
+        step_time: stepTime,
         file_name: stepFileName,
       });
     }
+
+    const sorted = [...strokes].sort((a, b) => a.timestamp - b.timestamp);
+    const totalSolveTimeSec =
+      sorted.length > 1
+        ? Math.round((sorted.at(-1)!.timestamp - sorted[0].timestamp) / 1000)
+        : 0;
 
     // JSON 부분 생성
     const jsonPayload = {
@@ -297,10 +312,14 @@ const SolutionArea = () => {
       problem_id: "example_problem_id",
       answer: { file_name: "answer.jpg" },
       steps,
-      total_solve_time: 15000,
+      total_solve_time: totalSolveTimeSec,
       understand_time: 3000,
       solve_time: 9000,
       review_time: 3000,
+      files: [
+        "answer.jpg",
+        ...steps.map((s) => s.file_name), // step01.jpg, step02.jpg 등
+      ],
     };
 
     formData.append("json", JSON.stringify(jsonPayload));
