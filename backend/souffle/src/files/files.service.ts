@@ -25,6 +25,6 @@ export class FileService {
     const filePath = path.join(dir, filename);
     fs.writeFileSync(filePath, file.buffer);
 
-    return `http://localhost:3000/uploads/${problemId}/${userId}/${submissionId}/${filename}`;
+    return `http://localhost:4000/uploads/${problemId}/${userId}/${submissionId}/${filename}`;
   }
 }
