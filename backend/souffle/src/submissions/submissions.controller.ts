@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submissions.service';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
+// import { CreateSubmissionDto } from './dto/create-submission.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -31,18 +31,18 @@ export class SubmissionController {
     schema: {
       type: 'object',
       properties: {
-        user_id: { type: 'integer', example: 1 },
-        problem_id: { type: 'integer', example: 1 },
+        user_id: { type: 'string', example: 1 },
+        problem_id: { type: 'string', example: 1 },
         answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
         steps: {
           type: 'string',
           example:
             '[{"step_number":1, "step_time":10, "file_name":"step01.jpg"}]',
         },
-        total_solve_time: { type: 'integer', example: 120 },
-        understand_time: { type: 'integer', example: 30 },
-        solve_time: { type: 'integer', example: 60 },
-        review_time: { type: 'integer', example: 30 },
+        total_solve_time: { type: 'string', example: 120 },
+        understand_time: { type: 'string', example: 30 },
+        solve_time: { type: 'string', example: 60 },
+        review_time: { type: 'string', example: 30 },
         files: {
           type: 'array',
           items: {
@@ -90,9 +90,20 @@ export class SubmissionController {
   @ApiResponse({ status: 415, description: '지원하지 않는 파일 형식' })
   @ApiResponse({ status: 500, description: '서버 내부 오류' })
   async createSubmission(
-    @Body() submissionDto: CreateSubmissionDto,
+    @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    const submissionDto = {
+      user_id: parseInt(body.user_id, 10),
+      problem_id: parseInt(body.problem_id, 10),
+      total_solve_time: parseInt(body.total_solve_time, 10),
+      understand_time: parseInt(body.understand_time, 10),
+      solve_time: parseInt(body.solve_time, 10),
+      review_time: parseInt(body.review_time, 10),
+      answer: body.answer,
+      steps: body.steps,
+    };
+
     return this.submissionService.createSubmission(submissionDto, files);
   }
 
