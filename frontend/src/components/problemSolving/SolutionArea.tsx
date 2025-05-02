@@ -25,11 +25,12 @@ const SolutionArea = () => {
 
     // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === "touch") return; // 손가락/손바닥 무시
       if (eraseMode) {
         const rect = canvas.getBoundingClientRect(); //canvas 요소의 위치와 크기 정보, 브라우저 창 기준에서의 canvas 위치와 크기
         const x = e.clientX - rect.left; // canvas 내부 좌표계 기준의 x좌표
         const y = e.clientY - rect.top; // canvas 내부 좌표계 기준의 y좌표
-        const threshold = 20; // 지우기 반경(20px 이하)
+        const threshold = 10; // 지우기 반경(20px 이하)
 
         //모든 block을 돌면서,
         //block 안의 stroke를 하나씩 보고,
@@ -68,6 +69,7 @@ const SolutionArea = () => {
                   (s) => s.stroke_id !== stroke.stroke_id
                 );
                 setStrokes(updatedStrokes);
+                drawAllAtOnce(updatedBlocks);
 
                 const last = updatedStrokes.at(-1);
                 if (last) {
@@ -83,7 +85,6 @@ const SolutionArea = () => {
                   setLastBlockId(null);
                 }
 
-                drawAllAtOnce();
                 return;
               }
             }
@@ -194,7 +195,7 @@ const SolutionArea = () => {
   ]);
 
   // 전체 블록 다시 그리기
-  const drawAllAtOnce = () => {
+  const drawAllAtOnce = (targetBlocks = blocks) => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 초기화
@@ -204,7 +205,7 @@ const SolutionArea = () => {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // 각 블록을 순회하며 그리기
-    for (const block of blocks) {
+    for (const block of targetBlocks) {
       for (const stroke of block.strokes) {
         const isLong = stroke.duration > 2000;
         ctx.strokeStyle = isLong ? "red" : "black";
