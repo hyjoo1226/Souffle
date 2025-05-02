@@ -25,64 +25,72 @@ const SolutionArea = () => {
 
     // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
-      // if (eraseMode) {
-      //   const rect = canvas.getBoundingClientRect();
-      //   const x = e.clientX - rect.left;
-      //   const y = e.clientY - rect.top;
-      //   const threshold = 20;
+      if (eraseMode) {
+        const rect = canvas.getBoundingClientRect(); //canvas 요소의 위치와 크기 정보, 브라우저 창 기준에서의 canvas 위치와 크기
+        const x = e.clientX - rect.left; // canvas 내부 좌표계 기준의 x좌표
+        const y = e.clientY - rect.top; // canvas 내부 좌표계 기준의 y좌표
+        const threshold = 20; // 지우기 반경(20px 이하)
 
-      //   for (const block of blocks) {
-      //     for (const stroke of block.strokes) {
-      //       for (let i = 0; i < stroke.points.length - 1; i++) {
-      //         const p1 = stroke.points[i];
-      //         const p2 = stroke.points[i + 1];
-      //         const dx = p2.x - p1.x;
-      //         const dy = p2.y - p1.y;
-      //         const len = Math.hypot(dx, dy);
-      //         if (len === 0) continue;
-      //         const t = ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len);
-      //         if (t < 0 || t > 1) continue;
-      //         const projX = p1.x + t * dx;
-      //         const projY = p1.y + t * dy;
-      //         const dist = Math.hypot(x - projX, y - projY);
-      //         if (dist < threshold) {
-      //           const updatedBlocks = blocks
-      //             .map((b) => ({
-      //               ...b,
-      //               strokes: b.strokes.filter(
-      //                 (s) => s.stroke_id !== stroke.stroke_id
-      //               ),
-      //             }))
-      //             .filter((b) => b.strokes.length > 0);
-      //           setBlocks(updatedBlocks);
+        //모든 block을 돌면서,
+        //block 안의 stroke를 하나씩 보고,
+        //그 stroke의 선분 하나하나를 확인하며,
+        //포인터와의 거리가 가까우면 해당 stroke 삭제
+        for (const block of blocks) {
+          for (const stroke of block.strokes) {
+            for (let i = 0; i < stroke.points.length - 1; i++) {
+              const p1 = stroke.points[i];
+              const p2 = stroke.points[i + 1];
+              const dx = p2.x - p1.x;
+              const dy = p2.y - p1.y;
+              const len = Math.hypot(dx, dy); //선분의 길이 (피타고라스: √(dx² + dy²))
+              if (len === 0) continue;
+              const t = ((x - p1.x) * dx + (y - p1.y) * dy) / (len * len); // 선분 위의 점을 찾기 위한 비율(0이면 p1, 1이면 p2, 0~1 사이면 선분 위)
+              if (t < 0 || t > 1) continue; // t가 0보다 작거나 1보다 크면 선분 바깥임
 
-      //           const updatedStrokes = strokes.filter(
-      //             (s) => s.stroke_id !== stroke.stroke_id
-      //           );
-      //           setStrokes(updatedStrokes);
+              // 실제 선분 위에서 포인터와 가장 가까운 점
+              const projX = p1.x + t * dx;
+              const projY = p1.y + t * dy;
 
-      //           const last = updatedStrokes.at(-1);
-      //           if (last) {
-      //             setLastPoint(last.end);
-      //             setLastStrokeTime(last.timestamp);
-      //             const containingBlock = updatedBlocks.find((b) =>
-      //               b.strokes.some((s) => s.stroke_id === last.stroke_id)
-      //             );
-      //             setLastBlockId(containingBlock?.block_id ?? null);
-      //           } else {
-      //             setLastPoint(null);
-      //             setLastStrokeTime(null);
-      //             setLastBlockId(null);
-      //           }
+              // 거리(dist)가 일정 threshold보다 작으면 "이 선에 닿았다고 판단"해서 해당 stroke를 삭제
+              const dist = Math.hypot(x - projX, y - projY);
+              if (dist < threshold) {
+                const updatedBlocks = blocks
+                  .map((b) => ({
+                    ...b,
+                    strokes: b.strokes.filter(
+                      (s) => s.stroke_id !== stroke.stroke_id
+                    ),
+                  }))
+                  .filter((b) => b.strokes.length > 0);
+                setBlocks(updatedBlocks);
 
-      //           drawAllAtOnce();
-      //           return;
-      //         }
-      //       }
-      //     }
-      //   }
-      //   return;
-      // }
+                const updatedStrokes = strokes.filter(
+                  (s) => s.stroke_id !== stroke.stroke_id
+                );
+                setStrokes(updatedStrokes);
+
+                const last = updatedStrokes.at(-1);
+                if (last) {
+                  setLastPoint(last.end);
+                  setLastStrokeTime(last.timestamp);
+                  const containingBlock = updatedBlocks.find((b) =>
+                    b.strokes.some((s) => s.stroke_id === last.stroke_id)
+                  );
+                  setLastBlockId(containingBlock?.block_id ?? null);
+                } else {
+                  setLastPoint(null);
+                  setLastStrokeTime(null);
+                  setLastBlockId(null);
+                }
+
+                drawAllAtOnce();
+                return;
+              }
+            }
+          }
+        }
+        return;
+      }
 
       setDrawing(true);
       const startPoint = { x: e.offsetX, y: e.offsetY, time: Date.now() };
