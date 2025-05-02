@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
+import { json } from "stream/consumers";
 
 const SolutionArea = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -125,7 +127,7 @@ const SolutionArea = () => {
         ? Math.hypot(last.x - lastPoint.x, last.y - lastPoint.y)
         : 0; //이전 획의 끝점(lastPoint)과 현재 획의 시작점(first) 사이 거리
       const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0; // 이전 획을 끝낸 시간과 지금 획을 시작한 시간의 간격
-      const movedLeft = lastPoint && first.x < lastPoint.x - 10; // x축이 왼쪽으로 이동
+      const movedLeft = lastPoint && first.x < lastPoint.x - 30; // x축이 왼쪽으로 이동
       const movedDown = lastPoint && first.y > lastPoint.y + 10; // y축이 아래로 이동
 
       const tooFar = distance > 100; // 100px 이상 멀어짐
@@ -317,14 +319,14 @@ const SolutionArea = () => {
 
     // JSON 부분 생성
     const jsonPayload = {
-      user_id: "example_user_id",
-      problem_id: "example_problem_id",
+      user_id: Number(1),
+      problem_id: Number(1),
       answer: { file_name: "answer.jpg" },
       steps,
-      total_solve_time: totalSolveTimeSec,
-      understand_time: 3000,
-      solve_time: 9000,
-      review_time: 3000,
+      total_solve_time: Number(totalSolveTimeSec),
+      understand_time: Number(3000),
+      solve_time: Number(9000),
+      review_time: Number(3000),
       files: [
         "answer.jpg",
         ...steps.map((s) => s.file_name), // step01.jpg, step02.jpg 등
@@ -332,6 +334,9 @@ const SolutionArea = () => {
     };
 
     formData.append("json", JSON.stringify(jsonPayload));
+
+    // console.log("files보자", jsonPayload.files);
+    await sendProblemSolvingDataApi(formData);
 
     // 디버깅용 로그
     for (const pair of formData.entries()) {
