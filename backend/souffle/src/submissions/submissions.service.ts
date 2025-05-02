@@ -234,6 +234,8 @@ export class SubmissionService {
       submissionId: submission.id,
       steps: submission.submissionSteps.map((step) => ({
         step_number: step.stepNumber,
+        step_image_url: step.stepImageUrl,
+        step_time: step.stepTime,
         step_valid: step.isValid,
       })),
       ai_analysis: submission.aiAnalysis,

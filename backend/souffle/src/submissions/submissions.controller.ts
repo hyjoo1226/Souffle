@@ -32,7 +32,7 @@ export class SubmissionController {
       type: 'object',
       properties: {
         user_id: { type: 'integer', example: 1 },
-        problem_id: { type: 'integer', example: 2 },
+        problem_id: { type: 'integer', example: 1 },
         answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
         steps: {
           type: 'string',
@@ -66,7 +66,21 @@ export class SubmissionController {
     },
   })
   @UseInterceptors(FilesInterceptor('files'))
-  @ApiResponse({ status: 201, description: '제출 성공' })
+  @ApiResponse({
+    status: 201,
+    description: '제출 성공',
+    schema: {
+      example: {
+        submissionId: 1,
+        is_correct: true,
+        avg_accuracy: 60,
+        avg_total_solve_time: 278,
+        avg_understand_time: 39,
+        avg_solve_time: 218,
+        avg_review_time: 21,
+      },
+    },
+  })
   @ApiResponse({
     status: 400,
     description: '잘못된 요청(파라미터 누락/형식 오류)',
@@ -90,7 +104,15 @@ export class SubmissionController {
     schema: {
       example: {
         submissionId: 1,
-        steps: [{ step_number: 1, step_valid: true }],
+        steps: [
+          {
+            step_number: 1,
+            step_image_url:
+              'http://localhost:3000/uploads/1/1/47/1745994490105-step01.jpg',
+            step_time: 15,
+            step_valid: true,
+          },
+        ],
         ai_analysis: '분석 결과',
         weakness: '취약점',
         status: 'completed',
