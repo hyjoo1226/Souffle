@@ -11,8 +11,9 @@ export class FileService {
     submissionId: number,
   ): Promise<string> {
     // 폴더 경로
+    const uploadBase = path.resolve(process.cwd(), 'uploads');
     const dir = path.join(
-      'uploads',
+      uploadBase,
       problemId.toString(),
       userId.toString(),
       submissionId.toString(),
@@ -25,6 +26,6 @@ export class FileService {
     const filePath = path.join(dir, filename);
     fs.writeFileSync(filePath, file.buffer);
 
-    return `http://localhost:4000/uploads/${problemId}/${userId}/${submissionId}/${filename}`;
+    return `https://www.souffle.kr/uploads/${problemId}/${userId}/${submissionId}/${filename}`;
   }
 }

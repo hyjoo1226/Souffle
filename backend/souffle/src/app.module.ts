@@ -14,7 +14,7 @@ import { AnalysisModule } from './analyses/analyses.module';
 import { BookModule } from './books/books.module';
 import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
-import { join } from 'path';
+import * as path from 'path';
 
 @Module({
   imports: [
@@ -30,7 +30,7 @@ import { join } from 'path';
       dest: './uploads', // 파일이 저장될 로컬 경로(폴더)
     }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'), // 업로드 폴더를 정적 파일로 서빙
+      rootPath: path.resolve(process.cwd(), 'uploads'), // 업로드 폴더를 정적 파일로 서빙
       serveRoot: '/uploads',
     }),
     BullModule.forRoot({
