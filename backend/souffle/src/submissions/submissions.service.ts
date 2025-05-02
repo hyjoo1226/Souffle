@@ -219,7 +219,7 @@ export class SubmissionService {
   async getSubmissionAnalysis(submissionId: number) {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
-      relations: ['submissionSteps'],
+      relations: ['submissionSteps', 'problem'],
     });
     if (!submission) throw new NotFoundException('제출을 찾을 수 없습니다.');
     // API 처리 상태
@@ -240,6 +240,9 @@ export class SubmissionService {
       })),
       ai_analysis: submission.aiAnalysis,
       weakness: submission.weakness,
+      problem_answer: submission.problem.answer,
+      problem_explanation: submission.problem.explanation,
+      problem_explanation_image_url: submission.problem.explanationImageUrl,
       status,
     };
   }
