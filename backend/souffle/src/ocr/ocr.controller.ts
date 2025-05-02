@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { OcrService } from './ocr.service';
 
-@Controller('data/api/answer')
+@Controller('data/api/v1/ocr/answer')
 export class OcrController {
   constructor(private readonly ocrService: OcrService) {}
 

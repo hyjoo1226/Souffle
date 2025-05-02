@@ -8,7 +8,7 @@ import {
 import { AnalysisService } from './analyses.service';
 import { CreateAnalysisDto } from './dto/create-analysis.dto';
 
-@Controller('data/api/answer')
+@Controller('data/api/v1/ocr')
 export class AnalysisController {
   constructor(private readonly analysisService: AnalysisService) {}
 

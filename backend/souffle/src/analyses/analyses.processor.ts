@@ -40,7 +40,7 @@ export class AnalysisProcessor {
       // 데이터서버 분석 요청
       const response = await firstValueFrom(
         this.httpService.post(
-          'http://data-server-host/data/api/answer/analysis',
+          'localhost:8000/data/api/v1/ocr/analysis',
           requestData,
         ),
       );

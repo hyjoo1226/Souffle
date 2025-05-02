@@ -27,7 +27,7 @@ export class OcrService {
     try {
       const response = await firstValueFrom(
         // 데이터 서버
-        this.httpService.post('http://data-server-host/data/api/answer/ocr', {
+        this.httpService.post('localhost:8000/data/api/v1/ocr/answer', {
           answer_image_url,
         }),
       );
