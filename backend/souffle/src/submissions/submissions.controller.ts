@@ -107,17 +107,27 @@ export class SubmissionController {
         steps: [
           {
             step_number: 1,
+            answer_image_url:
+              'http://localhost:3000/uploads/1/1/47/1745994490102-answer.jpg',
             step_image_url:
               'http://localhost:3000/uploads/1/1/47/1745994490105-step01.jpg',
             step_time: 15,
             step_valid: true,
           },
         ],
+        time: {
+          total_solve_time: 300,
+          understand_time: 40,
+          solve_time: 240,
+          review_time: 20,
+        },
+        explanation: {
+          explanation_answer: 3,
+          explanation_description: '문제 해설',
+          explanation_image_url: '문제 해설 이미지 주소',
+        },
         ai_analysis: '분석 결과',
         weakness: '취약점',
-        problem_answer: 3,
-        problam_explanation: '문제 해설',
-        problem_explanation_image_url: '문제 해설 이미지 주소',
         status: 'completed',
       },
     },

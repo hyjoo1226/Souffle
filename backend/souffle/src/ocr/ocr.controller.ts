@@ -1,11 +1,11 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { OcrService } from './ocr.service';
 
-@Controller('data/api/v1/ocr/answer')
+@Controller('data/api/v1/ocr')
 export class OcrController {
   constructor(private readonly ocrService: OcrService) {}
 
-  @Post('ocr')
+  @Post('answer')
   async ocr(
     @Body()
     body: {

@@ -232,17 +232,26 @@ export class SubmissionService {
 
     return {
       submissionId: submission.id,
+      answer_image_url: submission.answerImageUrl,
       steps: submission.submissionSteps.map((step) => ({
         step_number: step.stepNumber,
         step_image_url: step.stepImageUrl,
         step_time: step.stepTime,
         step_valid: step.isValid,
       })),
+      time: {
+        total_solve_time: submission.totalSolveTime,
+        understand_time: submission.understandTime,
+        solve_time: submission.solveTime,
+        review_time: submission.reviewTime,
+      },
+      explanation: {
+        explanation_answer: submission.problem.answer,
+        explanation_description: submission.problem.explanation,
+        explanation_image_url: submission.problem.explanationImageUrl,
+      },
       ai_analysis: submission.aiAnalysis,
       weakness: submission.weakness,
-      problem_answer: submission.problem.answer,
-      problem_explanation: submission.problem.explanation,
-      problem_explanation_image_url: submission.problem.explanationImageUrl,
       status,
     };
   }
