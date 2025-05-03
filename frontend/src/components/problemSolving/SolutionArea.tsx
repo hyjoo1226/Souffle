@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
 import { getRelativePointerPosition } from "@/utils/drawing";
 import { eraseStrokeNearPointer } from "@/hooks/useEraseMode";
+import { useHandlePointerUp } from "@/hooks/useHandlePointerUp";
 
 const SolutionArea = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -63,78 +64,36 @@ const SolutionArea = () => {
     };
 
     // 그리기 종료 및 블록 판단
-    const handlePointerUp = () => {
-      if (eraseMode) return;
-      setDrawing(false);
-      if (currentStrokeRef.current.length <= 1) return;
-
-      const now = Date.now();
-      const first = currentStrokeRef.current[0]; // 획을 그리기 시작한 첫 지점의 정보
-      const last = currentStrokeRef.current.at(-1); // 획을 그리기 끝낸 마지막 지점의 정보
-      const duration = last.time - first.time;
-
-      // 블록 분리 조건
-      const distance = lastPoint
-        ? Math.hypot(last.x - lastPoint.x, last.y - lastPoint.y)
-        : 0; //이전 획의 끝점(lastPoint)과 현재 획의 시작점(first) 사이 거리
-      const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0; // 이전 획을 끝낸 시간과 지금 획을 시작한 시간의 간격
-      const movedLeft = lastPoint && first.x < lastPoint.x - 30; // x축이 왼쪽으로 이동
-      const movedDown = lastPoint && first.y > lastPoint.y + 10; // y축이 아래로 이동
-
-      const tooFar = distance > 100; // 100px 이상 멀어짐
-      const longPause = timeGap > 3000; // 3초 이상 멈춤
-      const newLineDetected = movedLeft && movedDown; // 왼쪽으로 이동 후 아래로 이동(줄바꿈)
-
-      // 하나의 획에 대한 정보
-      const strokeData = {
-        stroke_id: strokes.length + 1,
-        timestamp: now,
-        points: [...currentStrokeRef.current],
-        duration,
-        start: first,
-        end: last,
-      };
-
-      const newStrokes = [...strokes, strokeData]; // 기존 배열에 새로운 획을 추가
-      setStrokes(newStrokes); // 전체 획 배열 업데이트
-
-      let newBlocks = [...blocks];
-      if (
-        blocks.length === 0 || // 블록이 없거나
-        longPause ||
-        tooFar ||
-        newLineDetected || // 줄바꿈 감지 조건
-        !newBlocks.find((b) => b.block_id === lastBlockId)
-      ) {
-        // 새 블록 생성
-        const newBlockId = newBlocks.length + 1;
-        const block = {
-          block_id: newBlockId,
-          strokes: [strokeData],
-        };
-        newBlocks.push(block);
-        setLastBlockId(newBlockId);
-      } else {
-        // 기존 블록에 추가
-        const lastBlock = newBlocks.find((b) => b.block_id === lastBlockId);
-        lastBlock?.strokes.push(strokeData);
-      }
-
-      setBlocks(newBlocks);
-      setLastPoint(last);
-      setLastStrokeTime(now);
-      setCurrentStroke([]);
+    const pointerUpHandler = () => {
+      handlePointerUp({
+        eraseMode,
+        currentStrokeRef,
+        strokes,
+        blocks,
+        lastPoint,
+        lastStrokeTime,
+        lastBlockId,
+        setStrokes,
+        setBlocks,
+        setLastPoint,
+        setLastStrokeTime,
+        setLastBlockId,
+        setCurrentStroke,
+        setDrawing,
+      });
     };
+    const handlePointerUp = useHandlePointerUp();
+    canvas.addEventListener("pointerup", pointerUpHandler);
 
     const canvasEl = canvasRef.current!;
     canvasEl.addEventListener("pointerdown", handlePointerDown);
     canvasEl.addEventListener("pointermove", handlePointerMove);
-    canvasEl.addEventListener("pointerup", handlePointerUp);
+    // canvasEl.addEventListener("pointerup", handlePointerUp);
 
     return () => {
       canvasEl.removeEventListener("pointerdown", handlePointerDown);
       canvasEl.removeEventListener("pointermove", handlePointerMove);
-      canvasEl.removeEventListener("pointerup", handlePointerUp);
+      canvasEl.removeEventListener("pointerup", pointerUpHandler);
     };
   }, [
     drawing,
@@ -214,7 +173,7 @@ const SolutionArea = () => {
     const answerBlob = await new Promise<Blob>((resolve) =>
       canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
     );
-    formData.append("answer.jpg", answerBlob, "answer.jpg");
+    formData.append("files", answerBlob, "answer.jpg");
 
     // 디버깅용 - 미리 보기
     const previewUrl = URL.createObjectURL(answerBlob);
@@ -245,7 +204,7 @@ const SolutionArea = () => {
         canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
       );
       const stepFileName = `step${String(i + 1).padStart(2, "0")}.jpg`;
-      formData.append(stepFileName, stepBlob, stepFileName);
+      formData.append("files", stepBlob, stepFileName);
 
       const stepTime = Math.round(
         block.strokes.reduce((acc, s) => acc + s.duration, 0) / 1000
@@ -269,24 +228,24 @@ const SolutionArea = () => {
         : 0;
 
     // JSON 부분 생성
-    const jsonPayload = {
-      user_id: Number(1),
-      problem_id: Number(1),
-      answer: { file_name: "answer.jpg" },
-      steps,
-      total_solve_time: Number(totalSolveTimeSec),
-      understand_time: Number(3000),
-      solve_time: Number(9000),
-      review_time: Number(3000),
-      files: [
-        "answer.jpg",
-        ...steps.map((s) => s.file_name), // step01.jpg, step02.jpg 등
-      ],
-    };
+    formData.append("user_id", String(1));
+    formData.append("problem_id", String(1));
+    formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
+    formData.append("steps", JSON.stringify(steps));
+    formData.append("total_solve_time", String(totalSolveTimeSec));
+    formData.append("understand_time", String(3000));
+    formData.append("solve_time", String(9000));
+    formData.append("review_time", String(3000));
+    // formData.append("files[]", answerBlob, "answer.jpg"); // 이거 꼭 있어야 함!
+    //
+    // formData.append("files", "answer.jpg"); // ✅ 이거 꼭 있어야 함!
 
-    formData.append("json", JSON.stringify(jsonPayload));
-
-    // console.log("files보자", jsonPayload.files);
+    // for (const s of steps) {
+    //   formData.append("files", s.file_name); // ✅ step01.jpg 등
+    // }
+    for (const [key, value] of formData.entries()) {
+      console.log("📦", key, value);
+    }
     await sendProblemSolvingDataApi(formData);
 
     // 디버깅용 로그

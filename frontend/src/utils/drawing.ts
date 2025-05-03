@@ -57,3 +57,107 @@ export const removeStrokeFromBlocks = (blocks: any[], strokeId: number) => {
     }))
     .filter((b) => b.strokes.length > 0);
 };
+
+// stroke를 생성하는 함수
+export const createStroke = (
+  points: { x: number; y: number; time: number }[],
+  strokeId: number,
+  timestamp: number
+) => {
+  const first = points[0];
+  const last = points.at(-1)!;
+  return {
+    stroke_id: strokeId,
+    timestamp, //이 획이 기록된 시점의 시간 (밀리초)
+    points: [...points], // 사용자가 드래그한 경로의 좌표 배열
+    duration: last ? last.time - first.time : 0, //획을 그리는 데 걸린 시간
+    start: first, //획의 시작점 좌표
+    end: last, //획의 끝점 좌표
+  };
+};
+
+export const shouldCreateNewBlock = (
+  first: { x: number; y: number; time: number },
+  lastPoint: { x: number; y: number } | null,
+  lastStrokeTime: number | null
+) => {
+  const distance = lastPoint
+    ? Math.hypot(first.x - lastPoint.x, first.y - lastPoint.y)
+    : 0;
+  const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
+  const movedLeft = lastPoint && first.x < lastPoint.x - 30;
+  const movedDown = lastPoint && first.y > lastPoint.y + 10;
+
+  return distance > 100 || timeGap > 3000 || (movedLeft && movedDown);
+};
+
+export const updateBlocksWithStroke = ({
+  stroke,
+  blocks,
+  lastPoint,
+  lastStrokeTime,
+  lastBlockId,
+}: {
+  stroke: {
+    stroke_id: number;
+    timestamp: number;
+    points: { x: number; y: number; time: number }[];
+    duration: number;
+    start: { x: number; y: number };
+    end: { x: number; y: number };
+  };
+  blocks: { block_id: number; strokes: (typeof stroke)[] }[];
+  lastPoint: { x: number; y: number } | null;
+  lastStrokeTime: number | null;
+  lastBlockId: number | null;
+}) => {
+  const newBlocks = [...blocks];
+
+  const needNewBlock =
+    blocks.length === 0 ||
+    shouldCreateNewBlock(
+      { ...stroke.start, time: stroke.timestamp },
+      lastPoint,
+      lastStrokeTime
+    ) ||
+    !newBlocks.find((b) => b.block_id === lastBlockId);
+
+  if (needNewBlock) {
+    const newBlockId = newBlocks.length + 1;
+    newBlocks.push({
+      block_id: newBlockId,
+      strokes: [stroke],
+    });
+  } else {
+    const lastBlock = newBlocks.find((b) => b.block_id === lastBlockId);
+    lastBlock?.strokes.push(stroke);
+  }
+
+  return newBlocks;
+};
+
+export const updateLastStrokeMeta = ({
+  lastStroke,
+  blocks,
+  setLastPoint,
+  setLastStrokeTime,
+  setLastBlockId,
+}: {
+  lastStroke: {
+    end: { x: number; y: number };
+    timestamp: number;
+    stroke_id: number;
+  };
+  blocks: { block_id: number; strokes: { stroke_id: number }[] }[];
+  setLastPoint: (point: { x: number; y: number }) => void;
+  setLastStrokeTime: (time: number) => void;
+  setLastBlockId: (blockId: number | null) => void;
+}) => {
+  setLastPoint(lastStroke.end);
+  setLastStrokeTime(lastStroke.timestamp);
+
+  const containingBlock = blocks.find((b) =>
+    b.strokes.some((s) => s.stroke_id === lastStroke.stroke_id)
+  );
+  setLastBlockId(containingBlock?.block_id ?? null);
+};
