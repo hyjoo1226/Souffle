@@ -7,12 +7,14 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  Index,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
 import { SubmissionStep } from './submission-step.entity';
 
 @Entity({ name: 'submissions' })
+@Index('IDX_SUBMISSION_PROBLEM', ['problemId'])
 export class Submission extends BaseEntity {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
@@ -26,6 +28,9 @@ export class Submission extends BaseEntity {
   })
   @JoinColumn({ name: 'problemId' })
   problem: Problem;
+
+  @Column()
+  problemId: number;
 
   @Column({ type: 'int', nullable: true })
   totalSolveTime: number;

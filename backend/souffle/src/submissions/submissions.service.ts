@@ -56,15 +56,27 @@ export class SubmissionService {
 
     // 파일명-URL 매핑
     const fileMap = new Map();
-    for (const file of files) {
-      const url = await this.fileService.uploadFile(
+    const uploadPromises = files.map((file) =>
+      this.fileService.uploadFile(
         file,
         user.id,
         problem.id,
         savedSubmission.id,
-      );
-      fileMap.set(file.originalname, url);
-    }
+      ),
+    );
+    const uploadedUrls = await Promise.all(uploadPromises);
+    uploadedUrls.forEach((url, index) =>
+      fileMap.set(files[index].originalname, url),
+    );
+    // for (const file of files) {
+    //   const url = await this.fileService.uploadFile(
+    //     file,
+    //     user.id,
+    //     problem.id,
+    //     savedSubmission.id,
+    //   );
+    //   fileMap.set(file.originalname, url);
+    // }
 
     // 정답 이미지 url
     const answerFileName = JSON.parse(submissionDto.answer).file_name;
@@ -77,16 +89,26 @@ export class SubmissionService {
       step_time: number;
       file_name: string;
     }> = JSON.parse(submissionDto.steps);
-    for (const step of steps) {
-      const stepEntity = this.submissionStepRepository.create({
+    const stepEntities = steps.map((step) =>
+      this.submissionStepRepository.create({
         submission: savedSubmission,
         stepTime: step.step_time,
         stepNumber: step.step_number,
         fileName: step.file_name,
         stepImageUrl: fileMap.get(step.file_name),
-      });
-      await this.submissionStepRepository.save(stepEntity);
-    }
+      }),
+    );
+    await this.submissionStepRepository.insert(stepEntities);
+    // for (const step of steps) {
+    //   const stepEntity = this.submissionStepRepository.create({
+    //     submission: savedSubmission,
+    //     stepTime: step.step_time,
+    //     stepNumber: step.step_number,
+    //     fileName: step.file_name,
+    //     stepImageUrl: fileMap.get(step.file_name),
+    //   });
+    //   await this.submissionStepRepository.save(stepEntity);
+    // }
 
     // 풀이분석 비동기 큐 등록
     try {
@@ -149,69 +171,26 @@ export class SubmissionService {
 
   // 문제 통계 갱신 로직
   private async updateProblemStatistics(problemId: number) {
-    // 해당 문제의 모든 제출 내역
-    const submissions = await this.submissionRepository.find({
-      where: { problem: { id: problemId } },
-    });
-    if (submissions.length === 0) return;
+    const stats = await this.submissionRepository
+      .createQueryBuilder('submission')
+      .select([
+        'AVG(CAST(CASE WHEN submission.isCorrect IS NOT NULL THEN submission.isCorrect ELSE NULL END AS integer)) * 100 AS avgAccuracy',
+        'AVG(submission.totalSolveTime) AS avgTotalSolveTime',
+        'AVG(submission.understandTime) AS avgUnderstandTime',
+        'AVG(submission.solveTime) AS avgSolveTime',
+        'AVG(submission.reviewTime) AS avgReviewTime',
+      ])
+      .where('submission.problemId = :problemId', { problemId })
+      .getRawOne();
 
-    // 평균 정답률 계산
-    const filtered = submissions.filter(
-      (s) => s.isCorrect !== null && s.isCorrect !== undefined,
-    );
-    const correctCount = filtered.filter((s) => s.isCorrect).length;
-    const avgAccuracy =
-      filtered.length > 0
-        ? Math.round((correctCount / filtered.length) * 1000) / 10
-        : 0;
-
-    // null 제외 후 평균 계산
-    const totalSolveTimes = submissions
-      .map((s) => s.totalSolveTime)
-      .filter((t) => t !== null);
-    const understandTimes = submissions
-      .map((s) => s.understandTime)
-      .filter((t) => t !== null);
-    const solveTimes = submissions
-      .map((s) => s.solveTime)
-      .filter((t) => t !== null);
-    const reviewTimes = submissions
-      .map((s) => s.reviewTime)
-      .filter((t) => t !== null);
-
-    const avgTotalSolveTime =
-      totalSolveTimes.length > 0
-        ? Math.round(
-            totalSolveTimes.reduce((a, b) => a + b, 0) / totalSolveTimes.length,
-          )
-        : 0;
-
-    const avgUnderstandTime =
-      understandTimes.length > 0
-        ? Math.round(
-            understandTimes.reduce((a, b) => a + b, 0) / understandTimes.length,
-          )
-        : 0;
-
-    const avgSolveTime =
-      solveTimes.length > 0
-        ? Math.round(solveTimes.reduce((a, b) => a + b, 0) / solveTimes.length)
-        : 0;
-
-    const avgReviewTime =
-      reviewTimes.length > 0
-        ? Math.round(
-            reviewTimes.reduce((a, b) => a + b, 0) / reviewTimes.length,
-          )
-        : 0;
-
-    // 문제 엔티티 업데이트
     await this.problemRepository.update(problemId, {
-      avgAccuracy,
-      avgTotalSolveTime,
-      avgUnderstandTime,
-      avgSolveTime,
-      avgReviewTime,
+      avgAccuracy: stats.avgAccuracy
+        ? Math.round(stats.avgAccuracy * 10) / 10
+        : 0,
+      avgTotalSolveTime: Math.round(stats.avgTotalSolveTime) || 0,
+      avgUnderstandTime: Math.round(stats.avgUnderstandTime) || 0,
+      avgSolveTime: Math.round(stats.avgSolveTime) || 0,
+      avgReviewTime: Math.round(stats.avgReviewTime) || 0,
     });
   }
 

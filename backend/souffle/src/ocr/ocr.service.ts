@@ -27,9 +27,13 @@ export class OcrService {
     try {
       const response = await firstValueFrom(
         // 데이터 서버
-        this.httpService.post('http://data:8000/data/api/v1/ocr/answer', {
-          answer_image_url,
-        }),
+        this.httpService.post(
+          'http://data:8000/data/api/v1/ocr/answer',
+          {
+            answer_image_url,
+          },
+          { timeout: 10_000 },
+        ),
       );
       return response.data.answer_convert;
     } catch (error) {
