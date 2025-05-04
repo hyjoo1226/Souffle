@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
 import { getRelativePointerPosition } from "@/utils/drawing";
-import { eraseStrokeNearPointer } from "@/hooks/useEraseMode";
+import { useEraser } from "@/hooks/useEraser";
 import { useHandlePointerUp } from "@/hooks/useHandlePointerUp";
 
 const SolutionArea = () => {
@@ -20,19 +20,32 @@ const SolutionArea = () => {
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [eraseMode, setEraseMode] = useState(false);
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
-
+  const { eraseNearPointer, eraseLastStroke, eraseAll } = useEraser();
+  // const [enterTime, setEnterTime] = useState<number>(Date.now()); // 페이지 입장 시
+  // const [firstStrokeTime, setFirstStrokeTime] = useState<number | null>(null); // 첫 그리기 시작 시
+  // const [lastStrokeEndTime, setLastStrokeEndTime] = useState<number | null>(
+  //   null
+  // ); // 마지막 stroke 끝난 시점
+  const [submitTime, setSubmitTime] = useState<number | null>(null); // 채점 버튼 클릭 시
+  const enterTime = useRef(Date.now());
+  const firstStrokeTime = useRef<number | null>(null);
+  const lastStrokeEndTime = useRef<number | null>(null);
   // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
+    // setEnterTime(Date.now());
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     ctx.lineCap = "round";
 
     // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
+      if (!firstStrokeTime.current) {
+        firstStrokeTime.current = Date.now();
+      }
       if (e.pointerType === "touch") return; // 손가락/손바닥 무시
       if (eraseMode) {
         const { x, y } = getRelativePointerPosition(e, canvas); // 해당 요소의 캔버스 내 좌표
-        eraseStrokeNearPointer({
+        eraseNearPointer({
           x,
           y,
           blocks,
@@ -73,6 +86,7 @@ const SolutionArea = () => {
         lastPoint,
         lastStrokeTime,
         lastBlockId,
+        lastStrokeEndTime,
         setStrokes,
         setBlocks,
         setLastPoint,
@@ -221,28 +235,42 @@ const SolutionArea = () => {
       });
     }
 
-    const sorted = [...strokes].sort((a, b) => a.timestamp - b.timestamp);
-    const totalSolveTimeSec =
-      sorted.length > 1
-        ? Math.round((sorted.at(-1)!.timestamp - sorted[0].timestamp) / 1000)
-        : 0;
+    const now = Date.now();
+    const totalSolveTime = now - enterTime.current;
+
+    const understandTime = Math.max(
+      0,
+      firstStrokeTime.current ? firstStrokeTime.current - enterTime.current : 0
+    );
+
+    const solveTime = Math.max(
+      0,
+      firstStrokeTime.current
+        ? (lastStrokeEndTime.current ?? now) - firstStrokeTime.current
+        : 0
+    );
+
+    const reviewTime = Math.max(
+      0,
+      lastStrokeEndTime.current ? now - lastStrokeEndTime.current : 0
+    );
 
     // JSON 부분 생성
     formData.append("user_id", String(1));
     formData.append("problem_id", String(1));
     formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
     formData.append("steps", JSON.stringify(steps));
-    formData.append("total_solve_time", String(totalSolveTimeSec));
-    formData.append("understand_time", String(3000));
-    formData.append("solve_time", String(9000));
-    formData.append("review_time", String(3000));
-    // formData.append("files[]", answerBlob, "answer.jpg"); // 이거 꼭 있어야 함!
-    //
-    // formData.append("files", "answer.jpg"); // ✅ 이거 꼭 있어야 함!
+    formData.append(
+      "total_solve_time",
+      String(Math.round(totalSolveTime / 1000))
+    );
+    formData.append(
+      "understand_time",
+      String(Math.round(understandTime / 1000))
+    );
+    formData.append("solve_time", String(Math.round(solveTime / 1000)));
+    formData.append("review_time", String(Math.round(reviewTime / 1000)));
 
-    // for (const s of steps) {
-    //   formData.append("files", s.file_name); // ✅ step01.jpg 등
-    // }
     for (const [key, value] of formData.entries()) {
       console.log("📦", key, value);
     }
@@ -263,53 +291,31 @@ const SolutionArea = () => {
       />
       <div className="flex gap-2 mb-2">
         <button
-          onClick={() => {
-            const canvas = canvasRef.current!;
-            canvas
-              .getContext("2d")!
-              .clearRect(0, 0, canvas.width, canvas.height);
-            setStrokes([]);
-            setBlocks([]);
-            setLastPoint(null);
-            setLastStrokeTime(null);
-            setActiveBlockId(null);
-          }}
+          onClick={() =>
+            eraseAll({
+              canvasRef: canvasRef as React.RefObject<HTMLCanvasElement>,
+              setStrokes,
+              setBlocks,
+              setLastPoint,
+              setLastStrokeTime,
+              setLastBlockId,
+            })
+          }
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           전체 지우기
         </button>
         <button
-          onClick={() => {
-            const newStrokes = [...strokes];
-            const removed = newStrokes.pop();
-            setStrokes(newStrokes);
-
-            const newBlocks = [...blocks];
-            for (let i = newBlocks.length - 1; i >= 0; i--) {
-              const strokesInBlock = newBlocks[i].strokes;
-              if (
-                strokesInBlock.some(
-                  (s: any) => s.stroke_id === removed.stroke_id
-                )
-              ) {
-                strokesInBlock.pop();
-                if (strokesInBlock.length === 0) newBlocks.pop();
-                break;
-              }
-            }
-            setBlocks(newBlocks);
-
-            const last = newStrokes.at(-1);
-            if (last) {
-              setLastPoint(last.end);
-              setLastStrokeTime(last.timestamp);
-            } else {
-              setLastPoint(null);
-              setLastStrokeTime(null);
-            }
-
-            drawAllAtOnce();
-          }}
+          onClick={eraseLastStroke({
+            blocks,
+            strokes,
+            setBlocks,
+            setStrokes,
+            setLastPoint,
+            setLastStrokeTime,
+            setLastBlockId,
+            drawAllAtOnce,
+          })}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           한 획 지우기

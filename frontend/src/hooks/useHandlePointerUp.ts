@@ -13,6 +13,7 @@ export const useHandlePointerUp = () => {
     lastPoint,
     lastStrokeTime,
     lastBlockId,
+    lastStrokeEndTime,
     setStrokes,
     setBlocks,
     setLastPoint,
@@ -28,6 +29,7 @@ export const useHandlePointerUp = () => {
     lastPoint: any;
     lastStrokeTime: number | null;
     lastBlockId: number | null;
+    lastStrokeEndTime: React.MutableRefObject<number | null>;
     setStrokes: (strokes: any[]) => void;
     setBlocks: (blocks: any[]) => void;
     setLastPoint: (point: any) => void;
@@ -46,7 +48,7 @@ export const useHandlePointerUp = () => {
       strokes.length + 1,
       now
     );
-
+    lastStrokeEndTime.current = now;
     const newStrokes = [...strokes, stroke];
     setStrokes(newStrokes);
 
