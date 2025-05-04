@@ -1,10 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+} from "react";
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
-import { getRelativePointerPosition } from "@/utils/drawing";
-import { useEraser } from "@/hooks/useEraser";
-import { useHandlePointerUp } from "@/hooks/useHandlePointerUp";
+import {
+  drawBlocksOnCanvas,
+  getPointerUpHandler,
+  generateStepImages,
+  generateAnswerImage,
+} from "@/utils/drawing";
+// import { useEraser } from "@/hooks/useEraser";
+import {
+  getRelativePointerPosition,
+  findStrokeNearPointer,
+  eraseStrokeById,
+  updateLastStrokeMetaAfterErase,
+  eraseAll,
+  eraseLastStroke,
+} from "@/utils/eraser";
 
-const AnswerArea = () => {
+const AnswerArea = forwardRef((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 현재 그리고 있는 획을 담을 임시 저장소입니다.
@@ -20,7 +38,7 @@ const AnswerArea = () => {
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [eraseMode, setEraseMode] = useState(false);
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
-  const { eraseNearPointer, eraseLastStroke, eraseAll } = useEraser();
+  // const { eraseNearPointer, eraseLastStroke, eraseAll } = useEraser();
   // const [enterTime, setEnterTime] = useState<number>(Date.now()); // 페이지 입장 시
   // const [firstStrokeTime, setFirstStrokeTime] = useState<number | null>(null); // 첫 그리기 시작 시
   // const [lastStrokeEndTime, setLastStrokeEndTime] = useState<number | null>(
@@ -42,29 +60,47 @@ const AnswerArea = () => {
       if (!firstStrokeTime.current) {
         firstStrokeTime.current = Date.now();
       }
-      if (e.pointerType === "touch") return; // 손가락/손바닥 무시
+      if (e.pointerType === "touch") return;
+
       if (eraseMode) {
-        const { x, y } = getRelativePointerPosition(e, canvas); // 해당 요소의 캔버스 내 좌표
-        eraseNearPointer({
+        const { x, y } = getRelativePointerPosition(e, canvas);
+        const nearStrokeId = findStrokeNearPointer({
           x,
           y,
           blocks,
           strokes,
-          setStrokes,
-          setBlocks,
-          setLastPoint,
-          setLastStrokeTime,
-          setLastBlockId,
-          drawAllAtOnce,
+          useBlock: true,
         });
+
+        if (nearStrokeId !== null) {
+          const { updatedStrokes, updatedBlocks } = eraseStrokeById({
+            nearStrokeId,
+            strokes,
+            blocks,
+            setStrokes,
+            setBlocks,
+            canvas,
+            useBlock: true,
+          });
+
+          updateLastStrokeMetaAfterErase({
+            updatedStrokes,
+            blocks: updatedBlocks,
+            setLastPoint,
+            setLastStrokeTime,
+            setLastBlockId,
+            useBlock: false,
+          });
+        }
+
         return;
       }
 
       setDrawing(true);
       const startPoint = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current = [startPoint];
-      ctx.beginPath(); // 이전 선과 분리된 새 경로 시작
-      ctx.moveTo(startPoint.x, startPoint.y); // 새 선의 시작점 지정
+      ctx.beginPath();
+      ctx.moveTo(startPoint.x, startPoint.y);
     };
 
     // 선 그리기 중
@@ -77,32 +113,28 @@ const AnswerArea = () => {
     };
 
     // 그리기 종료 및 블록 판단
-    const pointerUpHandler = () => {
-      handlePointerUp({
-        eraseMode,
-        currentStrokeRef,
-        strokes,
-        blocks,
-        lastPoint,
-        lastStrokeTime,
-        lastBlockId,
-        lastStrokeEndTime,
-        setStrokes,
-        setBlocks,
-        setLastPoint,
-        setLastStrokeTime,
-        setLastBlockId,
-        setCurrentStroke,
-        setDrawing,
-      });
-    };
-    const handlePointerUp = useHandlePointerUp();
-    canvas.addEventListener("pointerup", pointerUpHandler);
-
+    const pointerUpHandler = getPointerUpHandler({
+      eraseMode,
+      currentStrokeRef,
+      strokes,
+      blocks,
+      lastPoint,
+      lastStrokeTime,
+      lastBlockId,
+      lastStrokeEndTime,
+      setStrokes,
+      setBlocks,
+      setLastPoint,
+      setLastStrokeTime,
+      setLastBlockId,
+      setCurrentStroke,
+      setDrawing,
+    });
     const canvasEl = canvasRef.current!;
+
     canvasEl.addEventListener("pointerdown", handlePointerDown);
     canvasEl.addEventListener("pointermove", handlePointerMove);
-    // canvasEl.addEventListener("pointerup", handlePointerUp);
+    canvasEl.addEventListener("pointerup", pointerUpHandler);
 
     return () => {
       canvasEl.removeEventListener("pointerdown", handlePointerDown);
@@ -120,64 +152,85 @@ const AnswerArea = () => {
     lastBlockId,
   ]);
 
-  // 전체 블록 다시 그리기
-  const drawAllAtOnce = (targetBlocks = blocks) => {
-    const canvas = canvasRef.current!;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // 캔버스 초기화
-
-    // ✅ 배경을 먼저 흰색으로 칠해줌
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 각 블록을 순회하며 그리기
-    for (const block of targetBlocks) {
-      for (const stroke of block.strokes) {
-        const isLong = stroke.duration > 2000;
-        ctx.strokeStyle = isLong ? "red" : "black";
-        ctx.lineWidth = isLong ? 3 : 1.5;
-
-        // 각 획을 그리기
-        ctx.beginPath();
-        for (let i = 0; i < stroke.points.length; i++) {
-          const p = stroke.points[i];
-          if (i === 0) ctx.moveTo(p.x, p.y);
-          else ctx.lineTo(p.x, p.y);
-        }
-        ctx.stroke();
-      }
-    }
-  };
-
   // 채점(제출) 핸들러 - 이미지와 JSON 생성
+  useImperativeHandle(ref, () => ({
+    getAnswerBlob: async () => {
+      if (!canvasRef.current) return null;
+      return await generateAnswerImage(canvasRef.current, blocks);
+    },
+    getTimingData: () => ({
+      enterTime: enterTime.current,
+      firstStrokeTime: firstStrokeTime.current,
+      lastStrokeEndTime: lastStrokeEndTime.current,
+    }),
+    getBlocks: () => blocks,
+  }));
 
-  const handleSubmit = async () => {
-    if (!canvasRef.current) return;
+  // const handleSubmit = async () => {
+  //   if (!canvasRef.current) return;
+  //   const canvas = canvasRef.current;
 
-    drawAllAtOnce(); // 전체 stroke 그리기
-    const canvas = canvasRef.current;
-    const formData = new FormData();
+  //   // ✅ 1. 전체 답안 이미지 생성
+  //   // const answerBlob = await generateAnswerImage(canvas, blocks);
 
-    const blob = await new Promise<Blob>((resolve) =>
-      canvas.toBlob((b) => resolve(b!), "image/jpeg")
-    );
+  //   // // ✅ 2. 각 step 이미지 생성
+  //   // const stepsData = await generateStepImages(blocks, canvas);
 
-    formData.append("files", blob, "answer.jpg");
+  //   // // ✅ 3. FormData 생성 (이건 유틸로 안 뺌)
+  //   // const now = Date.now();
+  //   // const formData = new FormData();
 
-    const now = Date.now();
-    const totalSolveTime = now - enterTime.current;
+  //   // // formData.append("files", answerBlob, "answer.jpg");
+  //   // stepsData.forEach(({ blob, file_name }) => {
+  //   //   formData.append("files", blob, file_name);
+  //   // });
 
-    formData.append("user_id", String(1));
-    formData.append("problem_id", String(1));
-    formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
-    formData.append(
-      "total_solve_time",
-      String(Math.round(totalSolveTime / 1000))
-    );
+  //   // const stepMeta = stepsData.map(({ step_number, step_time, file_name }) => ({
+  //   //   step_number,
+  //   //   step_time,
+  //   //   file_name,
+  //   // }));
 
-    const result = await sendProblemSolvingDataApi(formData);
-    console.log("제출 완료:", result);
-  };
+  //   // const totalSolveTime = now - enterTime.current;
+  //   // const understandTime = Math.max(
+  //   //   0,
+  //   //   firstStrokeTime.current ? firstStrokeTime.current - enterTime.current : 0
+  //   // );
+  //   // const solveTime = Math.max(
+  //   //   0,
+  //   //   firstStrokeTime.current
+  //   //     ? (lastStrokeEndTime.current ?? now) - firstStrokeTime.current
+  //   //     : 0
+  //   // );
+  //   // const reviewTime = Math.max(
+  //   //   0,
+  //   //   lastStrokeEndTime.current ? now - lastStrokeEndTime.current : 0
+  //   // );
+
+  //   // formData.append("user_id", "1");
+  //   // formData.append("problem_id", "1");
+  //   // formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
+  //   // formData.append("steps", JSON.stringify(stepMeta));
+  //   // formData.append(
+  //   //   "total_solve_time",
+  //   //   String(Math.round(totalSolveTime / 1000))
+  //   // );
+  //   // formData.append(
+  //   //   "understand_time",
+  //   //   String(Math.round(understandTime / 1000))
+  //   // );
+  //   // formData.append("solve_time", String(Math.round(solveTime / 1000)));
+  //   // formData.append("review_time", String(Math.round(reviewTime / 1000)));
+
+  //   // for (const [key, value] of formData.entries()) {
+  //   //   console.log("📦", key, value);
+  //   // }
+  //   // // await sendProblemSolvingDataApi(formData);
+
+  //   // ✅ 4. 제출
+  //   const result = await sendProblemSolvingDataApi(formData);
+  //   console.log("📦 result:", result);
+  // };
   return (
     <div className="flex items-center justify-center w-full h-[200px] relative border border-gray-200 rounded-[10px]">
       {/* <p className="body-medium text-gray-200">정답을 작성해주세요.</p> */}
@@ -185,7 +238,7 @@ const AnswerArea = () => {
         <button
           onClick={() =>
             eraseAll({
-              canvasRef: canvasRef as React.RefObject<HTMLCanvasElement>,
+              canvas: canvasRef.current!,
               setStrokes,
               setBlocks,
               setLastPoint,
@@ -198,67 +251,31 @@ const AnswerArea = () => {
           전체 지우기
         </button>
         <button
-          onClick={eraseLastStroke({
-            blocks,
-            strokes,
-            setBlocks,
-            setStrokes,
-            setLastPoint,
-            setLastStrokeTime,
-            setLastBlockId,
-            drawAllAtOnce,
-          })}
+          onClick={() =>
+            eraseLastStroke({
+              strokes,
+              blocks,
+              setBlocks,
+              setStrokes,
+              setLastPoint,
+              setLastStrokeTime,
+              setLastBlockId,
+              canvas: canvasRef.current!,
+            })
+          }
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           한 획 지우기
         </button>
 
-        <button
+        {/* <button
           onClick={handleSubmit}
           className="px-3 py-1 bg-blue-200 border rounded"
         >
           채점하기
-        </button>
+        </button> */}
         <button
-          onClick={() => {
-            console.log(JSON.stringify(blocks, null, 2));
-            alert("블록 데이터가 콘솔에 출력되었습니다!");
-          }}
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          데이터 저장
-        </button>
-        <button
-          onClick={async () => {
-            const canvas = canvasRef.current!;
-            const ctx = canvas.getContext("2d")!;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (const block of blocks) {
-              for (const stroke of block.strokes) {
-                const isLong = stroke.duration > 2000;
-                ctx.strokeStyle = isLong ? "red" : "black";
-                ctx.lineWidth = isLong ? 3 : 1.5;
-
-                ctx.beginPath();
-                for (let i = 0; i < stroke.points.length; i++) {
-                  const p = stroke.points[i];
-                  if (i === 0) ctx.moveTo(p.x, p.y);
-                  else ctx.lineTo(p.x, p.y);
-                  if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
-                }
-                ctx.stroke();
-              }
-              await new Promise((r) => setTimeout(r, 500));
-            }
-            setActiveBlockId(null);
-          }}
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          전체 재생
-        </button>
-        <button
-          onClick={() => drawAllAtOnce()}
+          onClick={() => drawBlocksOnCanvas(canvasRef.current!, blocks)}
           className="px-3 py-1 bg-gray-100 border rounded"
         >
           전체 이미지 보기
@@ -315,6 +332,6 @@ const AnswerArea = () => {
       />
     </div>
   );
-};
+});
 
 export default AnswerArea;

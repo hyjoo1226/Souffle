@@ -4,10 +4,14 @@ import ProblemBox from "@/components/problemSolving/ProblemBox";
 import AnswerArea from "@/components/problemSolving/AnswerArea";
 import { Button } from "@/components/common/Button";
 import { useParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
+import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
+
 const ProblemSolvingPage = () => {
+  const answerRef = useRef<any>(null);
+  const solutionRef = useRef<any>(null);
   // const { id } = useParams(); // 문제 ID 추출
   const id = 1; // 문제 ID (임시로 1로 설정)
   const [problem, setProblem] = useState<
@@ -22,6 +26,70 @@ const ProblemSolvingPage = () => {
     };
     fetchProblem();
   }, [id]);
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+
+    // ✅ AnswerArea에서 답안 이미지
+    const answerBlob = await answerRef.current?.getAnswerBlob();
+    if (answerBlob) {
+      formData.append("files", answerBlob, "answer.jpg");
+      formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
+    }
+
+    // ✅ SolutionArea에서 steps 데이터 (getStepFormData 같은 방식으로 노출 필요)
+
+    const solutionData = await solutionRef.current?.getStepData();
+
+    if (!solutionData) {
+      console.warn("🚫 getStepData() returned null or undefined");
+      return;
+    }
+
+    const {
+      stepsData,
+      stepMeta,
+    }: { stepsData: { blob: Blob; file_name: string }[]; stepMeta: any } =
+      solutionData;
+
+    stepsData.forEach(({ blob, file_name }) =>
+      formData.append("files", blob, file_name)
+    );
+    formData.append("steps", JSON.stringify(stepMeta));
+
+    // ✅ 시간 정보 추가
+    const { enterTime, firstStrokeTime, lastStrokeEndTime } =
+      answerRef.current?.getTimingData();
+
+    const now = Date.now();
+    const totalSolveTime = now - enterTime;
+    const understandTime = firstStrokeTime ? firstStrokeTime - enterTime : 0;
+    const solveTime = firstStrokeTime
+      ? (lastStrokeEndTime ?? now) - firstStrokeTime
+      : 0;
+    const reviewTime = lastStrokeEndTime ? now - lastStrokeEndTime : 0;
+
+    formData.append("user_id", "1");
+    formData.append("problem_id", "1");
+    formData.append(
+      "total_solve_time",
+      String(Math.round(totalSolveTime / 1000))
+    );
+    formData.append(
+      "understand_time",
+      String(Math.round(understandTime / 1000))
+    );
+    formData.append("solve_time", String(Math.round(solveTime / 1000)));
+    formData.append("review_time", String(Math.round(reviewTime / 1000)));
+
+    for (const [key, value] of formData.entries()) {
+      console.log("📦", key, value);
+    }
+
+    // ✅ 전송
+    const result = await sendProblemSolvingDataApi(formData);
+    console.log("📦 result:", result);
+  };
 
   return (
     <div className="h-screen flex flex-col text-gray-700">
@@ -39,7 +107,7 @@ const ProblemSolvingPage = () => {
 
           {/* 정답 작성 영역*/}
           <div className="shrink-0 p-4">
-            <AnswerArea />
+            <AnswerArea ref={answerRef} />
           </div>
 
           {/* 버튼 영역*/}
@@ -50,7 +118,7 @@ const ProblemSolvingPage = () => {
             <Button variant="outline" size="md">
               다음 문제
             </Button>
-            <Button variant="solid" size="md">
+            <Button variant="solid" size="md" onClick={handleSubmit}>
               채점 하기
             </Button>
           </div>
@@ -58,7 +126,7 @@ const ProblemSolvingPage = () => {
 
         {/* 오른쪽 풀이 영역*/}
         <div className="col-span-7 h-full p-4">
-          <SolutionArea />
+          <SolutionArea ref={solutionRef} />
         </div>
       </div>
     </div>
