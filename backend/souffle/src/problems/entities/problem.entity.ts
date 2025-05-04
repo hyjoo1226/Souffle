@@ -8,7 +8,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Submission } from 'src/submissions/entities/submission.entity';
-import { Category } from 'src/categories/category.entity';
+import { Category } from 'src/categories/entities/category.entity';
 import { Book } from 'src/books/entities/book.entity';
 
 @Entity({ name: 'problems' })

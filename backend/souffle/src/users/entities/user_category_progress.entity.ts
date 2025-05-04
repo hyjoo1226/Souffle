@@ -7,7 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
-import { Category } from 'src/categories/category.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Entity({ name: 'user_category_progresses' })
 export class UserCategoryProgress extends BaseEntity {
