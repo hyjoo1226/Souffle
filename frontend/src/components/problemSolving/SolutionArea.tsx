@@ -274,12 +274,9 @@ const SolutionArea = () => {
     for (const [key, value] of formData.entries()) {
       console.log("📦", key, value);
     }
-    await sendProblemSolvingDataApi(formData);
-
-    // 디버깅용 로그
-    for (const pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
-    }
+    // await sendProblemSolvingDataApi(formData);
+    const result = await sendProblemSolvingDataApi(formData);
+    console.log("📦 result:", result);
   };
 
   return (

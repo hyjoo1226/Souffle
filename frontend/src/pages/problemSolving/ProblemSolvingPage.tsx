@@ -3,12 +3,30 @@ import ProblemSourceInfo from "@/components/problemSolving/ProblemSourceInfo";
 import ProblemBox from "@/components/problemSolving/ProblemBox";
 import AnswerArea from "@/components/problemSolving/AnswerArea";
 import { Button } from "@/components/common/Button";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
 const ProblemSolvingPage = () => {
+  // const { id } = useParams(); // 문제 ID 추출
+  const id = 1; // 문제 ID (임시로 1로 설정)
+  const [problem, setProblem] = useState<
+    { book?: { book_name?: string } } | undefined
+  >(undefined);
+
+  useEffect(() => {
+    const fetchProblem = async () => {
+      if (!id) return;
+      const res = await getProblemDataApi(Number(id)); // 문제 데이터 요청
+      setProblem(res);
+    };
+    fetchProblem();
+  }, [id]);
+
   return (
     <div className="h-screen flex flex-col text-gray-700">
       <div className="shrink-0">
-        <ProblemSourceInfo />
+        {problem && <ProblemSourceInfo data={problem} />}
       </div>
 
       <div className="flex-grow min-h-0 grid grid-cols-12 gap-x-4">
@@ -16,7 +34,7 @@ const ProblemSolvingPage = () => {
         <div className="col-span-5 flex flex-col overflow-hidden">
           {/* 문제 영역*/}
           <div className="flex-grow min-h-0 p-3 overflow-y-auto">
-            <ProblemBox />
+            {problem && <ProblemBox data={problem} />}
           </div>
 
           {/* 정답 작성 영역*/}
