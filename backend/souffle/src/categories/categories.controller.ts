@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { CategoryService } from './categories.service';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
 @ApiTags('categories')
 @Controller('api/v1/categories')
@@ -42,5 +42,25 @@ export class CategoryController {
   })
   async getCategoryTree() {
     return this.categoriesService.getCategoryTree();
+  }
+
+  @Get(':category_id/ancestors')
+  @ApiOperation({ summary: '단원의 모든 상위 단원 조회' })
+  @ApiParam({ name: 'category_id', description: '단원 ID' })
+  @ApiResponse({
+    status: 200,
+    description: '상위 단원 리스트',
+    schema: {
+      example: {
+        current: { id: 20, name: '소단원', type: 3 },
+        ancestors: [
+          { id: 10, name: '중단원', type: 2 },
+          { id: 1, name: '대단원', type: 1 },
+        ],
+      },
+    },
+  })
+  async getAncestors(@Param('category_id', ParseIntPipe) categoryId: number) {
+    return this.categoriesService.getAncestors(categoryId);
   }
 }
