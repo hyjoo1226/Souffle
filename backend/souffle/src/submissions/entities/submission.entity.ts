@@ -9,7 +9,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { Problem } from 'src/problems/problem.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
 import { SubmissionStep } from './submission-step.entity';
 
 @Entity({ name: 'submissions' })

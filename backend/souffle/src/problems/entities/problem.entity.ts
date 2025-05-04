@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { Category } from 'src/categories/category.entity';
-import { Book } from 'src/books/book.entity';
+import { Book } from 'src/books/entities/book.entity';
 
 @Entity({ name: 'problems' })
 export class Problem extends BaseEntity {

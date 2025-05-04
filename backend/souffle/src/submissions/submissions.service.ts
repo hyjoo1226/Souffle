@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/entities/user.entity';
-import { Problem } from '../problems/problem.entity';
+import { Problem } from '../problems/entities/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
 import { FileService } from 'src/files/files.service';
 import { OcrService } from 'src/ocr/ocr.service';

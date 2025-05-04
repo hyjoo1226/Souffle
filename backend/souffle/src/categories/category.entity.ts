@@ -7,7 +7,7 @@ import {
   JoinColumn,
   OneToMany,
 } from 'typeorm';
-import { Problem } from 'src/problems/problem.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
 import { UserCategoryProgress } from 'src/users/entities/user_category_progress.entity';
 
 @Entity({ name: 'categories' })

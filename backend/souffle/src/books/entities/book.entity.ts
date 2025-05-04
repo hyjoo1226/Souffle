@@ -5,7 +5,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
 } from 'typeorm';
-import { Problem } from 'src/problems/problem.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
 
 @Entity({ name: 'books' })
 export class Book extends BaseEntity {
