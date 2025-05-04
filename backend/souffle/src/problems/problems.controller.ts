@@ -16,6 +16,7 @@ export class ProblemController {
     schema: {
       example: {
         problem_id: 1,
+        category_id: 1,
         problem_no: '문제 문항코드',
         inner_no: 1,
         type: 1,

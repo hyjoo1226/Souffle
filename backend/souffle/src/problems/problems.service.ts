@@ -13,7 +13,7 @@ export class ProblemService {
   async getProblem(problemId: number) {
     const problem = await this.problemRepository.findOne({
       where: { id: problemId },
-      relations: ['book'],
+      relations: ['book', 'category'],
     });
 
     if (!problem) {
@@ -22,6 +22,7 @@ export class ProblemService {
 
     return {
       problem_id: problem.id,
+      category_id: problem.category.id,
       problem_no: problem.problemNo,
       inner_no: problem.innerNo,
       type: problem.type,
