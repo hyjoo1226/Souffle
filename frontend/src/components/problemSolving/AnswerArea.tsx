@@ -33,7 +33,7 @@ const AnswerArea = forwardRef((props, ref) => {
   const [isPencilActive, setIsPencilActive] = useState(true); // 기본: 펜 선택됨
   const [isEraserActive, setIsEraserActive] = useState(false); // 아이콘 상태
   const [showEraseModal, setShowEraseModal] = useState(false); // 모달 표시
-  const [eraseOption, setEraseOption] = useState<"all" | "last">("last");
+  const [eraseOption, setEraseOption] = useState<"all" | "last" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
 
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
@@ -41,6 +41,30 @@ const AnswerArea = forwardRef((props, ref) => {
   const enterTime = useRef(Date.now());
   const firstStrokeTime = useRef<number | null>(null);
   const lastStrokeEndTime = useRef<number | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeCanvas = () => {
+      const { width, height } = canvas.getBoundingClientRect();
+
+      // 실제 픽셀 해상도도 일치시킴
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.lineCap = "round";
+      }
+    };
+
+    resizeCanvas(); // 처음 mount 시
+
+    // resize 이벤트가 필요한 경우
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
 
   const handleEraserClick = () => {
     if (!isEraserActive) {
@@ -238,13 +262,15 @@ const AnswerArea = forwardRef((props, ref) => {
           )}
         </div>
       </div>
-      <canvas
-        id="drawCanvas"
-        ref={canvasRef}
-        width={800} // 또는 원하는 고정 px
-        height={200}
-        className="border border-gray-200 rounded-[10px] touch-none w-full h-full"
-      />
+      <div className="relative w-full h-full ">
+        <canvas
+          id="drawCanvas"
+          ref={canvasRef}
+          // width={800} // 또는 원하는 고정 px
+          // height={200}
+          className="border border-gray-200 rounded-[10px] touch-none w-full h-full"
+        />
+      </div>
       {!hasStarted && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none body-medium text-gray-200">
           정답을 작성해주세요

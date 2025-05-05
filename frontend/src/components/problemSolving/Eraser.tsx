@@ -3,8 +3,8 @@
 const Eraser = ({
   onClose,
   onExecute,
-  eraseOption,
   setEraseOption,
+  eraseOption,
 }: {
   onClose: () => void;
   onExecute: (option: any) => void;

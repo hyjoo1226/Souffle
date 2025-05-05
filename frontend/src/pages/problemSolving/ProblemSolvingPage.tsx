@@ -8,6 +8,7 @@ import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
+import { useNavigate } from "react-router-dom";
 
 const ProblemSolvingPage = () => {
   const answerRef = useRef<any>(null);
@@ -15,6 +16,17 @@ const ProblemSolvingPage = () => {
   // const { id } = useParams(); // 문제 ID 추출
   const id = 1; // 문제 ID (임시로 1로 설정)
   const [problem, setProblem] = useState<any>(null); // 문제 데이터 상태
+  const [isCorrect, setIscorrect] = useState(null); // 정답 여부 상태
+  const [result, setResult] = useState<{
+    avg_accuracy?: number;
+    avg_review_time?: number;
+    avg_solve_time?: number;
+    avg_total_solve_time?: number;
+    avg_understand_time?: number;
+    is_correct?: boolean;
+    submissionId?: string;
+  } | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -86,6 +98,24 @@ const ProblemSolvingPage = () => {
     // 전송
     const result = await sendProblemSolvingDataApi(formData);
     console.log("📦 result:", result);
+    setIscorrect(result.is_correct);
+    setResult(result);
+    console.log("디버깅", result.is_correct);
+    console.log("디버깅", result.avg_accuracy);
+  };
+
+  const handleAnalyze = () => {
+    navigate("/analysis", {
+      state: {
+        avg_accuracy: result?.avg_accuracy,
+        avg_review_time: result?.avg_review_time,
+        avg_solve_time: result?.avg_solve_time,
+        avg_total_solve_time: result?.avg_total_solve_time,
+        avg_understand_time: result?.avg_understand_time,
+        is_correct: result?.is_correct,
+        submissionId: result?.submissionId,
+      },
+    });
   };
 
   return (
@@ -98,7 +128,19 @@ const ProblemSolvingPage = () => {
         {/* 왼쪽 영역 */}
         <div className="col-span-5 flex flex-col overflow-hidden">
           {/* 문제 영역*/}
-          <div className="flex-grow min-h-0 p-3 overflow-y-auto">
+          <div className="flex-grow min-h-0 p-3 overflow-y-auto relative">
+            <img
+              src={
+                isCorrect === true
+                  ? "/icons/correct.png"
+                  : isCorrect === false
+                  ? "/icons/false.png"
+                  : ""
+              }
+              alt={isCorrect ? "correct" : "false"}
+              className="absolute top-0 left-0 w-40 h-40 z-10"
+            />
+
             {problem && (
               <ProblemBox
                 data={{
@@ -123,9 +165,15 @@ const ProblemSolvingPage = () => {
             <Button variant="outline" size="md">
               다음 문제
             </Button>
-            <Button variant="solid" size="md" onClick={handleSubmit}>
-              채점 하기
-            </Button>
+            {isCorrect == null ? (
+              <Button variant="solid" size="md" onClick={handleSubmit}>
+                채점 하기
+              </Button>
+            ) : (
+              <Button variant="solid" size="md" onClick={handleAnalyze}>
+                풀이 분석하기
+              </Button>
+            )}
           </div>
         </div>
 
