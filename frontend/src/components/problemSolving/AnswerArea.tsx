@@ -5,14 +5,7 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
-import {
-  drawBlocksOnCanvas,
-  getPointerUpHandler,
-  generateStepImages,
-  generateAnswerImage,
-} from "@/utils/drawing";
-// import { useEraser } from "@/hooks/useEraser";
+import { getPointerUpHandler, generateAnswerImage } from "@/utils/drawing";
 import {
   getRelativePointerPosition,
   findStrokeNearPointer,
@@ -21,6 +14,7 @@ import {
   eraseAll,
   eraseLastStroke,
 } from "@/utils/eraser";
+import Eraser from "./Eraser";
 
 const AnswerArea = forwardRef((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,28 +29,45 @@ const AnswerArea = forwardRef((props, ref) => {
   const [currentStroke, setCurrentStroke] = useState<any[]>([]);
   const [lastStrokeTime, setLastStrokeTime] = useState<number | null>(null);
   const [lastPoint, setLastPoint] = useState<any>(null);
-  const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [eraseMode, setEraseMode] = useState(false);
+  const [isPencilActive, setIsPencilActive] = useState(true); // 기본: 펜 선택됨
+  const [isEraserActive, setIsEraserActive] = useState(false); // 아이콘 상태
+  const [showEraseModal, setShowEraseModal] = useState(false); // 모달 표시
+  const [eraseOption, setEraseOption] = useState<"all" | "last">("last");
+  const [hasStarted, setHasStarted] = useState(false);
+
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
-  // const { eraseNearPointer, eraseLastStroke, eraseAll } = useEraser();
-  // const [enterTime, setEnterTime] = useState<number>(Date.now()); // 페이지 입장 시
-  // const [firstStrokeTime, setFirstStrokeTime] = useState<number | null>(null); // 첫 그리기 시작 시
-  // const [lastStrokeEndTime, setLastStrokeEndTime] = useState<number | null>(
-  //   null
-  // ); // 마지막 stroke 끝난 시점
-  const [submitTime, setSubmitTime] = useState<number | null>(null); // 채점 버튼 클릭 시
+
   const enterTime = useRef(Date.now());
   const firstStrokeTime = useRef<number | null>(null);
   const lastStrokeEndTime = useRef<number | null>(null);
+
+  const handleEraserClick = () => {
+    if (!isEraserActive) {
+      // 처음 클릭 → 지우개 모드 ON
+      setIsPencilActive(false); // 펜 아이콘 비활성화
+      setIsEraserActive(true);
+      setEraseMode(true); // canvas에서 지우개 기능 활성화
+    } else {
+      // 두 번째 클릭 → 옵션 모달 열기
+      setShowEraseModal(true);
+    }
+  };
+  const handlePencilClick = () => {
+    setIsPencilActive(true);
+    setEraseMode(false); // 지우기 모드 종료
+    setIsEraserActive(false); // 지우개 아이콘 비활성화
+    setShowEraseModal(false); // 혹시 열려 있다면 모달도 닫기
+  };
   // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
-    // setEnterTime(Date.now());
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     ctx.lineCap = "round";
 
     // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
+      if (!hasStarted) setHasStarted(true);
       if (!firstStrokeTime.current) {
         firstStrokeTime.current = Date.now();
       }
@@ -166,170 +177,79 @@ const AnswerArea = forwardRef((props, ref) => {
     getBlocks: () => blocks,
   }));
 
-  // const handleSubmit = async () => {
-  //   if (!canvasRef.current) return;
-  //   const canvas = canvasRef.current;
-
-  //   // ✅ 1. 전체 답안 이미지 생성
-  //   // const answerBlob = await generateAnswerImage(canvas, blocks);
-
-  //   // // ✅ 2. 각 step 이미지 생성
-  //   // const stepsData = await generateStepImages(blocks, canvas);
-
-  //   // // ✅ 3. FormData 생성 (이건 유틸로 안 뺌)
-  //   // const now = Date.now();
-  //   // const formData = new FormData();
-
-  //   // // formData.append("files", answerBlob, "answer.jpg");
-  //   // stepsData.forEach(({ blob, file_name }) => {
-  //   //   formData.append("files", blob, file_name);
-  //   // });
-
-  //   // const stepMeta = stepsData.map(({ step_number, step_time, file_name }) => ({
-  //   //   step_number,
-  //   //   step_time,
-  //   //   file_name,
-  //   // }));
-
-  //   // const totalSolveTime = now - enterTime.current;
-  //   // const understandTime = Math.max(
-  //   //   0,
-  //   //   firstStrokeTime.current ? firstStrokeTime.current - enterTime.current : 0
-  //   // );
-  //   // const solveTime = Math.max(
-  //   //   0,
-  //   //   firstStrokeTime.current
-  //   //     ? (lastStrokeEndTime.current ?? now) - firstStrokeTime.current
-  //   //     : 0
-  //   // );
-  //   // const reviewTime = Math.max(
-  //   //   0,
-  //   //   lastStrokeEndTime.current ? now - lastStrokeEndTime.current : 0
-  //   // );
-
-  //   // formData.append("user_id", "1");
-  //   // formData.append("problem_id", "1");
-  //   // formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
-  //   // formData.append("steps", JSON.stringify(stepMeta));
-  //   // formData.append(
-  //   //   "total_solve_time",
-  //   //   String(Math.round(totalSolveTime / 1000))
-  //   // );
-  //   // formData.append(
-  //   //   "understand_time",
-  //   //   String(Math.round(understandTime / 1000))
-  //   // );
-  //   // formData.append("solve_time", String(Math.round(solveTime / 1000)));
-  //   // formData.append("review_time", String(Math.round(reviewTime / 1000)));
-
-  //   // for (const [key, value] of formData.entries()) {
-  //   //   console.log("📦", key, value);
-  //   // }
-  //   // // await sendProblemSolvingDataApi(formData);
-
-  //   // ✅ 4. 제출
-  //   const result = await sendProblemSolvingDataApi(formData);
-  //   console.log("📦 result:", result);
-  // };
   return (
-    <div className="flex items-center justify-center w-full h-[200px] relative border border-gray-200 rounded-[10px]">
-      {/* <p className="body-medium text-gray-200">정답을 작성해주세요.</p> */}
+    <div className="flex flex-col items-end justify-center w-full h-[200px] relative  rounded-[10px]">
       <div className="flex gap-2 mb-2">
-        <button
-          onClick={() =>
-            eraseAll({
-              canvas: canvasRef.current!,
-              setStrokes,
-              setBlocks,
-              setLastPoint,
-              setLastStrokeTime,
-              setLastBlockId,
-            })
+        <img
+          src={
+            isPencilActive
+              ? "/icons/pencil-selected.png"
+              : "/icons/pencil-default.png"
           }
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          전체 지우기
-        </button>
-        <button
-          onClick={() =>
-            eraseLastStroke({
-              strokes,
-              blocks,
-              setBlocks,
-              setStrokes,
-              setLastPoint,
-              setLastStrokeTime,
-              setLastBlockId,
-              canvas: canvasRef.current!,
-            })
-          }
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          한 획 지우기
-        </button>
+          alt="연필"
+          className="w-7 h-7 cursor-pointer"
+          onClick={handlePencilClick}
+        />
+        <div className="relative inline-block">
+          <img
+            src={
+              isEraserActive
+                ? "/icons/eraser-selected.png"
+                : "/icons/eraser-default.png"
+            }
+            alt="지우개"
+            className="w-7 h-7 cursor-pointer"
+            onClick={handleEraserClick}
+          />
 
-        {/* <button
-          onClick={handleSubmit}
-          className="px-3 py-1 bg-blue-200 border rounded"
-        >
-          채점하기
-        </button> */}
-        <button
-          onClick={() => drawBlocksOnCanvas(canvasRef.current!, blocks)}
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          전체 이미지 보기
-        </button>
-        <button
-          onClick={() => setEraseMode(!eraseMode)}
-          className={`px-3 py-1 border rounded ${
-            eraseMode ? "bg-red-200" : "bg-gray-100"
-          }`}
-        >
-          {eraseMode ? "지우기 모드 끄기" : "지우기 모드 켜기"}
-        </button>
-      </div>
-      <div className="mb-2 flex flex-wrap gap-1">
-        {blocks.map((block) => (
-          <button
-            key={block.block_id}
-            onClick={async () => {
-              setActiveBlockId(block.block_id);
-              const canvas = canvasRef.current;
-              if (!canvas) return;
-              const ctx = canvas.getContext("2d");
-              if (!ctx) return;
-
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-              for (const stroke of block.strokes) {
-                const isLong = stroke.duration > 2000;
-                ctx.strokeStyle = isLong ? "red" : "black";
-                ctx.lineWidth = isLong ? 3 : 1.5;
-
-                ctx.beginPath();
-                for (let i = 0; i < stroke.points.length; i++) {
-                  const p = stroke.points[i];
-                  if (i === 0) ctx.moveTo(p.x, p.y);
-                  else ctx.lineTo(p.x, p.y);
-                  if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
+          {showEraseModal && (
+            <Eraser
+              eraseOption={eraseOption}
+              setEraseOption={setEraseOption}
+              onClose={() => setShowEraseModal(false)}
+              onExecute={() => {
+                if (eraseOption === "last") {
+                  eraseLastStroke({
+                    strokes,
+                    blocks,
+                    setBlocks,
+                    setStrokes,
+                    setLastPoint,
+                    setLastStrokeTime,
+                    setLastBlockId,
+                    canvas: canvasRef.current!,
+                  });
+                } else {
+                  eraseAll({
+                    canvas: canvasRef.current!,
+                    setStrokes,
+                    setBlocks,
+                    setLastPoint,
+                    setLastStrokeTime,
+                    setLastBlockId,
+                  });
                 }
-                ctx.stroke();
-              }
-            }}
-            className="m-1 px-2 py-1 border rounded text-sm"
-          >
-            수식 {block.block_id}
-          </button>
-        ))}
+
+                setShowEraseModal(false);
+                setIsEraserActive(false);
+                setEraseMode(false);
+              }}
+            />
+          )}
+        </div>
       </div>
       <canvas
         id="drawCanvas"
         ref={canvasRef}
-        // width={800}
-        // height={600}
-        className="border border-gray-300 touch-none"
+        width={800} // 또는 원하는 고정 px
+        height={200}
+        className="border border-gray-200 rounded-[10px] touch-none w-full h-full"
       />
+      {!hasStarted && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none body-medium text-gray-200">
+          정답을 작성해주세요
+        </div>
+      )}
     </div>
   );
 });

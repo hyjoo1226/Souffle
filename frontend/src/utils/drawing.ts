@@ -1,3 +1,21 @@
+export interface PointerUpHandlerContext {
+  eraseMode: boolean;
+  currentStrokeRef: React.MutableRefObject<any[]>;
+  strokes: any[];
+  blocks: any[];
+  lastPoint: any;
+  lastStrokeTime: number | null;
+  lastBlockId: number | null;
+  lastStrokeEndTime: React.MutableRefObject<number | null>;
+  setStrokes: (strokes: any[]) => void;
+  setBlocks: (blocks: any[]) => void;
+  setLastPoint: (point: any) => void;
+  setLastStrokeTime: (time: number | null) => void;
+  setLastBlockId: (id: number | null) => void;
+  setCurrentStroke: (points: any[]) => void;
+  setDrawing: (drawing: boolean) => void;
+}
+
 // 캔버스에 블록을 그리는 함수
 export function drawBlocksOnCanvas(canvas: HTMLCanvasElement, blocks: any[]) {
   const ctx = canvas.getContext("2d");
@@ -128,24 +146,6 @@ export const updateLastStrokeMeta = ({
   );
   setLastBlockId(containingBlock?.block_id ?? null);
 };
-
-export interface PointerUpHandlerContext {
-  eraseMode: boolean;
-  currentStrokeRef: React.MutableRefObject<any[]>;
-  strokes: any[];
-  blocks: any[];
-  lastPoint: any;
-  lastStrokeTime: number | null;
-  lastBlockId: number | null;
-  lastStrokeEndTime: React.MutableRefObject<number | null>;
-  setStrokes: (strokes: any[]) => void;
-  setBlocks: (blocks: any[]) => void;
-  setLastPoint: (point: any) => void;
-  setLastStrokeTime: (time: number | null) => void;
-  setLastBlockId: (id: number | null) => void;
-  setCurrentStroke: (points: any[]) => void;
-  setDrawing: (drawing: boolean) => void;
-}
 
 export function getPointerUpHandler(ctx: PointerUpHandlerContext) {
   return (_e: PointerEvent) => {

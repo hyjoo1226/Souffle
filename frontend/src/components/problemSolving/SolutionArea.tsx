@@ -1,17 +1,11 @@
-import React, {
+import {
   forwardRef,
   useImperativeHandle,
   useRef,
   useState,
   useEffect,
 } from "react";
-import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
-import {
-  drawBlocksOnCanvas,
-  getPointerUpHandler,
-  generateStepImages,
-} from "@/utils/drawing";
-// import { useEraser } from "@/hooks/useEraser";
+import { getPointerUpHandler, generateStepImages } from "@/utils/drawing";
 import {
   getRelativePointerPosition,
   findStrokeNearPointer,
@@ -20,6 +14,7 @@ import {
   eraseAll,
   eraseLastStroke,
 } from "@/utils/eraser";
+import Eraser from "./Eraser";
 
 const SolutionArea = forwardRef((props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -34,19 +29,57 @@ const SolutionArea = forwardRef((props, ref) => {
   const [currentStroke, setCurrentStroke] = useState<any[]>([]);
   const [lastStrokeTime, setLastStrokeTime] = useState<number | null>(null);
   const [lastPoint, setLastPoint] = useState<any>(null);
-  const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
   const [eraseMode, setEraseMode] = useState(false);
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
-  // const { eraseNearPointer, eraseLastStroke, eraseAll } = useEraser();
-  // const [enterTime, setEnterTime] = useState<number>(Date.now()); // 페이지 입장 시
-  // const [firstStrokeTime, setFirstStrokeTime] = useState<number | null>(null); // 첫 그리기 시작 시
-  // const [lastStrokeEndTime, setLastStrokeEndTime] = useState<number | null>(
-  //   null
-  // ); // 마지막 stroke 끝난 시점
-  const [submitTime, setSubmitTime] = useState<number | null>(null); // 채점 버튼 클릭 시
+  const [isPencilActive, setIsPencilActive] = useState(true); // 기본: 펜 선택됨
+  const [isEraserActive, setIsEraserActive] = useState(false); // 아이콘 상태
+  const [showEraseModal, setShowEraseModal] = useState(false); // 모달 표시
+  const [eraseOption, setEraseOption] = useState<"all" | "last" | null>(null);
   const enterTime = useRef(Date.now());
   const firstStrokeTime = useRef<number | null>(null);
   const lastStrokeEndTime = useRef<number | null>(null);
+
+  const handleEraserClick = () => {
+    if (!isEraserActive) {
+      // 처음 클릭 → 지우개 모드 ON
+      setIsPencilActive(false); // 펜 아이콘 비활성화
+      setIsEraserActive(true);
+      setEraseMode(true); // canvas에서 지우개 기능 활성화
+    } else {
+      // 두 번째 클릭 → 옵션 모달 열기
+      setShowEraseModal(true);
+    }
+  };
+  const handlePencilClick = () => {
+    setIsPencilActive(true);
+    setEraseMode(false); // 지우기 모드 종료
+    setIsEraserActive(false); // 지우개 아이콘 비활성화
+    setShowEraseModal(false); // 혹시 열려 있다면 모달도 닫기
+  };
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const resizeCanvas = () => {
+      const { width, height } = canvas.getBoundingClientRect();
+
+      // 실제 픽셀 해상도도 일치시킴
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.lineCap = "round";
+      }
+    };
+
+    resizeCanvas(); // 처음 mount 시
+
+    // resize 이벤트가 필요한 경우
+    window.addEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener("resize", resizeCanvas);
+  }, []);
   // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
     // setEnterTime(Date.now());
@@ -152,7 +185,6 @@ const SolutionArea = forwardRef((props, ref) => {
   ]);
 
   // 채점(제출) 핸들러 - 이미지와 JSON 생성
-
   useImperativeHandle(ref, () => ({
     getStepData: async () => {
       if (!canvasRef.current) return null;
@@ -200,108 +232,82 @@ const SolutionArea = forwardRef((props, ref) => {
   }));
 
   return (
-    <div className="w-full h-full relative border border-gray-200 rounded-[10px] p-4">
+    <div className="w-full h-full relative border border-gray-200 rounded-[10px]">
       <img
         src="/icons/note-spring.png"
         alt="노트 스프링"
-        className="absolute left-[12.5%] top-[-4%] w-[70%] pointer-events-none"
+        className="absolute z-50 left-[12.5%] top-[-4%] w-[70%] pointer-events-none"
       />
-      <div className="flex gap-2 mb-2">
-        <button
-          onClick={() =>
-            eraseAll({
-              canvas: canvasRef.current!,
-              setStrokes,
-              setBlocks,
-              setLastPoint,
-              setLastStrokeTime,
-              setLastBlockId,
-            })
-          }
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          전체 지우기
-        </button>
-        <button
-          onClick={() =>
-            eraseLastStroke({
-              strokes,
-              blocks,
-              setBlocks,
-              setStrokes,
-              setLastPoint,
-              setLastStrokeTime,
-              setLastBlockId,
-              canvas: canvasRef.current!,
-            })
-          }
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          한 획 지우기
-        </button>
+      {showEraseModal && (
+        <Eraser
+          eraseOption={eraseOption}
+          setEraseOption={setEraseOption}
+          onClose={() => {
+            setShowEraseModal(false);
+            setEraseOption(null); // 선택 초기화
+          }}
+          onExecute={(option) => {
+            if (option === "last") {
+              eraseLastStroke({
+                strokes,
+                blocks,
+                setBlocks,
+                setStrokes,
+                setLastPoint,
+                setLastStrokeTime,
+                setLastBlockId,
+                canvas: canvasRef.current!,
+              });
+            } else {
+              eraseAll({
+                canvas: canvasRef.current!,
+                setStrokes,
+                setBlocks,
+                setLastPoint,
+                setLastStrokeTime,
+                setLastBlockId,
+              });
+            }
 
-        {/* <button
-          onClick={handleSubmit}
-          className="px-3 py-1 bg-blue-200 border rounded"
-        >
-          채점하기
-        </button> */}
-        <button
-          onClick={() => drawBlocksOnCanvas(canvasRef.current!, blocks)}
-          className="px-3 py-1 bg-gray-100 border rounded"
-        >
-          전체 이미지 보기
-        </button>
-        <button
-          onClick={() => setEraseMode(!eraseMode)}
-          className={`px-3 py-1 border rounded ${
-            eraseMode ? "bg-red-200" : "bg-gray-100"
-          }`}
-        >
-          {eraseMode ? "지우기 모드 끄기" : "지우기 모드 켜기"}
-        </button>
-      </div>
-      <div className="mb-2 flex flex-wrap gap-1">
-        {blocks.map((block) => (
-          <button
-            key={block.block_id}
-            onClick={async () => {
-              setActiveBlockId(block.block_id);
-              const canvas = canvasRef.current;
-              if (!canvas) return;
-              const ctx = canvas.getContext("2d");
-              if (!ctx) return;
-
-              ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-              for (const stroke of block.strokes) {
-                const isLong = stroke.duration > 2000;
-                ctx.strokeStyle = isLong ? "red" : "black";
-                ctx.lineWidth = isLong ? 3 : 1.5;
-
-                ctx.beginPath();
-                for (let i = 0; i < stroke.points.length; i++) {
-                  const p = stroke.points[i];
-                  if (i === 0) ctx.moveTo(p.x, p.y);
-                  else ctx.lineTo(p.x, p.y);
-                  if (i % 2 === 0) await new Promise((r) => setTimeout(r, 10));
-                }
-                ctx.stroke();
+            setShowEraseModal(false);
+            setIsEraserActive(false);
+            setEraseMode(false);
+          }}
+        />
+      )}
+      <div className="relative w-full h-full overflow-hidden border border-gray-200 rounded-[10px] p-2">
+        <div className="flex justify-end gap-2 mb-2 overflow-hidden">
+          <img
+            src={
+              isPencilActive
+                ? "/icons/pencil-selected.png"
+                : "/icons/pencil-default.png"
+            }
+            alt="연필"
+            className="w-7 h-7 cursor-pointer"
+            onClick={handlePencilClick}
+          />
+          <div className="relative inline-block">
+            <img
+              src={
+                isEraserActive
+                  ? "/icons/eraser-selected.png"
+                  : "/icons/eraser-default.png"
               }
-            }}
-            className="m-1 px-2 py-1 border rounded text-sm"
-          >
-            수식 {block.block_id}
-          </button>
-        ))}
+              alt="지우개"
+              className="w-7 h-7 cursor-pointer"
+              onClick={handleEraserClick}
+            />
+          </div>
+        </div>
+        <div className="relative w-full h-full ">
+          <canvas
+            id="drawCanvas"
+            ref={canvasRef}
+            className="touch-none w-full h-full"
+          />
+        </div>
       </div>
-      <canvas
-        id="drawCanvas"
-        ref={canvasRef}
-        width={800}
-        height={600}
-        className="border border-gray-300 touch-none"
-      />
     </div>
   );
 });

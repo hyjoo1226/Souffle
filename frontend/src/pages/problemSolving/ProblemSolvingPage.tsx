@@ -14,9 +14,7 @@ const ProblemSolvingPage = () => {
   const solutionRef = useRef<any>(null);
   // const { id } = useParams(); // 문제 ID 추출
   const id = 1; // 문제 ID (임시로 1로 설정)
-  const [problem, setProblem] = useState<
-    { book?: { book_name?: string } } | undefined
-  >(undefined);
+  const [problem, setProblem] = useState<any>(null); // 문제 데이터 상태
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -30,15 +28,14 @@ const ProblemSolvingPage = () => {
   const handleSubmit = async () => {
     const formData = new FormData();
 
-    // ✅ AnswerArea에서 답안 이미지
+    // AnswerArea에서 답안 이미지
     const answerBlob = await answerRef.current?.getAnswerBlob();
     if (answerBlob) {
       formData.append("files", answerBlob, "answer.jpg");
       formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
     }
 
-    // ✅ SolutionArea에서 steps 데이터 (getStepFormData 같은 방식으로 노출 필요)
-
+    // SolutionArea에서 steps 데이터
     const solutionData = await solutionRef.current?.getStepData();
 
     if (!solutionData) {
@@ -57,7 +54,7 @@ const ProblemSolvingPage = () => {
     );
     formData.append("steps", JSON.stringify(stepMeta));
 
-    // ✅ 시간 정보 추가
+    // 시간 정보 추가
     const { enterTime, firstStrokeTime, lastStrokeEndTime } =
       answerRef.current?.getTimingData();
 
@@ -86,7 +83,7 @@ const ProblemSolvingPage = () => {
       console.log("📦", key, value);
     }
 
-    // ✅ 전송
+    // 전송
     const result = await sendProblemSolvingDataApi(formData);
     console.log("📦 result:", result);
   };
@@ -102,7 +99,15 @@ const ProblemSolvingPage = () => {
         <div className="col-span-5 flex flex-col overflow-hidden">
           {/* 문제 영역*/}
           <div className="flex-grow min-h-0 p-3 overflow-y-auto">
-            {problem && <ProblemBox data={problem} />}
+            {problem && (
+              <ProblemBox
+                data={{
+                  content: problem.content || "No content available",
+                  problem_image_url: "", // Provide a default or actual URL if available
+                  avg_accuracy: 0, // Provide a default or actual value if available
+                }}
+              />
+            )}
           </div>
 
           {/* 정답 작성 영역*/}
@@ -125,7 +130,7 @@ const ProblemSolvingPage = () => {
         </div>
 
         {/* 오른쪽 풀이 영역*/}
-        <div className="col-span-7 h-full p-4">
+        <div className="col-span-7  h-[calc(100vh-150px)] p-4">
           <SolutionArea ref={solutionRef} />
         </div>
       </div>
