@@ -140,6 +140,16 @@ export class SubmissionService {
     } catch (error) {
       console.error('OCR 변환 실패로 채점 생략');
       savedSubmission.isCorrect = null;
+      await this.submissionRepository.save(savedSubmission);
+      return {
+        submissionId: savedSubmission.id,
+        is_correct: submission.isCorrect,
+        avg_accuracy: problem.avgAccuracy,
+        avg_total_solve_time: problem.avgTotalSolveTime,
+        avg_understand_time: problem.avgUnderstandTime,
+        avg_solve_time: problem.avgSolveTime,
+        avg_review_time: problem.avgReviewTime,
+      };
     }
     await this.submissionRepository.save(savedSubmission);
     // // OCR 변환 요청 큐 등록
