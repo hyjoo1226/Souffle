@@ -89,9 +89,6 @@ export function findStrokeNearPointer({
   return null;
 }
 
-/**
- * stroke ID를 기반으로 상태 업데이트와 canvas 다시 그리기를 수행합니다.
- */
 export function eraseStrokeById({
   nearStrokeId,
   strokes,
@@ -123,9 +120,6 @@ export function eraseStrokeById({
   }
 }
 
-/**
- * 마지막 stroke 기준으로 point, time, blockId를 갱신합니다.
- */
 export function updateLastStrokeMetaAfterErase({
   updatedStrokes,
   blocks,

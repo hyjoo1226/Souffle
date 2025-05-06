@@ -68,6 +68,7 @@ const AnswerArea = forwardRef((props, ref) => {
 
   const handleEraserClick = () => {
     if (!isEraserActive) {
+      setEraseOption(null); // 지우개 옵션 초기화
       // 처음 클릭 → 지우개 모드 ON
       setIsPencilActive(false); // 펜 아이콘 비활성화
       setIsEraserActive(true);
