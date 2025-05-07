@@ -1,4 +1,4 @@
-import { PieChart, Pie, Legend, Cell } from "recharts";
+import { PieChart, Pie, Cell } from "recharts";
 
 const LearningStatusChart = ({ selectedData }: { selectedData: number }) => {
   const data = [

@@ -1,10 +1,10 @@
 import ProblemCategory from "@/components/problemSelect/ProblemCategory";
 import UnitReport from "@/components/problemSelect/UnitReport";
 import { useEffect, useState } from "react";
-import {
-  getProblemListApi,
-  // getAllCategoriesApi,
-} from "@/services/api/ProblemSolving";
+// import {
+//   getProblemListApi,
+//   // getAllCategoriesApi,
+// } from "@/services/api/ProblemSolving";
 import LearningStatusChart from "@/components/problemSelect/LearningStatusChart";
 import { dummyCategoryData, dummyProblemList } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
 
