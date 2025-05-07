@@ -42,7 +42,7 @@ const SolutionAnalysisPage = () => {
     if (submissionId) {
       const id = parseInt(submissionId, 10);
   
-      axios.get(`http://localhost:4000/api/v1/submission/${id}`)
+      axios.get(`https://www.souffle.kr/api/v1/submission/${id}`)
         .then((res: { data: SubmissionResponse }) => {
           setData(res.data);
         })
