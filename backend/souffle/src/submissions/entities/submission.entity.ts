@@ -48,6 +48,9 @@ export class Submission extends BaseEntity {
   answerImageUrl: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
+  fullStepImageUrl: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
   answerConvert: string;
 
   @Column({ type: 'boolean', nullable: true })

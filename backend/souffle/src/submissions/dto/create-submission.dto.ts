@@ -27,6 +27,13 @@ export class CreateSubmissionDto {
   answer: string;
 
   @ApiProperty({
+    example: '{"file_name":"full_step.jpg"}',
+    description: '정답 이미지 파일 정보 (JSON string)',
+  })
+  @IsString()
+  full_step: string;
+
+  @ApiProperty({
     example: '[{"step_number":1,"step_time":10,"file_name":"step01.jpg"}]',
     description: '풀이 단계 정보 (JSON string)',
   })

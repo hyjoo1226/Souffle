@@ -34,6 +34,7 @@ export class SubmissionController {
         user_id: { type: 'string', example: 1 },
         problem_id: { type: 'string', example: 1 },
         answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
+        full_step: { type: 'string', example: '{"file_name":"full_step.jpg"}' },
         steps: {
           type: 'string',
           example:
@@ -56,6 +57,7 @@ export class SubmissionController {
         'user_id',
         'problem_id',
         'answer',
+        'full_step',
         'steps',
         'total_solve_time',
         'understand_time',
@@ -101,6 +103,7 @@ export class SubmissionController {
       solve_time: parseInt(body.solve_time, 10),
       review_time: parseInt(body.review_time, 10),
       answer: body.answer,
+      full_step: body.full_step,
       steps: body.steps,
     };
 
@@ -119,6 +122,8 @@ export class SubmissionController {
           {
             step_number: 1,
             answer_image_url:
+              'http://localhost:3000/uploads/1/1/47/1745994490102-answer.jpg',
+            full_step_image_url:
               'http://localhost:3000/uploads/1/1/47/1745994490102-answer.jpg',
             step_image_url:
               'http://localhost:3000/uploads/1/1/47/1745994490105-step01.jpg',

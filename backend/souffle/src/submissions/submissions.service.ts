@@ -83,6 +83,11 @@ export class SubmissionService {
     savedSubmission.answerImageUrl = fileMap.get(answerFileName);
     await this.submissionRepository.save(savedSubmission);
 
+    // 정답 이미지 url
+    const fullStepFileName = JSON.parse(submissionDto.full_step).file_name;
+    savedSubmission.fullStepImageUrl = fileMap.get(fullStepFileName);
+    await this.submissionRepository.save(savedSubmission);
+
     // 풀이 단계 저장(form-data는 수동 매핑)
     const steps: Array<{
       step_number: number;
@@ -222,6 +227,7 @@ export class SubmissionService {
     return {
       submissionId: submission.id,
       answer_image_url: submission.answerImageUrl,
+      full_step_image_url: submission.fullStepImageUrl,
       steps: submission.submissionSteps.map((step) => ({
         step_number: step.stepNumber,
         step_image_url: step.stepImageUrl,
