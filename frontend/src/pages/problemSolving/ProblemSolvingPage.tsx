@@ -14,6 +14,7 @@ const ProblemSolvingPage = () => {
   const solutionRef = useRef<any>(null);
   // const { id } = useParams(); // 문제 ID 추출
   const id = 1; // 문제 ID (임시로 1로 설정)
+  const [submissionId, setSubmissionId] = useState<number | null>(null); // 제출 ID 상태
   const [problem, setProblem] = useState<any>(null); // 문제 데이터 상태
   const [isCorrect, setIscorrect] = useState(null); // 정답 여부 상태
   const [result, setResult] = useState<{
@@ -99,12 +100,13 @@ const ProblemSolvingPage = () => {
     console.log("📦 result:", result);
     setIscorrect(result.is_correct);
     setResult(result);
+    setSubmissionId(result.submissionId);
     console.log("디버깅", result.is_correct);
     console.log("디버깅", result.avg_accuracy);
   };
 
   const handleAnalyze = () => {
-    navigate("/analysis/:id", {
+    navigate(`/analysis/${submissionId}`, {
       state: {
         avg_accuracy: result?.avg_accuracy,
         avg_review_time: result?.avg_review_time,

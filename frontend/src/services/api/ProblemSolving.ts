@@ -1,5 +1,11 @@
 import { api, multipartApi } from "@/services/api/Api";
 
+// 전체 단원 조회
+export const getAllCategoriesApi = async () => {
+  const response = await api.get("/categories/tree");
+  return response.data;
+};
+
 // 풀이 데이터 전송
 export const sendProblemSolvingDataApi = async (formData: FormData) => {
   const response = await multipartApi.post("/submission", formData);

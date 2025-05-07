@@ -9,7 +9,7 @@ const UnitReport = () => {
       <img src="/icons/select-icon.png" alt="" className="w-33 h-33" />
       <div className="flex gap-14">
         <Button variant="outline" size="md">
-          개념 학습하기
+          개념 학습
         </Button>
 
         <Button variant="solid" size="md">
