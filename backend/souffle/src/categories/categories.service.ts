@@ -1,13 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, In } from 'typeorm';
 import { Category } from './entities/category.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
+import { UserService } from 'src/users/users.service';
 
 @Injectable()
 export class CategoryService {
   constructor(
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Problem)
+    private problemRepository: Repository<Problem>,
+    @InjectRepository(Submission)
+    private submissionRepository: Repository<Submission>,
+    private usersService: UserService,
   ) {}
   // 전체 단원 조회 API
   async getCategoryTree() {
@@ -62,6 +70,74 @@ export class CategoryService {
     return {
       current: { id: category.id, name: category.name, type: category.type },
       ancestors,
+    };
+  }
+
+  // 단원 상세 조회 API
+  async getCategoryDetail(categoryId: number, userId: number) {
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId },
+    });
+    if (!category) throw new NotFoundException('단원을 찾을 수 없습니다.');
+
+    // 재귀 CTE로 하위 모든 단원 ID 조회
+    const queryRunner =
+      this.problemRepository.manager.connection.createQueryRunner();
+    const categoryIds = await queryRunner.query(
+      `
+    WITH RECURSIVE subcategories AS (
+      SELECT id FROM categories WHERE id = $1
+      UNION ALL
+      SELECT c.id FROM categories c
+      INNER JOIN subcategories s ON c."parentId" = s.id
+    )
+    SELECT id FROM subcategories
+  `,
+      [categoryId],
+    );
+    await queryRunner.release();
+
+    // 하위 모든 단원에 속한 문제 조회
+    const problems = await this.problemRepository.find({
+      where: { category: { id: In(categoryIds.map((c) => c.id)) } },
+    });
+
+    // 문제별 통계
+    const problemStats = await Promise.all(
+      problems.map(async (problem) => {
+        const stats = await this.submissionRepository
+          .createQueryBuilder('submission')
+          .select([
+            'COUNT(*) AS try_count',
+            'SUM(CASE WHEN submission.isCorrect = true THEN 1 ELSE 0 END) AS correct_count',
+          ])
+          .where('submission.problemId = :problemId', { problemId: problem.id })
+          .getRawOne();
+
+        return {
+          problem_id: problem.id,
+          inner_no: problem.innerNo,
+          type: problem.type,
+          problem_avg_accuracy: problem.avgAccuracy,
+          try_count: Number(stats.try_count),
+          correct_count: Number(stats.correct_count),
+        };
+      }),
+    );
+
+    // 유저 통계
+    const userStats = await this.usersService.getUserCategoryStats(
+      userId,
+      categoryId,
+    );
+
+    return {
+      category_id: category.id,
+      avg_accuracy: category.avgAccuracy,
+      learning_content: category.learningContent,
+      concept_explanation: category.conceptExplanation,
+      user: userStats,
+      problem: problemStats,
     };
   }
 }

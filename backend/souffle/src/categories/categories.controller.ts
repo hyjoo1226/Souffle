@@ -7,6 +7,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 export class CategoryController {
   constructor(private readonly categoriesService: CategoryService) {}
 
+  // 전체 단원 조회 API
   @Get('tree')
   @ApiOperation({ summary: '전체 단원 트리 조회' })
   @ApiResponse({
@@ -18,19 +19,16 @@ export class CategoryController {
           id: 1,
           name: '공통수학1',
           type: 1,
-          // progress_rate: 0.8,
           children: [
             {
               id: 10,
               name: '지수와 로그',
               type: 2,
-              // progress_rate: 0.7,
               children: [
                 {
                   id: 100,
                   name: '지수가 정수일 때의 지수법칙',
                   type: 3,
-                  // progress_rate: 0.5,
                   children: [],
                 },
               ],
@@ -44,6 +42,7 @@ export class CategoryController {
     return this.categoriesService.getCategoryTree();
   }
 
+  // 단원의 모든 상위 단원 조회 API
   @Get(':category_id/ancestors')
   @ApiOperation({ summary: '단원의 모든 상위 단원 조회' })
   @ApiParam({ name: 'category_id', description: '단원 ID' })
@@ -62,5 +61,45 @@ export class CategoryController {
   })
   async getAncestors(@Param('category_id', ParseIntPipe) categoryId: number) {
     return this.categoriesService.getAncestors(categoryId);
+  }
+
+  // 단원 상세 조회 API
+  @Get(':category_id')
+  @ApiOperation({ summary: '단원 상세 조회' })
+  @ApiParam({ name: 'category_id', description: '단원 ID' })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        category_id: 1,
+        avg_accuracy: 83.2,
+        learning_content: '지수와 로그의 기본 개념을 학습합니다.',
+        concept_explanation: '지수법칙, 로그의 정의 등',
+        user: {
+          accuracy: 90.5,
+          progress_rate: 0.8,
+          solve_time: 1200,
+          concept_rate: 0.7,
+          understanding: 4,
+        },
+        problem: [
+          {
+            problem_id: 1,
+            inner_no: 1,
+            type: 1,
+            problem_avg_accuracy: 80.0,
+            try_count: 5,
+            correct_count: 4,
+          },
+        ],
+      },
+    },
+  })
+  async getCategoryDetail(
+    @Param('category_id', ParseIntPipe) categoryId: number,
+  ) {
+    // 토큰이 아직 없으므로 테스트유저 1로 임시 고정
+    const userId = 1;
+    return this.categoriesService.getCategoryDetail(categoryId, userId);
   }
 }

@@ -19,5 +19,6 @@ import { AnalysisModule } from 'src/analyses/analyses.module';
   ],
   controllers: [SubmissionController],
   providers: [SubmissionService],
+  exports: [TypeOrmModule],
 })
 export class SubmissionModule {}
