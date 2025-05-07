@@ -29,7 +29,7 @@ const Eraser = ({
               type="radio"
               name="eraseOption"
               value="last"
-              checked={eraseOption === null}
+              checked={eraseOption === "last"}
               onChange={() => {
                 setEraseOption("last");
                 onExecute("last");

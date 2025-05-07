@@ -16,10 +16,8 @@ import {
 } from "@/utils/eraser";
 import Eraser from "./Eraser";
 
-const SolutionArea = forwardRef((props, ref) => {
+const SolutionArea = forwardRef((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // 현재 그리고 있는 획을 담을 임시 저장소입니다.
   const currentStrokeRef = useRef<any[]>([]);
 
   // 전체 획, 블록, 그리고 기타 상태들입니다.
@@ -42,6 +40,7 @@ const SolutionArea = forwardRef((props, ref) => {
   const handleEraserClick = () => {
     if (!isEraserActive) {
       // 처음 클릭 → 지우개 모드 ON
+      setEraseOption(null); // 지우개 옵션 초기화
       setIsPencilActive(false); // 펜 아이콘 비활성화
       setIsEraserActive(true);
       setEraseMode(true); // canvas에서 지우개 기능 활성화
