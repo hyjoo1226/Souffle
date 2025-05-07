@@ -40,69 +40,69 @@ const ProblemSolvingPage = () => {
   const handleSubmit = async () => {
     const formData = new FormData();
 
-    // AnswerArea에서 답안 이미지
+    // AnswerArea: 답안 이미지 추가
     const answerBlob = await answerRef.current?.getAnswerBlob();
     if (answerBlob) {
       formData.append("files", answerBlob, "answer.jpg");
       formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
     }
 
-    // SolutionArea에서 steps 데이터
+    // SolutionArea: steps, fullStep, 메타데이터 수집
     const solutionData = await solutionRef.current?.getStepData();
-
-    if (!solutionData) {
-      console.warn("🚫 getStepData() returned null or undefined");
-      return;
-    }
-
     const {
       stepsData,
+      fullStep,
       stepMeta,
-    }: { stepsData: { blob: Blob; file_name: string }[]; stepMeta: any } =
-      solutionData;
+      timing,
+    }: {
+      stepsData: { blob: Blob; file_name: string }[];
+      fullStep?: { blob: Blob; file_name: string };
+      stepMeta: any;
+      timing: {
+        totalSolveTime: number;
+        understandTime: number;
+        solveTime: number;
+        reviewTime: number;
+      };
+    } = solutionData;
 
-    stepsData.forEach(({ blob, file_name }) =>
-      formData.append("files", blob, file_name)
-    );
+    // step 이미지 파일 추가
+    stepsData.forEach(({ blob, file_name }) => {
+      formData.append("files", blob, file_name);
+    });
+
+    // fullStep 이미지 파일 추가
+    if (fullStep?.blob) {
+      formData.append("files", fullStep.blob, fullStep.file_name);
+      formData.append(
+        "full_step",
+        JSON.stringify({ file_name: fullStep.file_name })
+      );
+    }
+
+    // step 메타데이터 추가
     formData.append("steps", JSON.stringify(stepMeta));
 
     // 시간 정보 추가
-    const { enterTime, firstStrokeTime, lastStrokeEndTime } =
-      answerRef.current?.getTimingData();
-
-    const now = Date.now();
-    const totalSolveTime = now - enterTime;
-    const understandTime = firstStrokeTime ? firstStrokeTime - enterTime : 0;
-    const solveTime = firstStrokeTime
-      ? (lastStrokeEndTime ?? now) - firstStrokeTime
-      : 0;
-    const reviewTime = lastStrokeEndTime ? now - lastStrokeEndTime : 0;
-
     formData.append("user_id", "1");
     formData.append("problem_id", "1");
-    formData.append(
-      "total_solve_time",
-      String(Math.round(totalSolveTime / 1000))
-    );
-    formData.append(
-      "understand_time",
-      String(Math.round(understandTime / 1000))
-    );
-    formData.append("solve_time", String(Math.round(solveTime / 1000)));
-    formData.append("review_time", String(Math.round(reviewTime / 1000)));
+    formData.append("total_solve_time", String(timing.totalSolveTime));
+    formData.append("understand_time", String(timing.understandTime));
+    formData.append("solve_time", String(timing.solveTime));
+    formData.append("review_time", String(timing.reviewTime));
 
+    // 디버깅 출력
     for (const [key, value] of formData.entries()) {
       console.log("📦", key, value);
     }
 
-    // 전송
+    // 서버 전송
     const result = await sendProblemSolvingDataApi(formData);
     console.log("📦 result:", result);
+
     setIscorrect(result.is_correct);
     setResult(result);
     setSubmissionId(result.submissionId);
-    console.log("디버깅", result.is_correct);
-    console.log("디버깅", result.avg_accuracy);
   };
 
   const handleAnalyze = () => {

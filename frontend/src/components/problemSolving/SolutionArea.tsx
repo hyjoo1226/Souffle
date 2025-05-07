@@ -5,7 +5,11 @@ import {
   useState,
   useEffect,
 } from "react";
-import { getPointerUpHandler, generateStepImages } from "@/utils/drawing";
+import {
+  getPointerUpHandler,
+  generateStepImages,
+  generateFullStepImage,
+} from "@/utils/drawing";
 import {
   getRelativePointerPosition,
   findStrokeNearPointer,
@@ -20,7 +24,6 @@ const SolutionArea = forwardRef((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const currentStrokeRef = useRef<any[]>([]);
 
-  // 전체 획, 블록, 그리고 기타 상태들입니다.
   const [strokes, setStrokes] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [drawing, setDrawing] = useState(false);
@@ -189,6 +192,7 @@ const SolutionArea = forwardRef((_props, ref) => {
       if (!canvasRef.current) return null;
 
       const stepsData = await generateStepImages(blocks, canvasRef.current);
+      const fullStep = await generateFullStepImage(canvasRef.current, blocks);
 
       const stepMeta = stepsData.map(
         ({ step_number, step_time, file_name }) => ({
@@ -219,6 +223,7 @@ const SolutionArea = forwardRef((_props, ref) => {
 
       return {
         stepsData,
+        fullStep,
         stepMeta,
         timing: {
           totalSolveTime: Math.round(totalSolveTime / 1000),

@@ -229,8 +229,8 @@ export async function generateStepImages(
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     for (const stroke of block.strokes) {
-      ctx.strokeStyle = stroke.duration > 2000 ? "red" : "black";
-      ctx.lineWidth = stroke.duration > 2000 ? 3 : 1.5;
+      // ctx.strokeStyle = stroke.duration > 2000 ? "red" : "black";
+      // ctx.lineWidth = stroke.duration > 2000 ? 3 : 1.5;
       ctx.beginPath();
       stroke.points.forEach((p: any, j: number) =>
         j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)
@@ -256,4 +256,21 @@ export async function generateStepImages(
   }
 
   return steps;
+}
+
+export async function generateFullStepImage(
+  canvas: HTMLCanvasElement,
+  blocks: any[]
+) {
+  drawBlocksOnCanvas(canvas, blocks);
+
+  const fullStepBlob = await new Promise<Blob>((resolve) =>
+    canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
+  );
+  window.open(URL.createObjectURL(fullStepBlob));
+
+  return {
+    file_name: "full_step.jpg",
+    blob: fullStepBlob,
+  };
 }
