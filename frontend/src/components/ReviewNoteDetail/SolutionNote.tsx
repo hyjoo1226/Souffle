@@ -1,13 +1,21 @@
 // 오답노트 상세 페이지 문제 설명 영역
 import { useState, useEffect, useRef } from 'react';
 import { ReactComponent as Spring_Note } from "@/assets/icons/spring_note.svg";
+import { ReactComponent as Eraser } from "@/assets/icons/eraser.svg";
+import { ReactComponent as Pencil } from "@/assets/icons/pencil.svg";
 
 const SolutionNote = () => {
     const [selected, setSelected] = useState('풀이/개념 정리');
+    const [isErasing, setIsErasing] = useState(false);
     const tabs = ['풀이/개념 정리', '이전 풀이 분석'];
+    const ALLOWED_POINTERS = ['pen', 'mouse'];
 
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const [isDrawing, setIsDrawing] = useState(false);
+    const isDrawingRef = useRef(false);
+
+    const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
+    const currentStrokeRef = useRef<Array<{ x: number; y: number }>>([]);
+    const strokesRef = useRef<Array<Array<{ x: number; y: number }>>>([]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -15,67 +23,137 @@ const SolutionNote = () => {
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+        ctxRef.current = ctx;
 
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width;
-        canvas.height = rect.height;
+        setTimeout(() => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }, 0);
 
         ctx.lineWidth = 2;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#000000';
 
-        const startDrawing = (e: MouseEvent | TouchEvent) => {
-            const { offsetX, offsetY } = getCoords(e, canvas);
+        const startDrawing = (e: PointerEvent) => {
+            if (!ALLOWED_POINTERS.includes(e.pointerType)) return;
+            const ctx = ctxRef.current;
+            if (!ctx) return;
+
+            if (isErasing) {
+                isDrawingRef.current = true;
+                return;
+            }
+
             ctx.beginPath();
-            ctx.moveTo(offsetX, offsetY);
-            setIsDrawing(true);
+            ctx.moveTo(e.offsetX, e.offsetY);
+            isDrawingRef.current = true;
+            currentStrokeRef.current = [{ x: e.offsetX, y: e.offsetY }];
         };
-      
-        const draw = (e: MouseEvent | TouchEvent) => {
-            if (!isDrawing) return;
-            const { offsetX, offsetY } = getCoords(e, canvas);
-            ctx.lineTo(offsetX, offsetY);
+        
+        const draw = (e: PointerEvent) => {
+            if (!isDrawingRef.current || !ALLOWED_POINTERS.includes(e.pointerType)) return;
+            const ctx = ctxRef.current;
+            if (!ctx) return;
+
+            if (isErasing && isDrawingRef.current) {
+                const erased = eraseStroke(e.offsetX, e.offsetY);
+                if (erased) {
+                    isDrawingRef.current = false;
+                }
+                return;
+            }
+
+            ctx.lineTo(e.offsetX, e.offsetY);
             ctx.stroke();
-        };
-    
-        const stopDrawing = () => {
-            setIsDrawing(false);
+            currentStrokeRef.current.push({ x: e.offsetX, y: e.offsetY });
         };
 
+        const stopDrawing = (e: PointerEvent) => {
+            if (!ALLOWED_POINTERS.includes(e.pointerType)) return;
+            if (isDrawingRef.current) {
+                isDrawingRef.current = false;
+                strokesRef.current.push([...currentStrokeRef.current]);
+                currentStrokeRef.current = [];
+            }
+        };
+        
         // 이벤트 등록
-        canvas.addEventListener('mousedown', startDrawing);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('mouseup', stopDrawing);
-        canvas.addEventListener('mouseleave', stopDrawing);
-
-        canvas.addEventListener('touchstart', startDrawing);
-        canvas.addEventListener('touchmove', draw);
-        canvas.addEventListener('touchend', stopDrawing);
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', draw);
+        canvas.addEventListener('pointerup', stopDrawing);
+        canvas.addEventListener('pointercancel', stopDrawing);
 
         // 정리
         return () => {
-            canvas.removeEventListener('mousedown', startDrawing);
-            canvas.removeEventListener('mousemove', draw);
-            canvas.removeEventListener('mouseup', stopDrawing);
-            canvas.removeEventListener('mouseleave', stopDrawing);
-    
-            canvas.removeEventListener('touchstart', startDrawing);
-            canvas.removeEventListener('touchmove', draw);
-            canvas.removeEventListener('touchend', stopDrawing);
+            canvas.removeEventListener('pointerdown', startDrawing);
+            canvas.removeEventListener('pointermove', draw);
+            canvas.removeEventListener('pointerup', stopDrawing);
+            canvas.removeEventListener('pointercancel', stopDrawing);
         };
-    }, [isDrawing]);
+    }, [isErasing]);
 
-    const getCoords = (e: MouseEvent | TouchEvent, canvas: HTMLCanvasElement) => {
-        const rect = canvas.getBoundingClientRect();
-        let x, y;
-        if (e instanceof MouseEvent) {
-          x = e.clientX - rect.left;
-          y = e.clientY - rect.top;
-        } else {
-          x = e.touches[0].clientX - rect.left;
-          y = e.touches[0].clientY - rect.top;
+    const getDistanceFromSegment = (px: number, py: number, ax: number, ay: number, bx: number, by: number): number => {
+        const dx = bx - ax;
+        const dy = by - ay;
+        const lengthSquared = dx * dx + dy * dy;
+
+        if (lengthSquared === 0) return Math.hypot(px - ax, py - ay);
+
+        let t = ((px - ax) * dx + (py - ay) * dy) / lengthSquared;
+        t = Math.max(0, Math.min(1, t));
+
+        const closestX = ax + t * dx;
+        const closestY = ay + t * dy;
+
+        return Math.hypot(px - closestX, py - closestY);
+    };
+
+    const eraseStroke = (x: number, y: number): boolean => {
+        const ERASE_THRESHOLD = 5;
+        const ctx = ctxRef.current;
+        if (!ctx) return false;
+    
+        const index = strokesRef.current.findIndex(stroke => {
+            for (let i = 0; i < stroke.length - 1; i++) {
+                const p1 = stroke[i];
+                const p2 = stroke[i + 1];
+                if (getDistanceFromSegment(x, y, p1.x, p1.y, p2.x, p2.y) <= ERASE_THRESHOLD) {
+                    return true;
+                }
+            }
+            return false;
+        });
+    
+        if (index !== -1) {
+            strokesRef.current.splice(index, 1);
+            redrawAllStrokes();
+            return true;
         }
-        return { offsetX: x, offsetY: y };
+    
+        return false;
+    };    
+
+    const redrawAllStrokes = () => {
+        const canvas = canvasRef.current;
+        const ctx = ctxRef.current;
+        if (!canvas || !ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#000000';
+
+        for (const stroke of strokesRef.current) {
+            if (stroke.length < 2) continue;
+            ctx.beginPath();
+            ctx.moveTo(stroke[0].x, stroke[0].y);
+            for (let i = 1; i < stroke.length; i++) {
+                ctx.lineTo(stroke[i].x, stroke[i].y);
+            }
+            ctx.stroke();
+        }
     };
 
     return (
@@ -103,17 +181,25 @@ const SolutionNote = () => {
         </div>
         <div className="flex w-full border border-gray-200 bg-white mt-4">
             <div className="w-1/2 relative">
-                <div className='absolute top-6 left-4'>
+                <div className='absolute top-6 left-4 flex gap-3.5'>
                     <p className='headline-small text-gray-700'>풀이 정리</p>
+                    <div className='flex gap-3'>
+                        <Pencil />
+                        <Eraser onClick={() => setIsErasing(prev => !prev)} />
+                    </div>
                 </div>
-                <canvas ref={canvasRef} className='w-full h-full'></canvas>
+                <canvas ref={canvasRef} className='w-full h-full' style={{ touchAction: 'none' }}></canvas>
             </div>
             <div className='flex items-center'>
                 <Spring_Note className='h-full' />
             </div>
             <div className="w-1/2 relative">
-                <div className='absolute top-6 left-4'>
+                <div className='absolute top-6 left-4 flex gap-3.5'>
                     <p className='headline-small text-gray-700'>개념 정리</p>
+                    <div className='flex gap-3'>
+                        <Pencil />
+                        <Eraser />
+                    </div>
                 </div>
             </div>
         </div>

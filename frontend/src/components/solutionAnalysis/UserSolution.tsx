@@ -10,11 +10,11 @@ type Step = {
 }
 
 type Props = {
-  answerImageUrl: string;
+  fullStepImageUrl: string;
   steps: Step[];
 };
 
-const UserSolution = ({answerImageUrl, steps}: Props) => {
+const UserSolution = ({fullStepImageUrl, steps}: Props) => {
   const [isToggleOn, setIsToggleOn] = useState(false);
   const sortedSteps = [...steps].sort((a, b) => a.step_number - b.step_number);
 
@@ -44,7 +44,7 @@ const UserSolution = ({answerImageUrl, steps}: Props) => {
             ))
           ) : (
             <img
-              src={answerImageUrl}
+              src={fullStepImageUrl}
               alt="사용자 전체 풀이 이미지"
               className="max-w-full h-auto object-contain mx-auto my-auto"
             />

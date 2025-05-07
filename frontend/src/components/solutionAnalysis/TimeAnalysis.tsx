@@ -22,7 +22,6 @@ type Props = {
 };
 
 const formatSeconds = (seconds: number) => {
-  const h = String(Math.floor(seconds / 360)).padStart(2, "0");
   const m = String(Math.floor(seconds / 60)).padStart(2, "0");
   const s = String(seconds % 60).padStart(2, "0");
   return `00:${m}:${s}`;
