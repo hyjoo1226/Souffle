@@ -28,12 +28,11 @@ const AccordianList = ({
   };
   useEffect(() => {
     console.log(selectedLessonId); // 열려 있는 대단원 ID 출력
-    console.log(openUnitId); // 열려 있는 중단원 ID 출력
   }, [selectedLessonId]);
 
   return (
     <div>
-      <div className="border border-gray-200 rounded-[20px]">
+      <div className="border border-gray-200 rounded-[20px] ">
         {categoryData.map((subject) => (
           <div key={subject.id}>
             {/* 대단원 */}
@@ -63,8 +62,8 @@ const AccordianList = ({
                       <div
                         key={lesson.id}
                         onClick={() => handleLessonClick(lesson.id)}
-                        className={`body-medium px-4 pl-20 py-4.5 text-gray-700 flex items-center justify-between cursor-pointer rounded-md transition-colors duration-200 ${
-                          selectedLessonId === lesson.id ? "bg-blue-200" : ""
+                        className={`body-medium px-4 pl-20 py-4.5 text-gray-700 flex items-center justify-between transition-colors duration-200 ${
+                          selectedLessonId === lesson.id ? "bg-primary-100" : ""
                         }`}
                       >
                         {`${unitIndex + 1}-${lessonIndex + 1}. ${lesson.name}`}
