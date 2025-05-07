@@ -3,8 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, IsNull, In } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
-import { Submission } from 'src/submissions/entities/submission.entity';
 import { UserService } from 'src/users/users.service';
+import { UserProblem } from 'src/users/entities/user-problem.entity';
 
 @Injectable()
 export class CategoryService {
@@ -13,8 +13,8 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
-    @InjectRepository(Submission)
-    private submissionRepository: Repository<Submission>,
+    @InjectRepository(UserProblem)
+    private userProblemRepository: Repository<UserProblem>,
     private usersService: UserService,
   ) {}
   // 전체 단원 조회 API
@@ -105,22 +105,20 @@ export class CategoryService {
     // 문제별 통계
     const problemStats = await Promise.all(
       problems.map(async (problem) => {
-        const stats = await this.submissionRepository
-          .createQueryBuilder('submission')
-          .select([
-            'COUNT(*) AS try_count',
-            'SUM(CASE WHEN submission.isCorrect = true THEN 1 ELSE 0 END) AS correct_count',
-          ])
-          .where('submission.problemId = :problemId', { problemId: problem.id })
-          .getRawOne();
+        const stats = await this.userProblemRepository.findOne({
+          where: {
+            user_id: userId,
+            problem_id: problem.id,
+          },
+        });
 
         return {
           problem_id: problem.id,
           inner_no: problem.innerNo,
           type: problem.type,
           problem_avg_accuracy: problem.avgAccuracy,
-          try_count: Number(stats.try_count),
-          correct_count: Number(stats.correct_count),
+          try_count: stats?.try_count || 0,
+          correct_count: stats?.correct_count || 0,
         };
       }),
     );

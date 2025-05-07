@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserCategoryProgress } from './entities/user_category_progress.entity';
+import { UserCategoryProgress } from './entities/user-category-progress.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

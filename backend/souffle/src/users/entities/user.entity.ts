@@ -6,7 +6,7 @@ import {
   OneToMany,
 } from 'typeorm';
 import { Submission } from 'src/submissions/entities/submission.entity';
-import { UserCategoryProgress } from './user_category_progress.entity';
+import { UserCategoryProgress } from './user-category-progress.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
