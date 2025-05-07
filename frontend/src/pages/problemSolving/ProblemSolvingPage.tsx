@@ -3,7 +3,6 @@ import ProblemSourceInfo from "@/components/problemSolving/ProblemSourceInfo";
 import ProblemBox from "@/components/problemSolving/ProblemBox";
 import AnswerArea from "@/components/problemSolving/AnswerArea";
 import { Button } from "@/components/common/Button";
-import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
@@ -15,6 +14,7 @@ const ProblemSolvingPage = () => {
   const solutionRef = useRef<any>(null);
   // const { id } = useParams(); // 문제 ID 추출
   const id = 1; // 문제 ID (임시로 1로 설정)
+  const [submissionId, setSubmissionId] = useState<number | null>(null); // 제출 ID 상태
   const [problem, setProblem] = useState<any>(null); // 문제 데이터 상태
   const [isCorrect, setIscorrect] = useState(null); // 정답 여부 상태
   const [result, setResult] = useState<{
@@ -100,12 +100,13 @@ const ProblemSolvingPage = () => {
     console.log("📦 result:", result);
     setIscorrect(result.is_correct);
     setResult(result);
+    setSubmissionId(result.submissionId);
     console.log("디버깅", result.is_correct);
     console.log("디버깅", result.avg_accuracy);
   };
 
   const handleAnalyze = () => {
-    navigate("/analysis", {
+    navigate(`/analysis/${submissionId}`, {
       state: {
         avg_accuracy: result?.avg_accuracy,
         avg_review_time: result?.avg_review_time,
@@ -129,17 +130,15 @@ const ProblemSolvingPage = () => {
         <div className="col-span-5 flex flex-col overflow-hidden">
           {/* 문제 영역*/}
           <div className="flex-grow min-h-0 p-3 overflow-y-auto relative">
-            <img
-              src={
-                isCorrect === true
-                  ? "/icons/correct.png"
-                  : isCorrect === false
-                  ? "/icons/false.png"
-                  : ""
-              }
-              alt={isCorrect ? "correct" : "false"}
-              className="absolute top-0 left-0 w-40 h-40 z-10"
-            />
+            {isCorrect !== null && isCorrect !== undefined && (
+              <img
+                src={
+                  isCorrect === true ? "/icons/correct.png" : "/icons/false.png"
+                }
+                alt={isCorrect ? "correct" : "false"}
+                className="absolute top-0 left-0 w-40 h-40 z-10"
+              />
+            )}
 
             {problem && (
               <ProblemBox

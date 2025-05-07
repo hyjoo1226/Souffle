@@ -33,7 +33,7 @@ const setupInterceptors = (instance: AxiosInstance) => {
     },
     async (error) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const errorState = error.status;
+      // const errorState = error.status;
 
       // switch (errorState) {
 
