@@ -1,9 +1,15 @@
 import ProblemCategory from "@/components/problemSelect/ProblemCategory";
 import UnitReport from "@/components/problemSelect/UnitReport";
-// import { useEffect, useState } from "react";
-// import { getProblemListApi } from "@/services/api/ProblemSolving";
+import { useEffect, useState } from "react";
+// import {
+//   getProblemListApi,
+//   getAllCategoriesApi,
+// } from "@/services/api/ProblemSolving";
+import { dummyCategoryData } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
 
 const ProblemSelectPage = () => {
+  const [categoryData, setCategoryData] = useState<any[]>([]); // 카테고리 데이터 상태
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   // const [categoryId, setCategoryId] = useState<number>(1); // 카테고리 ID 상태
 
   // const fetchProblemList = async () => {
@@ -14,6 +20,17 @@ const ProblemSelectPage = () => {
   // useEffect(() => {
   //   fetchProblemList(); // 컴포넌트 마운트 시 문제 리스트 요청
   // }, [categoryId]);
+
+  const handleCategoryClick = async () => {
+    // const res = await getAllCategoriesApi();
+    const res = dummyCategoryData; // 더미 데이터 사용
+    setCategoryData(res); // 카테고리 데이터 상태 업데이트
+    // console.log(categoryData); // 클릭한 카테고리 ID 출력
+  };
+
+  useEffect(() => {
+    handleCategoryClick();
+  }, []); // 컴포넌트 마운트 시 카테고리 데이터 요청
 
   const problems = [
     {
@@ -75,10 +92,18 @@ const ProblemSelectPage = () => {
   ];
 
   return (
-    <div className="grid grid-cols-12 py-5  gap-x-4  h-screen">
-      <div className="col-span-5">
-        <ProblemCategory />
-        <UnitReport />
+    <div className="h-screen grid grid-cols-12 py-5 gap-x-4 ">
+      <div className="col-span-5 flex flex-col gap-4 h-full">
+        <div className="flex-1">
+          <ProblemCategory
+            categoryData={categoryData}
+            selectedLessonId={selectedLessonId}
+            setSelectedLessonId={setSelectedLessonId}
+          />
+        </div>
+        <div className="flex-1">
+          <UnitReport />
+        </div>
       </div>
       <div className="col-span-7">
         {/* 테이블헤더 */}
