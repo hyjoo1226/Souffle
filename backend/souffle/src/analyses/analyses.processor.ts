@@ -52,7 +52,7 @@ export class AnalysisProcessor {
             stepNumber: step.step_number,
             stepFeedback: step.step_feedback,
           },
-          { isValid: step.step_valid },
+          { isValid: step.step_valid, stepFeedback: step.step_feedback },
         );
       }
 
