@@ -12,6 +12,7 @@ import GraphAnalysis from '@/components/solutionAnalysis/GraphAnalysis';
 type SubmissionResponse = {
   submissionId: number;
   answer_image_url: string;
+  full_step_image_url: string;
   steps: {
     step_number: number;
     step_image_url: string;
@@ -42,6 +43,7 @@ const SolutionAnalysisPage = () => {
     if (submissionId) {
       const id = parseInt(submissionId, 10);
   
+      // axios.get(`http://localhost:4000/api/v1/submission/${id}`)
       axios.get(`https://www.souffle.kr/api/v1/submission/${id}`)
         .then((res: { data: SubmissionResponse }) => {
           setData(res.data);
@@ -66,7 +68,7 @@ const SolutionAnalysisPage = () => {
           }}
         >
             <UserSolution 
-              answerImageUrl={data?.answer_image_url || ""}
+              fullStepImageUrl={data?.full_step_image_url || ""}
               steps={data?.steps || []}
             />
             <Analysis
