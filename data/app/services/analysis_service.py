@@ -9,6 +9,9 @@ from app.core.exceptions import OCRError, MathParsingError, StepValidationError
 from app.models.ocr_schema import OCREngineType
 import logging
 
+from app.services.ocr.sumen_base import predict_latex_from_images
+
+
 # 로거 설정
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,8 @@ async def analyze_equation_steps(
             result = await ocr.image_to_latex(img_path)
             latex_list.append(result.latex)
             confidence_list.append(result.confidence)
+        
+        latex_list = predict_latex_from_images(image_paths)
 
         # 각 단계 분석
         steps = []

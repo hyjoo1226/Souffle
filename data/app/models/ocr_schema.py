@@ -21,6 +21,14 @@ class AnswerOCRResponse(BaseModel):
     engine_used: str
 
 
+# test.test
+class AnalysisRequest(BaseModel):
+    paths: List[str]
+class AnalysisResponse(BaseModel):
+    latex : List[str]
+
+
+
 # 풀이 단계 분석 요청/응답
 class StepImageInput(BaseModel):
     step_number: int
