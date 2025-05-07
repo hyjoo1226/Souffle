@@ -104,7 +104,7 @@ const ProblemSolvingPage = () => {
   };
 
   const handleAnalyze = () => {
-    navigate("/analysis/:id", {
+    navigate(`/analysis/${id}`, {
       state: {
         avg_accuracy: result?.avg_accuracy,
         avg_review_time: result?.avg_review_time,
