@@ -11,3 +11,9 @@ export const getProblemDataApi = async (problemId: number) => {
   const response = await api.get(`/problems/${problemId}`);
   return response.data;
 };
+
+// 문제 리스트 조회
+export const getProblemListApi = async (categoryId: number) => {
+  const response = await api.get(`/categories/${categoryId}`);
+  return response.data;
+};
