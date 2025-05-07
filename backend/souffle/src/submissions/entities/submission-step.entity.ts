@@ -38,6 +38,9 @@ export class SubmissionStep extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   latex: string;
 
+  @Column({ type: 'text', nullable: true })
+  stepFeedback: string;
+
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;
 }

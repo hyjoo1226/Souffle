@@ -227,6 +227,7 @@ export class SubmissionService {
         step_image_url: step.stepImageUrl,
         step_time: step.stepTime,
         step_valid: step.isValid,
+        step_feedback: step.stepFeedback,
       })),
       time: {
         total_solve_time: submission.totalSolveTime,

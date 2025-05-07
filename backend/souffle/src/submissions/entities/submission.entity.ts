@@ -59,6 +59,9 @@ export class Submission extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   weakness: string;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  engineUsed: string;
+
   @Column({ type: 'boolean', nullable: true, default: null })
   analysisFailed: boolean | null;
 

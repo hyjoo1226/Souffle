@@ -47,7 +47,11 @@ export class AnalysisProcessor {
       // 결과 저장
       for (const step of response.data.steps) {
         await this.submissionStepRepository.update(
-          { submission: { id: submission_id }, stepNumber: step.step_number },
+          {
+            submission: { id: submission_id },
+            stepNumber: step.step_number,
+            stepFeedback: step.step_feedback,
+          },
           { isValid: step.step_valid },
         );
       }
@@ -55,6 +59,7 @@ export class AnalysisProcessor {
       await this.submissionRepository.update(submission_id, {
         aiAnalysis: response.data.ai_analysis,
         weakness: response.data.weakness,
+        engineUsed: response.data.engine_used,
       });
 
       return response.data;
