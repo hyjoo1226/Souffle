@@ -9,6 +9,7 @@ import { SubmissionStep } from './entities/submission-step.entity';
 import { FileModule } from 'src/files/files.module';
 import { OcrModule } from 'src/ocr/ocr.module';
 import { AnalysisModule } from 'src/analyses/analyses.module';
+import { UserModule } from 'src/users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AnalysisModule } from 'src/analyses/analyses.module';
     FileModule,
     OcrModule,
     AnalysisModule,
+    UserModule,
   ],
   controllers: [SubmissionController],
   providers: [SubmissionService],

@@ -19,13 +19,13 @@ export class CategoryService {
   ) {}
   // 전체 단원 조회 API
   async getCategoryTree() {
-    // 1. 최상위 카테고리 조회
+    // 최상위 카테고리 조회
     const roots = await this.categoryRepository.find({
       where: { parent: IsNull() },
       relations: ['children', 'children.children'],
     });
 
-    // 2. 재귀적으로 children을 붙여 트리 구조 생성
+    // 재귀적으로 children을 붙여 트리 구조 생성
     const buildTree = (nodes) =>
       nodes.map((node) => ({
         id: node.id,
@@ -103,25 +103,26 @@ export class CategoryService {
     });
 
     // 문제별 통계
-    const problemStats = await Promise.all(
-      problems.map(async (problem) => {
-        const stats = await this.userProblemRepository.findOne({
-          where: {
-            user_id: userId,
-            problem_id: problem.id,
-          },
-        });
-
-        return {
-          problem_id: problem.id,
-          inner_no: problem.innerNo,
-          type: problem.type,
-          problem_avg_accuracy: problem.avgAccuracy,
-          try_count: stats?.try_count || 0,
-          correct_count: stats?.correct_count || 0,
-        };
-      }),
-    );
+    const problemsWithStats = await this.problemRepository
+      .createQueryBuilder('problem')
+      .leftJoinAndSelect(
+        'user_problem',
+        'up',
+        'up.problem_id = problem.id AND up.user_id = :userId',
+        { userId },
+      )
+      .where('problem.categoryId IN (:...categoryIds)', {
+        categoryIds: categoryIds.map((c) => c.id),
+      })
+      .select([
+        'problem.id AS problem_id',
+        'problem.innerNo AS inner_no',
+        'problem.type AS type',
+        'problem.avgAccuracy AS problem_avg_accuracy',
+        'COALESCE(up.try_count, 0) AS try_count',
+        'COALESCE(up.correct_count, 0) AS correct_count',
+      ])
+      .getRawMany();
 
     // 유저 통계
     const userStats = await this.usersService.getUserCategoryStats(
@@ -135,7 +136,7 @@ export class CategoryService {
       learning_content: category.learningContent,
       concept_explanation: category.conceptExplanation,
       user: userStats,
-      problem: problemStats,
+      problem: problemsWithStats,
     };
   }
 }

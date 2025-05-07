@@ -10,6 +10,7 @@ import {
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Book } from 'src/books/entities/book.entity';
+import { UserProblem } from 'src/users/entities/user-problem.entity';
 
 @Entity({ name: 'problems' })
 export class Problem extends BaseEntity {
@@ -70,4 +71,7 @@ export class Problem extends BaseEntity {
 
   @OneToMany(() => Submission, (submission) => submission.problem)
   submissions: Submission[];
+
+  @OneToMany(() => UserProblem, (userProblem) => userProblem.problem)
+  userProblems: UserProblem[];
 }

@@ -9,6 +9,7 @@ import { FileService } from 'src/files/files.service';
 import { OcrService } from 'src/ocr/ocr.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AnalysisService } from 'src/analyses/analyses.service';
+import { UserProblem } from 'src/users/entities/user-problem.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -21,6 +22,8 @@ export class SubmissionService {
     private problemRepository: Repository<Problem>,
     @InjectRepository(SubmissionStep)
     private submissionStepRepository: Repository<SubmissionStep>,
+    @InjectRepository(UserProblem)
+    private userProblemRepository: Repository<UserProblem>,
     private fileService: FileService,
     private ocrService: OcrService,
     private analysisService: AnalysisService,
@@ -68,22 +71,13 @@ export class SubmissionService {
     uploadedUrls.forEach((url, index) =>
       fileMap.set(files[index].originalname, url),
     );
-    // for (const file of files) {
-    //   const url = await this.fileService.uploadFile(
-    //     file,
-    //     user.id,
-    //     problem.id,
-    //     savedSubmission.id,
-    //   );
-    //   fileMap.set(file.originalname, url);
-    // }
 
     // 정답 이미지 url
     const answerFileName = JSON.parse(submissionDto.answer).file_name;
     savedSubmission.answerImageUrl = fileMap.get(answerFileName);
     await this.submissionRepository.save(savedSubmission);
 
-    // 정답 이미지 url
+    // 전체 수식 이미지 url
     const fullStepFileName = JSON.parse(submissionDto.full_step).file_name;
     savedSubmission.fullStepImageUrl = fileMap.get(fullStepFileName);
     await this.submissionRepository.save(savedSubmission);
@@ -104,16 +98,6 @@ export class SubmissionService {
       }),
     );
     await this.submissionStepRepository.insert(stepEntities);
-    // for (const step of steps) {
-    //   const stepEntity = this.submissionStepRepository.create({
-    //     submission: savedSubmission,
-    //     stepTime: step.step_time,
-    //     stepNumber: step.step_number,
-    //     fileName: step.file_name,
-    //     stepImageUrl: fileMap.get(step.file_name),
-    //   });
-    //   await this.submissionStepRepository.save(stepEntity);
-    // }
 
     // 풀이분석 비동기 큐 등록
     try {
@@ -135,6 +119,26 @@ export class SubmissionService {
       console.error('풀이분석 큐 등록 실패:', error.message);
     }
 
+    // user_problem 테이블 생성/갱신
+    await this.userProblemRepository.query(
+      `
+    INSERT INTO user_problem (user_id, problem_id, try_count, correct_count, last_submission_id)
+    VALUES ($1, $2, $3, $4, $5)
+    ON CONFLICT (user_id, problem_id) 
+    DO UPDATE SET
+      try_count = user_problem.try_count + 1,
+      correct_count = user_problem.correct_count + $4,
+      last_submission_id = $5
+    `,
+      [
+        submissionDto.user_id,
+        submissionDto.problem_id,
+        1,
+        submission.isCorrect ? 1 : 0,
+        savedSubmission.id,
+      ],
+    );
+
     // 동기 OCR 처리
     try {
       const answerConvert = await this.ocrService.convertOcr(
@@ -142,21 +146,13 @@ export class SubmissionService {
       );
       savedSubmission.answerConvert = answerConvert;
       savedSubmission.isCorrect = answerConvert === problem.answer;
+      await this.submissionRepository.save(savedSubmission);
     } catch (error) {
       console.error('OCR 변환 실패로 채점 생략');
       savedSubmission.isCorrect = null;
       await this.submissionRepository.save(savedSubmission);
-      return {
-        submissionId: savedSubmission.id,
-        is_correct: submission.isCorrect,
-        avg_accuracy: problem.avgAccuracy,
-        avg_total_solve_time: problem.avgTotalSolveTime,
-        avg_understand_time: problem.avgUnderstandTime,
-        avg_solve_time: problem.avgSolveTime,
-        avg_review_time: problem.avgReviewTime,
-      };
+      return this.updateStatsAndReturnResponse(problem, savedSubmission);
     }
-    await this.submissionRepository.save(savedSubmission);
     // // OCR 변환 요청 큐 등록
     // await this.ocrService.addOcrJob({
     //   answer_image_url: savedSubmission.answerImageUrl,
@@ -165,17 +161,24 @@ export class SubmissionService {
     // });
 
     // 문제 통계 갱신
+    return this.updateStatsAndReturnResponse(problem, savedSubmission);
+  }
+
+  // 통계 갱신 후 리턴
+  private async updateStatsAndReturnResponse(
+    problem: Problem,
+    savedSubmission: Submission,
+  ) {
     await this.updateProblemStatistics(problem.id);
     const updatedProblem = await this.problemRepository.findOneBy({
       id: problem.id,
     });
-    if (!updatedProblem) {
+    if (!updatedProblem)
       throw new NotFoundException('문제 정보를 찾을 수 없습니다.');
-    }
 
     return {
       submissionId: savedSubmission.id,
-      is_correct: submission.isCorrect,
+      is_correct: savedSubmission.isCorrect,
       avg_accuracy: updatedProblem.avgAccuracy,
       avg_total_solve_time: updatedProblem.avgTotalSolveTime,
       avg_understand_time: updatedProblem.avgUnderstandTime,
