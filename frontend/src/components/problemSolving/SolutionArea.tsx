@@ -16,7 +16,7 @@ import {
 } from "@/utils/eraser";
 import Eraser from "./Eraser";
 
-const SolutionArea = forwardRef((props, ref) => {
+const SolutionArea = forwardRef((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const currentStrokeRef = useRef<any[]>([]);
 

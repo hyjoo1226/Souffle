@@ -148,7 +148,9 @@ export function updateLastStrokeMetaAfterErase({
 
   if (useBlock) {
     const block = blocks.find((b) =>
-      b.strokes.some((s) => s.stroke_id === last.stroke_id)
+      b.strokes.some(
+        (s: { stroke_id: number }) => s.stroke_id === last.stroke_id
+      )
     );
     setLastBlockId(block?.block_id ?? null);
   } else {

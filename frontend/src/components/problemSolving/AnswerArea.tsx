@@ -16,7 +16,7 @@ import {
 } from "@/utils/eraser";
 import Eraser from "./Eraser";
 
-const AnswerArea = forwardRef((props, ref) => {
+const AnswerArea = forwardRef((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 현재 그리고 있는 획을 담을 임시 저장소입니다.

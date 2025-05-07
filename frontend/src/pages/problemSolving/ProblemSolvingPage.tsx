@@ -3,7 +3,6 @@ import ProblemSourceInfo from "@/components/problemSolving/ProblemSourceInfo";
 import ProblemBox from "@/components/problemSolving/ProblemBox";
 import AnswerArea from "@/components/problemSolving/AnswerArea";
 import { Button } from "@/components/common/Button";
-import { useParams } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
