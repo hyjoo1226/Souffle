@@ -18,11 +18,17 @@ export class UserCategoryProgress extends BaseEntity {
   @JoinColumn({ name: 'userId' })
   user: User;
 
+  @Column()
+  userId: number;
+
   @ManyToOne(() => Category, (category) => category.userProgresses, {
     nullable: false,
   })
   @JoinColumn({ name: 'categoryId' })
   category: Category;
+
+  @Column()
+  categoryId: number;
 
   @Column({ type: 'int', default: 0 })
   solveTime: number;

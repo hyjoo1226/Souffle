@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { UserProblemProgress } from './entities/user_problem_progress.entity';
+import { UserCategoryProgress } from './entities/user_category_progress.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserProblemProgress)
-    private userProgressRepository: Repository<UserProblemProgress>,
+    @InjectRepository(UserCategoryProgress)
+    private userCategoryRepository: Repository<UserCategoryProgress>,
   ) {}
 
   async getUserCategoryStats(userId: number, categoryId: number) {
-    const progress = await this.userProgressRepository.findOne({
+    const progress = await this.userCategoryRepository.findOne({
       where: { userId, categoryId },
     });
 
