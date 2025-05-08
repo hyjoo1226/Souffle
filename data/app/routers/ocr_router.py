@@ -3,9 +3,10 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from app.models.ocr_schema import (
     AnswerOCRRequest, AnswerOCRResponse,
     AnalysisOCRRequest, AnalysisOCRResponse,
-    StepValidationResult, OCREngineType
+    StepValidationResult, OCREngineType,
+    AnalysisRequest, AnalysisResponse
 )
-from app.services.ocr import get_ocr_engine
+from app.services.ocr import get_ocr_engine, img_to_latex
 from app.services.analysis_service import analyze_equation_steps
 from app.core.exceptions import error_to_http_exception, OCRError
 import tempfile
@@ -119,6 +120,16 @@ async def analyze_ocr_steps(request: AnalysisOCRRequest):
     except Exception as e:
         # 예외 처리
         raise error_to_http_exception(e)
+    
+
+
+
+
+@router.post("/analysis1", response_model=AnalysisResponse)
+async def analyze_texts(payload: AnalysisRequest):
+    latex = img_to_latex(payload.paths)
+    return {"latex" : latex}
+
 
 
 @router.get("/health")
