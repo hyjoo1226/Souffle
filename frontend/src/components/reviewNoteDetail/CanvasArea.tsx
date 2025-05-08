@@ -33,6 +33,12 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
       setMode('erase');
     }
   };
+  const handlePencilClick = () => {
+    if (showEraserModal === true) {
+      setShowEraserModal(false);
+    } 
+    setMode('draw');
+  };
 
   // 저장된 스트로크를 현재 캔버스 크기에 맞춰 다시 그리기
   const redrawAllStrokes = () => {
@@ -221,7 +227,7 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
         <div className="flex gap-3">
           <Pencil
             className={mode==='draw' ? 'bg-gray-200 rounded-full' : ''}
-            onClick={() => setMode('draw')}
+            onClick={handlePencilClick}
           />
           <Eraser
             className={mode==='erase' ? 'bg-gray-200 rounded-full' : ''}
