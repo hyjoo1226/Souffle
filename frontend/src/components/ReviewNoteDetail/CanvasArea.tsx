@@ -7,15 +7,54 @@ type Mode = 'draw' | 'erase';
 
 interface CanvasAreaProps {
   title: string;
+  initialStrokes?: Array<Array<{ x: number; y: number }>>;
 }
 
-export default function CanvasArea({ title }: CanvasAreaProps) {
+export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
   const [mode, setMode] = useState<Mode>('draw');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
   const isDrawingRef = useRef(false);
   const currentStrokeRef = useRef<Array<{ x: number; y: number }>>([]);
   const strokesRef = useRef<Array<Array<{ x: number; y: number }>>>([]);
+
+  // stroke 다시 그리기
+  const redrawAllStrokes = () => {
+    const canvas = canvasRef.current;
+    const ctx = ctxRef.current;
+    if (!canvas || !ctx) return;
+    // 캔버스 비우기
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // 그리기 스타일 재설정
+    ctx.lineWidth = 2;
+    ctx.lineCap   = 'round';
+    ctx.strokeStyle = '#000';
+    // 저장된 모든 스트로크를 다시 그림
+    strokesRef.current.forEach(stroke => {
+      if (stroke.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(stroke[0].x, stroke[0].y);
+      stroke.slice(1).forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.stroke();
+    });
+  };
+
+  useEffect(() => {
+    if (initialStrokes && initialStrokes.length) {
+      strokesRef.current = initialStrokes;
+      redrawAllStrokes();
+    }
+  }, [initialStrokes]);
+
+  useEffect(() => {
+    fetch('../../mocks/strokes.json')
+      .then(res => res.json())
+      .then(data => {
+        strokesRef.current = data.strokes;
+        redrawAllStrokes();
+      });
+  }, []); // 빈 deps로, 새로고침마다 실행  
+  // ----------------------------------------------------------------
 
   useEffect(() => {
     const canvas = canvasRef.current;
