@@ -71,14 +71,17 @@ async def analyze_equation_steps(
             try:
                 analysis = analyze_step_change(prev_expr, curr_expr)
                 
-                if not analysis["is_valid"]:
-                    # 오류 단계 추가
+                # 중요: step_valid 값을 analysis["is_valid"]로 설정
+                is_valid = analysis["is_valid"]
+                
+                # 오류 단계만 피드백 요청 목록에 추가
+                if not is_valid:
                     error_steps.append((i, analysis["prev_clean"], analysis["curr_clean"]))
                 
                 steps.append(AnalyzedStep(
                     step_index=i,
                     latex=curr_expr,
-                    is_valid=analysis["is_valid"],
+                    is_valid=is_valid,  # 수정: 올바른 값 사용
                     confidence=confidence_list[i]
                 ))
             
@@ -109,6 +112,15 @@ async def analyze_equation_steps(
                 for i, _, _ in error_steps:
                     if not hasattr(steps[i], 'feedback') or not steps[i].feedback:  # 이미 피드백이 있는 경우 변경하지 않음
                         steps[i].feedback = "피드백 생성 중 오류가 발생했습니다."
+        else:
+            # 피드백이 필요한 단계가 없으면 성공 피드백 생성 (필요에 따라)
+            for i in range(1, len(steps)):
+                if steps[i].is_valid and not hasattr(steps[i], 'feedback'):
+                    try:
+                        # 성공 피드백 생성 (옵션)
+                        steps[i].feedback = "이 단계는 수학적으로 올바르게 수행되었습니다."
+                    except Exception as e:
+                        logger.error(f"성공 피드백 생성 오류: {str(e)}")
 
         # 분석 완료 후 결과 저장
         step_logs = [
@@ -128,6 +140,8 @@ async def analyze_equation_steps(
             steps=step_logs, 
             total_solve_time=None,
             metadata={
+                "total_steps": len(steps),
+                "error_count": sum(1 for s in steps if not s.is_valid),
                 "engine": engine_type.value if engine_type else "mathpix",
                 "grade": grade
             }

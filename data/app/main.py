@@ -19,7 +19,10 @@ app = FastAPI(
     title="수플래 분석 서버",
     debug=True,
     description="수식 이미지 OCR 및 풀이 분석 API",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
 )
 
 # CORS 설정
