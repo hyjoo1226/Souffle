@@ -7,6 +7,7 @@ export interface PointerUpHandlerContext {
   lastStrokeTime: number | null;
   lastBlockId: number | null;
   lastStrokeEndTime: React.MutableRefObject<number | null>;
+  blockSnapshotsRef: React.MutableRefObject<any[][]>;
   setStrokes: (strokes: any[]) => void;
   setBlocks: (blocks: any[]) => void;
   setLastPoint: (point: any) => void;
@@ -147,7 +148,12 @@ export const updateLastStrokeMeta = ({
   setLastBlockId(containingBlock?.block_id ?? null);
 };
 
-export function getPointerUpHandler(ctx: PointerUpHandlerContext) {
+export function getPointerUpHandler(
+  ctx: PointerUpHandlerContext & {
+    blockSnapshotsRef: React.MutableRefObject<any[][]>;
+    lastSavedBlocksRef: React.MutableRefObject<any[][]>;
+  }
+) {
   return (_e: PointerEvent) => {
     const {
       eraseMode,
@@ -158,6 +164,8 @@ export function getPointerUpHandler(ctx: PointerUpHandlerContext) {
       lastStrokeTime,
       lastBlockId,
       lastStrokeEndTime,
+      blockSnapshotsRef,
+      lastSavedBlocksRef,
       setStrokes,
       setBlocks,
       setLastPoint,
@@ -181,6 +189,21 @@ export function getPointerUpHandler(ctx: PointerUpHandlerContext) {
 
     const newStrokes = [...strokes, stroke];
     setStrokes(newStrokes);
+
+    const needNewBlock =
+      blocks.length === 0 ||
+      shouldCreateNewBlock(
+        { ...stroke.start, time: stroke.timestamp },
+        lastPoint,
+        lastStrokeTime
+      ) ||
+      !blocks.find((b) => b.block_id === lastBlockId);
+
+    if (needNewBlock) {
+      // ✅ 이전까지의 blocks만 snapshot으로 저장
+      const snapshot = JSON.parse(JSON.stringify(lastSavedBlocksRef.current));
+      blockSnapshotsRef.current.push(snapshot);
+    }
 
     const newBlocks = updateBlocksWithStroke({
       stroke,
@@ -216,40 +239,52 @@ export async function generateAnswerImage(
 }
 
 export async function generateStepImages(
-  blocks: any[],
-  canvas: HTMLCanvasElement
+  snapshots: { block_id: number; strokes: any[] }[][],
+  canvas: HTMLCanvasElement,
+  blocks: { block_id: number; strokes: any[] }[] // ✅ block 단위 시간 정보 전달
 ) {
   const ctx = canvas.getContext("2d")!;
   const steps: any[] = [];
 
-  for (let i = 0; i < blocks.length; i++) {
-    const block = blocks[i];
+  for (let i = 1; i < snapshots.length; i++) {
+    const snapshot = snapshots[i];
+    const prevBlock = blocks[i - 1];
+    const currBlock = blocks[i];
+    const prevStroke = prevBlock?.strokes.at(-1);
+    const currStroke = currBlock?.strokes[0];
+
+    const prevEnd = (prevStroke?.timestamp ?? 0) + (prevStroke?.duration ?? 0);
+    const currStart = currStroke?.timestamp ?? 0;
+
+    const blockGapTime = Math.max(0, Math.round((currStart - prevEnd) / 1000));
+
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "white";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (const stroke of block.strokes) {
-      // ctx.strokeStyle = stroke.duration > 2000 ? "red" : "black";
-      // ctx.lineWidth = stroke.duration > 2000 ? 3 : 1.5;
-      ctx.beginPath();
-      stroke.points.forEach((p: any, j: number) =>
-        j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)
-      );
-      ctx.stroke();
+    for (const block of snapshot) {
+      for (const stroke of block.strokes) {
+        ctx.beginPath();
+        stroke.points.forEach((p: any, j: number) =>
+          j === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y)
+        );
+        ctx.stroke();
+      }
     }
 
     const stepBlob = await new Promise<Blob>((resolve) =>
       canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
     );
-    const stepFileName = `step${String(i + 1).padStart(2, "0")}.jpg`;
+
+    const stepNumber = i; // step1부터 시작
+    const stepFileName = `step${String(stepNumber).padStart(2, "0")}.jpg`;
+    console.log("개수보자", snapshot.length);
+
     window.open(URL.createObjectURL(stepBlob));
 
     steps.push({
-      step_number: i + 1,
-      step_time: Math.round(
-        block.strokes.reduce((acc: number, s: any) => acc + s.duration, 0) /
-          1000
-      ),
+      step_number: stepNumber,
+      step_time: blockGapTime,
       file_name: stepFileName,
       blob: stepBlob,
     });
