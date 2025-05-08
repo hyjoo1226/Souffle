@@ -1,6 +1,6 @@
 // 오답노트 상세 페이지 문제 설명 영역
 import { useState, useEffect, useRef } from 'react';
-import { ReactComponent as Spring_Note } from "@/assets/icons/spring_note.svg";
+import { ReactComponent as Spring_Note } from "@/assets/icons/Spring_Note.svg";
 import { ReactComponent as Eraser } from "@/assets/icons/eraser.svg";
 import { ReactComponent as Pencil } from "@/assets/icons/pencil.svg";
 
