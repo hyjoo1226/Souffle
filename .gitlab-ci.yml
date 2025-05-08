@@ -62,6 +62,7 @@ integration-test:
     - docker-compose down
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
 
 deploy:
   stage: deploy
