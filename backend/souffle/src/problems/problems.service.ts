@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Problem } from './entities/problem.entity';
 import { In } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
+import { UserProblem } from 'src/users/entities/user-problem.entity';
 
 @Injectable()
 export class ProblemService {
@@ -40,6 +41,61 @@ export class ProblemService {
         publisher: problem.book.publisher,
         year: problem.book.year,
       },
+    };
+  }
+
+  // 개별 문제 조회 (모든 데이터) API
+  async getProblemFull(problemId: number, userId: number) {
+    const problem = await this.problemRepository
+      .createQueryBuilder('problem')
+      .leftJoinAndSelect('problem.category', 'category')
+      .leftJoinAndSelect('problem.book', 'book')
+      .leftJoinAndMapOne(
+        'problem.user_stats',
+        UserProblem,
+        'up',
+        'up.user_id = :userId AND up.problem_id = problem.id',
+        { userId },
+      )
+      .where('problem.id = :problemId', { problemId })
+      .getOne();
+
+    if (!problem) throw new NotFoundException('문제를 찾을 수 없습니다');
+
+    return {
+      problem_id: problem.id,
+      category_id: problem.category?.id,
+      problem_no: problem.problemNo,
+      inner_no: problem.innerNo,
+      type: problem.type,
+      content: problem.content,
+      choice: problem.choice,
+      problem_image_url: problem.problemImageUrl,
+      avg_accuracy: problem.avgAccuracy,
+      avg_total_solve_time: problem.avgTotalSolveTime,
+      avg_understand_time: problem.avgUnderstandTime,
+      avg_solve_time: problem.avgSolveTime,
+      avg_review_time: problem.avgReviewTime,
+      book: {
+        book_name: problem.book.name,
+        publisher: problem.book.publisher,
+        year: problem.book.year,
+      },
+      user_stats: problem.user_stats
+        ? {
+            try_count: problem.user_stats.try_count || 0,
+            correct_count: problem.user_stats.correct_count || 0,
+            last_submission_id: problem.user_stats.last_submission_id,
+            wrong_note_folder_id: problem.user_stats.wrong_note_folder_id,
+            favorite_folder_id: problem.user_stats.favorite_folder_id,
+          }
+        : {
+            try_count: 0,
+            correct_count: 0,
+            last_submission_id: null,
+            wrong_note_folder_id: null,
+            favorite_folder_id: null,
+          },
     };
   }
 

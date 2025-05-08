@@ -97,10 +97,10 @@ export class CategoryService {
     );
     await queryRunner.release();
 
-    // 하위 모든 단원에 속한 문제 조회
-    const problems = await this.problemRepository.find({
-      where: { category: { id: In(categoryIds.map((c) => c.id)) } },
-    });
+    // // 하위 모든 단원에 속한 문제 조회
+    // const problems = await this.problemRepository.find({
+    //   where: { category: { id: In(categoryIds.map((c) => c.id)) } },
+    // });
 
     // 문제별 통계
     const problemsWithStats = await this.problemRepository

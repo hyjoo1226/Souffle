@@ -74,4 +74,13 @@ export class Problem extends BaseEntity {
 
   @OneToMany(() => UserProblem, (userProblem) => userProblem.problem)
   userProblems: UserProblem[];
+
+  // 가상 속성
+  user_stats?: {
+    try_count: number;
+    correct_count: number;
+    last_submission_id: number | null;
+    wrong_note_folder_id: number | null;
+    favorite_folder_id: number | null;
+  };
 }
