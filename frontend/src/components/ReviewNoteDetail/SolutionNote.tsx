@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { ReactComponent as Spring_Note } from "@/assets/icons/spring_note.svg";
-import CanvasArea from "@/components/ReviewNoteDetail/CanvasArea";
+import { ReactComponent as Spring_Note } from "@/assets/icons/Spring_Note.svg";
+import CanvasArea from "@/components/reviewNoteDetail/CanvasArea";
 
 const SolutionNote = () => {
   const [selected, setSelected] = useState('풀이/개념 정리');

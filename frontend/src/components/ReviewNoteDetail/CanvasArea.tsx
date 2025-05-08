@@ -1,7 +1,7 @@
 // SolutionNote.tsx에 들어가는 수식 정리 노트 컴포넌트
 import { useState, useEffect, useRef } from 'react';
-import { ReactComponent as Eraser } from "@/assets/icons/eraser.svg";
-import { ReactComponent as Pencil } from "@/assets/icons/pencil.svg";
+import { ReactComponent as Eraser } from "@/assets/icons/Eraser.svg";
+import { ReactComponent as Pencil } from "@/assets/icons/Pencil.svg";
 
 type Mode = 'draw' | 'erase';
 
