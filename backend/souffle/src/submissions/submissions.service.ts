@@ -257,15 +257,18 @@ export class SubmissionService {
 
   // 문제별 모든 제출id 조회 API
   async getSubmissionIds(userId: number, problemId: number): Promise<number[]> {
+    const problem = await this.problemRepository.findOne({
+      where: { id: problemId },
+    });
+    if (!problem) {
+      throw new NotFoundException('문제가 존재하지 않습니다');
+    }
+
     const submissions = await this.submissionRepository.find({
       where: { user: { id: userId }, problem: { id: problemId } },
       select: ['id'],
       order: { id: 'DESC' },
     });
-
-    if (submissions.length === 0) {
-      throw new NotFoundException('제출 기록이 없습니다');
-    }
 
     return submissions.map((submission) => submission.id);
   }
