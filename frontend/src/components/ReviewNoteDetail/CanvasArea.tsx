@@ -83,7 +83,7 @@ export default function CanvasArea({ title }: CanvasAreaProps) {
         currentStrokeRef.current.push({ x:e.offsetX, y:e.offsetY });
       }
     };
-    const stop = (e: PointerEvent) => {
+    const stop = () => {
       if (isDrawingRef.current && mode==='draw') {
         strokesRef.current.push([...currentStrokeRef.current]);
         currentStrokeRef.current = [];
