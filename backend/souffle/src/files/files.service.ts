@@ -1,31 +1,46 @@
 import { Injectable } from '@nestjs/common';
-import * as path from 'path';
-import * as fs from 'fs';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class FileService {
+  private readonly s3: S3Client;
+  private readonly bucket: string;
+
+  constructor(private configService: ConfigService) {
+    this.s3 = new S3Client({
+      region: this.configService.get<string>('AWS_REGION') as string,
+      credentials: {
+        accessKeyId: this.configService.get<string>(
+          'AWS_ACCESS_KEY_ID',
+        ) as string,
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ) as string,
+      },
+    });
+    this.bucket = this.configService.get<string>(
+      'AWS_S3_BUCKET_NAME',
+    ) as string;
+  }
+
   async uploadFile(
     file: Express.Multer.File,
     userId: number,
     problemId: number,
     submissionId: number,
   ): Promise<string> {
-    // 폴더 경로
-    const uploadBase = path.resolve(process.cwd(), 'uploads');
-    const dir = path.join(
-      uploadBase,
-      problemId.toString(),
-      userId.toString(),
-      submissionId.toString(),
-    );
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    // 파일 저장 로직 (S3, 로컬 등) - 현재는 로컬
-    const filename = `${Date.now()}-${file.originalname}`;
-    const filePath = path.join(dir, filename);
-    fs.writeFileSync(filePath, file.buffer);
+    const key = `${problemId}/${userId}/${submissionId}/${Date.now()}-${file.originalname}`;
 
-    return `https://www.souffle.kr/uploads/${problemId}/${userId}/${submissionId}/${filename}`;
+    await this.s3.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+      }),
+    );
+
+    return `https://${this.bucket}.s3.${this.configService.get<string>('AWS_REGION')}.amazonaws.com/${key}`;
   }
 }
