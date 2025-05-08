@@ -16,226 +16,101 @@ logger = logging.getLogger(__name__)
 
 # 타입 정의
 StepDict = Dict[str, Any]
-ValidationResult = Dict[str, Any]
+ValidationResult = Tuple[bool, Optional[str]]
 
 
 class LatexParser:
     """LaTeX 수식을 SymPy 형태로 파싱하는 유틸리티 클래스"""
     
     @staticmethod
-    def clean_latex(latex_str: str) -> str:
+    def clean_latex(latex: str) -> str:
         """LaTeX 문자열 정리"""
-        # LaTeX 수식에서 = 기호 확인
-        if latex_str is None:
-            return None
+        # 등호 주변 공백 정규화
+        latex = re.sub(r'\s*=\s*', '=', latex)
         
-        logger.debug(f"LaTeX 정제 전: {latex_str}")
+        # 멱승 표현 변환 (^를 **로)
+        latex = re.sub(r'(\w+)\^(\d+)', r'\1**\2', latex)
         
-        # 중첩된 \text 태그 처리
-        latex_str = re.sub(r'\\text\s*\{\s*\\text\s*\{\s*([^}]+)\s*\}\s*\}', r'\\text{\1}', latex_str)
+        # LaTeX 표현을 SymPy 파서가 이해할 수 있는 형태로 변환
+        latex = latex.replace("\\lor", " or ")
         
-        # \text 블록 처리 (or 등 텍스트 처리)
-        text_blocks = {}
-        text_pattern = r'\\text\s*\{\s*([^}]+)\s*\}'
+        # (a)(b) 형태를 (a)*(b) 형태로 변환
+        latex = re.sub(r'\)\(', ')*(', latex)
         
-        # \text 블록을 임시 토큰으로 대체
-        for i, match in enumerate(re.finditer(text_pattern, latex_str)):
-            token = f"__TEXT_{i}__"
-            text_blocks[token] = match.group(1).strip()
-            latex_str = latex_str.replace(match.group(0), token)
-        
-        # 변수와 계수 사이의 공백 제거 (예: "5 x" -> "5*x")
-        latex_str = re.sub(r'(\d+)\s+([a-zA-Z])', r'\1*\2', latex_str)
-        
-        # 남은 불필요한 공백 제거
-        latex_str = re.sub(r'\s+', '', latex_str)
-        
-        # x^{n} 형태를 x**n 형태로 변환
-        latex_str = re.sub(r'(\w+)\^\{(\d+)\}', r'\1**\2', latex_str)
-        
-        # 임시 토큰을 적절한 형태로 변환
-        for token, text in text_blocks.items():
-            if text.lower() == 'or':
-                latex_str = latex_str.replace(token, ' or ')
-        
-        logger.debug(f"LaTeX 정제 후: {latex_str}")
-        return latex_str
+        return latex
     
     @staticmethod
-    def parse_expression(latex_str: str) -> Any:
-        """정제된 LaTeX 문자열을 SymPy 표현식으로 변환"""
-        if latex_str is None:
-            return None
-        
+    def parse_expression(latex: str) -> Any:
+        """LaTeX 표현식(등호 없는 형태)을 SymPy 표현식으로 변환"""
         try:
-            cleaned = LatexParser.clean_latex(latex_str)
+            # ^ 기호를 ** 로 변환
+            latex = re.sub(r'(\w+)\^(\d+)', r'\1**\2', latex)
+            
+            # 공백 제거
+            latex = latex.strip()
+            
+            # 괄호 곱셈 형태 처리
+            latex = re.sub(r'\)\(', ')*(', latex)
             
             # 암시적 곱셈을 지원하는 변환 설정
             transformations = standard_transformations + (implicit_multiplication_application,)
             
-            logger.debug(f"파싱할 표현식: {cleaned}")
-            return parse_expr(cleaned, transformations=transformations)
+            logger.debug(f"파싱할 표현식: {latex}")
+            return parse_expr(latex, transformations=transformations)
         except Exception as e:
-            logger.error(f"표현식 파싱 오류: {str(e)}, 입력: {latex_str}")
-            return None
+            logger.error(f"표현식 파싱 오류: {str(e)}, 입력: {latex}")
+            raise ValueError(f"표현식 파싱 오류: {e}")
 
     @staticmethod
-    def parse_to_sympy(latex_str: str) -> Any:
+    def parse_to_sympy(latex: str) -> Any:
         """LaTeX 문자열을 SymPy 표현식으로 변환"""
-        if latex_str is None:
-            return None
-        
         try:
-            cleaned = LatexParser.clean_latex(latex_str)
+            cleaned = LatexParser.clean_latex(latex)
+            logger.debug(f"정제된 LaTeX: {cleaned}")
             
-            # 방정식(=이 포함된 경우) 처리
-            if '=' in cleaned:
-                left, right = cleaned.split('=', 1)
-                
-                # 양쪽 식 파싱
-                left_expr = LatexParser.parse_expression(left)
-                right_expr = LatexParser.parse_expression(right)
-                
-                if left_expr is None or right_expr is None:
-                    logger.warning("방정식 파싱 실패")
-                    return None
-                
-                # sympy에서 방정식은 Eq(좌변, 우변) 형태로 표현
-                return Eq(left_expr, right_expr)
-            
-            # 일반 표현식 처리
-            logger.debug(f"표현식 파싱: {cleaned}")
-            return LatexParser.parse_expression(cleaned)
-        
+            # 방정식 형태인 경우 (등호 포함)
+            if "=" in cleaned:
+                lhs, rhs = cleaned.split("=")
+                lhs_expr = LatexParser.parse_expression(lhs)
+                rhs_expr = LatexParser.parse_expression(rhs)
+                return Eq(lhs_expr, rhs_expr)
+            else:
+                # 일반 표현식 형태인 경우
+                return LatexParser.parse_expression(cleaned)
         except Exception as e:
-            logger.error(f"LaTeX 파싱 중 오류: {str(e)}, 입력: {latex_str}")
-            return None
+            logger.error(f"LaTeX 파싱 중 오류: {str(e)}, 입력: {latex}")
+            raise ValueError(f"LaTeX 파싱 오류: {e}")
 
     @staticmethod
-    def extract_equation_parts(latex_str: str) -> Tuple[str, str]:
+    def extract_equation_parts(latex: str) -> Tuple[str, str]:
         """방정식에서 좌변과 우변 추출"""
-        if "=" not in latex_str:
+        if "=" not in latex:
             raise ValueError("방정식 형식이 아닙니다: 등호가 없음")
 
-        parts = latex_str.split("=")
+        parts = latex.split("=")
         if len(parts) != 2:
             raise ValueError("방정식 형식이 아닙니다: 등호가 여러 개임")
 
         return parts[0].strip(), parts[1].strip()
 
     @staticmethod
-    def extract_factors(latex_str: str) -> List[str]:
+    def extract_factors(latex: str) -> List[str]:
         """인수분해 식에서 개별 인수 추출"""
         # (a)(b) = 0 또는 (a)*(b) = 0 형태 지원
-        match = re.match(r"(.*)\((.*)\)(?:\*?)\((.*)\)\s*=\s*0", latex_str)
+        match = re.match(r"(.*)\((.*)\)(?:\*?)\((.*)\)\s*=\s*0", latex)
         if not match:
-            logger.error(f"인수분해 형식 추출 실패: {latex_str}")
+            logger.error(f"인수분해 형식 추출 실패: {latex}")
             raise ValueError("인수분해 형식이 아닙니다")
 
         return [match.group(2).strip(), match.group(3).strip()]
 
     @staticmethod
-    def extract_or_equations(latex_str: str) -> List[str]:
+    def extract_or_equations(latex: str) -> List[str]:
         """논리합 형태의 수식에서 개별 방정식 추출"""
-        if "\\text" not in latex_str and "or" not in latex_str.lower():
-            raise ValueError(f"논리합 형식이 아닙니다: {latex_str}")
-        
-        # 중첩된 \text 태그 처리
-        cleaned = re.sub(r'\\text\s*\{\s*\\text\s*\{\s*([^}]+)\s*\}\s*\}', r'\\text{\1}', latex_str)
-        
-        # \text{or} 패턴 찾기
-        or_patterns = [
-            r'\\text\s*\{\s*or\s*\}',
-            r'\\text\s*\{\s*OR\s*\}',
-            r'\\text\s*\{\s*Or\s*\}',
-            r'\s+or\s+',
-            r'\s+OR\s+',
-            r'\s+Or\s+'
-        ]
-        
-        # 모든 가능한 'or' 패턴으로 분할 시도
-        for pattern in or_patterns:
-            parts = re.split(pattern, cleaned)
-            if len(parts) > 1:
-                return [part.strip() for part in parts]
-        
-        # 실패했을 경우 직접 x= 패턴 검색
-        equations = []
-        x_eq_pattern = r'x\s*=\s*[^=]+'
-        
-        for match in re.finditer(x_eq_pattern, latex_str):
-            equations.append(match.group(0).strip())
-        
-        if equations:
-            return equations
-            
-        # 그래도 실패하면 원본 에러 발생
-        raise ValueError(f"논리합 형식을 파싱할 수 없습니다: {latex_str}")
+        if "\\lor" not in latex:
+            raise ValueError("논리합 형식이 아닙니다")
 
-    @staticmethod
-    def parse_equation_solutions(latex_str: str) -> List[str]:
-        """방정식의 해 표현을 파싱하여 해 목록 반환"""
-        if latex_str is None:
-            return []
-        
-        solutions = []
-        
-        try:
-            # 중첩된 \text 태그 처리
-            latex_str = re.sub(r'\\text\s*\{\s*\\text\s*\{\s*([^}]+)\s*\}\s*\}', r'\\text{\1}', latex_str)
-            
-            # 특수 케이스 직접 처리: x=-2 \text { \text { or } } x=-3
-            if "x=-2" in latex_str and "or" in latex_str.lower() and "x=-3" in latex_str:
-                logger.info("이차방정식 표준 해 패턴 감지 - 직접 처리")
-                return ["-2", "-3"]
-            
-            # "or"로 분리된 여러 해 처리 - 모든 가능한 패턴 시도
-            or_patterns = [
-                r'\\text\s*\{\s*or\s*\}',
-                r'\\text\s*\{\s*OR\s*\}',
-                r'\\text\s*\{\s*Or\s*\}',
-                r'\s+or\s+',
-                r'\s+OR\s+',
-                r'\s+Or\s+'
-            ]
-            
-            found = False
-            for pattern in or_patterns:
-                if re.search(pattern, latex_str):
-                    found = True
-                    parts = re.split(pattern, latex_str)
-                    for part in parts:
-                        # x= 형태 추출
-                        match = re.search(r'x\s*=\s*(.+)', part)
-                        if match:
-                            solutions.append(match.group(1).strip())
-            
-            if found:
-                logger.debug(f"or로 분리된 해: {solutions}")
-                return solutions
-            
-            # 단일 해 처리
-            match = re.search(r'x\s*=\s*(.+)', latex_str)
-            if match:
-                solutions = [match.group(1).strip()]
-                logger.debug(f"단일 해: {solutions}")
-                return solutions
-            
-            # x= 패턴 직접 찾기
-            x_eq_pattern = r'x\s*=\s*([^=]+)'
-            for match in re.finditer(x_eq_pattern, latex_str):
-                solutions.append(match.group(1).strip())
-            
-            if solutions:
-                logger.debug(f"추출된 해: {solutions}")
-                return solutions
-            
-            logger.warning(f"해 형식을 인식할 수 없음: {latex_str}")
-            return []
-            
-        except Exception as e:
-            logger.error(f"해 파싱 오류: {str(e)}, 입력: {latex_str}")
-            return []
+        return [eq.strip() for eq in latex.split("\\lor")]
 
 
 class StepValidator:
@@ -251,10 +126,6 @@ class StepValidator:
     def are_expressions_equal(self, expr1, expr2) -> bool:
         """두 표현식이 수학적으로 동치인지 확인"""
         try:
-            if expr1 is None or expr2 is None:
-                logger.warning("표현식 비교 실패: None 값이 있음")
-                return False
-                
             logger.debug(f"표현식 비교: {expr1} vs {expr2}")
             
             # 방법 1: equals 메서드 사용 (최신 SymPy)
@@ -263,7 +134,7 @@ class StepValidator:
                 logger.debug(f"equals 결과: {equals_result}")
                 
                 # equals가 결정적인 결과를 제공하면 해당 결과 반환
-                if equals_result is not None and equals_result is True:
+                if equals_result is not None and equals_result:
                     return True
             except Exception as e:
                 logger.debug(f"equals 메서드 실패: {e}")
@@ -308,162 +179,360 @@ class StepValidator:
 
 
 class GeneralStepValidator(StepValidator):
-    """수학 단계 검증을 위한 일반 클래스"""
-    
-    def validate(self, current_step, previous_step) -> ValidationResult:
-        """두 수학 단계 사이의 논리적 타당성 검증"""
+    """일반적인 수식 변환 검증"""
+
+    def validate(self, prev_latex: str, curr_latex: str) -> ValidationResult:
         try:
-            # 기본 검증 로직
-            current_latex = current_step.get("latex", "")
-            previous_latex = previous_step.get("latex", "")
+            # LaTeX 수식을 SymPy 형태로 변환
+            prev_expr = LatexParser.parse_to_sympy(prev_latex)
+            curr_expr = LatexParser.parse_to_sympy(curr_latex)
             
-            logger.debug(f"단계 검증 시작: 이전={previous_latex}, 현재={current_latex}")
-            
-            # 특수 케이스: 중첩된 \text 태그가 있는 해 풀이
-            if "\\text " in current_latex and "x=-2" in current_latex and "x=-3" in current_latex:
-                logger.info("특수 해 풀이 패턴 감지 - 자동 성공 처리")
-                return {"is_valid": True, "error_type": None}
-            
-            # 특수 케이스: 3번째 단계 (해 풀이) - 항상 true 반환
-            if "(" in previous_latex and ")" in previous_latex and "=" in previous_latex:
-                if "x=" in current_latex.replace(" ", "") and ("or" in current_latex.lower() or "\\text" in current_latex):
-                    logger.info("해 풀이 단계 감지 - 특수 처리 적용")
-                    return {"is_valid": True, "error_type": None}
-            
-            # 인수분해 형태 검증 (괄호가 있는 경우)
-            if "(" in current_latex and "=" in previous_latex:
-                logger.debug("인수분해 검증 수행")
-                return validate_factorization(previous_latex, current_latex)
-                
-            # 해 형태 검증 (x = 값 형태)
-            elif "=" in current_latex and ("x" in current_latex.lower() and "=" in previous_latex):
-                logger.debug("해 검증 수행")
-                return validate_solutions(previous_latex, current_latex)
-                
-            # 기타 일반적인 단계 검증
+            logger.debug(f"일반 검증 - 이전: {prev_expr}, 현재: {curr_expr}")
+
+            # 두 식이 수학적으로 동치인지 확인
+            if isinstance(prev_expr, Equality) and isinstance(curr_expr, Equality):
+                # 방정식인 경우 양변 비교
+                lhs_equal = self.are_expressions_equal(prev_expr.lhs, curr_expr.lhs)
+                rhs_equal = self.are_expressions_equal(prev_expr.rhs, curr_expr.rhs)
+                is_valid = lhs_equal and rhs_equal
             else:
-                logger.debug("일반 검증 수행")
-                # 일반적인 동등성 검증 로직
-                current_expr = LatexParser.parse_to_sympy(current_latex)
-                previous_expr = LatexParser.parse_to_sympy(previous_latex)
-                
-                if current_expr is None or previous_expr is None:
-                    return {"is_valid": False, "error_type": "parsing_error"}
-                
-                # 동등성 검증
-                is_equal = self.are_expressions_equal(current_expr, previous_expr)
-                return {"is_valid": is_equal, "error_type": None if is_equal else "not_equivalent"}
-                
+                # 일반 수식인 경우 비교
+                is_valid = self.are_expressions_equal(prev_expr, curr_expr)
+
+            return is_valid, None if is_valid else "general_error"
         except Exception as e:
-            logger.error(f"GeneralStepValidator 오류: {str(e)}")
-            return {"is_valid": False, "error_type": f"validation_error: {str(e)}"}
+            logger.error(f"GeneralStepValidator 오류: {e}")
+            return False, "general_error"
 
 
-def validate_factorization(original_eq, factored_eq):
-    """원래 방정식과 인수분해 형태가 동등한지 검증"""
-    try:
-        # 두 표현식 파싱
-        orig_expr = LatexParser.parse_to_sympy(original_eq)
-        fact_expr = LatexParser.parse_to_sympy(factored_eq)
-        
-        if orig_expr is None or fact_expr is None:
-            logger.warning("인수분해 표현식 파싱 실패")
-            return {"is_valid": False, "error_type": "parsing_error"}
-        
-        # 둘 다 방정식인 경우
-        if isinstance(orig_expr, Eq) and isinstance(fact_expr, Eq):
-            # 방정식의 양변 비교
-            orig_diff = expand(orig_expr.lhs - orig_expr.rhs)
-            fact_diff = expand(fact_expr.lhs - fact_expr.rhs)
+class FactorizationValidator(StepValidator):
+    """인수분해 검증 (x^2 + 5x + 6 = 0 → (x+2)(x+3) = 0)"""
+
+    def validate(self, prev_latex: str, curr_latex: str) -> ValidationResult:
+        try:
+            logger.debug(f"인수분해 검증 시작 - 이전: {prev_latex}, 현재: {curr_latex}")
             
-            # 전개했을 때 같은지 확인
-            is_equal = simplify(orig_diff - fact_diff) == 0
-        else:
-            # 일반 표현식인 경우
-            orig_expanded = expand(orig_expr)
-            fact_expanded = expand(fact_expr)
-            is_equal = simplify(orig_expanded - fact_expanded) == 0
-        
-        logger.debug(f"인수분해 검증 결과: {is_equal}")
-        return {"is_valid": is_equal, "error_type": None if is_equal else "not_equivalent"}
-        
-    except Exception as e:
-        logger.error(f"인수분해 표현식 비교 오류: {str(e)}")
-        return {"is_valid": False, "error_type": "comparison_error"}
+            # 이차방정식에서 우변이 0인지 확인
+            prev_lhs, prev_rhs = LatexParser.extract_equation_parts(prev_latex)
+            if prev_rhs != "0":
+                logger.debug("이전 식의 우변이 0이 아님")
+                return False, "equation_format_error"
 
-
-def validate_solutions(equation_latex, solutions_latex):
-    """방정식과 해가 일치하는지 검증"""
-    # 특수 케이스 처리: x=-2 \text { \text { or } } x=-3
-    if "\\text" in solutions_latex and "x=-2" in solutions_latex and "x=-3" in solutions_latex:
-        logger.info("이차방정식 표준 해 패턴 감지 - 자동 성공 처리")
-        return {"is_valid": True, "error_type": None}
-    
-    try:
-        # 방정식 파싱
-        equation = LatexParser.parse_to_sympy(equation_latex)
-        if equation is None:
-            logger.warning("방정식 파싱 실패")
-            return {"is_valid": False, "error_type": "parsing_error"}
-        
-        # 방정식이 아닌 경우 처리
-        if not isinstance(equation, Eq):
-            logger.warning("파싱된 표현식이 방정식이 아님")
-            return {"is_valid": False, "error_type": "not_equation"}
-        
-        # 해 파싱
-        solution_values = LatexParser.parse_equation_solutions(solutions_latex)
-        if not solution_values:
-            logger.warning("해 파싱 실패")
-            return {"is_valid": False, "error_type": "solution_parsing_error"}
-        
-        # 각 해가 방정식을 만족하는지 확인
-        x = Symbol('x')
-        all_valid = True
-        
-        for sol_str in solution_values:
-            try:
-                # 해를 숫자로 변환
-                sol_value = LatexParser.parse_expression(sol_str)
-                if sol_value is None:
-                    logger.warning(f"해 파싱 실패: {sol_str}")
-                    # 특수 처리: -2와 -3의 경우
-                    if sol_str == "-2" or sol_str == "-3":
-                        continue  # 이 해는 정상으로 처리
-                    all_valid = False
-                    break
-                    
-                # 방정식에 대입하여 확인
-                result = equation.subs(x, sol_value)
-                is_solution = result.evalf() == True
+            # 인수분해 식에서 우변이 0인지 확인
+            curr_lhs, curr_rhs = LatexParser.extract_equation_parts(curr_latex)
+            if curr_rhs != "0":
+                logger.debug("현재 식의 우변이 0이 아님")
+                return False, "equation_format_error"
                 
-                logger.debug(f"해 {sol_str} 검증 결과: {is_solution}")
-                if not is_solution:
-                    all_valid = False
-                    break
+            # 간소화된 접근법: 양변의 표현식만 추출하여 비교
+            try:
+                # 직접적인 예제 코드와 비슷한 방식으로 검증
+                # x^2 + 5*x + 6와 (x + 2)*(x + 3) 비교
+                prev_expr = LatexParser.parse_expression(prev_lhs)
+                
+                # 인수 추출 및 곱셈 형태로 변환
+                try:
+                    factors = LatexParser.extract_factors(curr_latex)
+                    factor1 = LatexParser.parse_expression(factors[0])
+                    factor2 = LatexParser.parse_expression(factors[1])
+                    curr_expr = factor1 * factor2
+                    
+                    # equals 메서드로 직접 비교
+                    equals_result = prev_expr.equals(curr_expr)
+                    logger.debug(f"인수분해 equals 결과: {equals_result}")
+                    
+                    if equals_result is not None:
+                        return equals_result, None if equals_result else "factorization_error"
+                        
+                    # expand 후 비교
+                    prev_expanded = expand(prev_expr)
+                    curr_expanded = expand(curr_expr)
+                    is_equal = simplify(prev_expanded - curr_expanded) == 0
+                    logger.debug(f"인수분해 expand 비교 결과: {is_equal}")
+                    
+                    if is_equal:
+                        return True, None
+                except Exception as e:
+                    logger.error(f"인수분해 인수 추출 오류: {e}")
+            
             except Exception as e:
-                logger.error(f"해 검증 오류: {str(e)}, 해: {sol_str}")
-                # 특수 처리: -2와 -3의 경우
-                if sol_str == "-2" or sol_str == "-3":
-                    continue  # 이 해는 정상으로 처리
-                all_valid = False
-                break
-        
-        return {"is_valid": all_valid, "error_type": None if all_valid else "invalid_solution"}
-        
-    except Exception as e:
-        logger.error(f"인수분해 해 비교 오류: {str(e)}")
-        # (x+2)(x+3)=0과 x=-2 \text { or } x=-3 조합은 항상 유효
-        if "(x+2)(x+3)=0" in equation_latex and "x=-2" in solutions_latex and "x=-3" in solutions_latex:
-            return {"is_valid": True, "error_type": None}
-        return {"is_valid": False, "error_type": "validation_error"}
+                logger.error(f"인수분해 표현식 비교 오류: {e}")
+            
+            # 해 비교 방식 시도 (마지막 방법)
+            try:
+                # 원래 식의 해 계산
+                x = Symbol('x')
+                original_eq = Eq(LatexParser.parse_expression(prev_lhs), 0)
+                original_solutions = solve(original_eq, x)
+                original_solutions_set = {str(sol) for sol in original_solutions}
+                
+                # 인수로부터 해 계산
+                factors = LatexParser.extract_factors(curr_latex)
+                factored_solutions = []
+                
+                for factor in factors:
+                    factor_eq = Eq(LatexParser.parse_expression(factor), 0)
+                    solutions = solve(factor_eq, x)
+                    factored_solutions.extend(solutions)
+                
+                factored_solutions_set = {str(sol) for sol in factored_solutions}
+                
+                logger.debug(f"원래 식의 해: {original_solutions_set}")
+                logger.debug(f"인수의 해: {factored_solutions_set}")
+                
+                # 해집합 비교
+                is_equal = original_solutions_set == factored_solutions_set
+                logger.debug(f"해 비교 결과: {is_equal}")
+                
+                return is_equal, None if is_equal else "factorization_error"
+            except Exception as e:
+                logger.error(f"인수분해 해 비교 오류: {e}")
+            
+            # 모든 방법 실패
+            return False, "factorization_error"
+            
+        except Exception as e:
+            logger.error(f"FactorizationValidator 전체 오류: {e}")
+            return False, "factorization_error"
+
+
+class ZeroProductRuleValidator(StepValidator):
+    """영 곱셈 규칙 적용 검증 ((A)(B)=0 → A=0 ∨ B=0)"""
+
+    def validate(self, prev_latex: str, curr_latex: str) -> ValidationResult:
+        try:
+            logger.debug(f"영 곱셈 규칙 검증 시작 - 이전: {prev_latex}, 현재: {curr_latex}")
+            
+            # 인수분해 형태 확인
+            if not re.search(r"\(.*\)(?:\*?)\(.*\)\s*=\s*0", prev_latex):
+                logger.debug("이전 식이 인수분해 형태가 아님")
+                return False, "zero_product_rule_error"
+
+            # 논리합 형태 확인
+            if "\\lor" not in curr_latex:
+                logger.debug("현재 식이 논리합 형태가 아님")
+                return False, "zero_product_rule_error"
+
+            # 인수 추출
+            try:
+                factors = LatexParser.extract_factors(prev_latex)
+                logger.debug(f"추출된 인수들: {factors}")
+                
+                if len(factors) != 2:
+                    logger.debug(f"인수가 2개가 아님: {len(factors)}")
+                    return False, "zero_product_rule_error"
+            except Exception as e:
+                logger.error(f"인수 추출 오류: {e}")
+                return False, "zero_product_rule_error"
+
+            # 논리합 방정식 추출
+            try:
+                equations = LatexParser.extract_or_equations(curr_latex)
+                logger.debug(f"추출된 방정식들: {equations}")
+                
+                if len(equations) != 2:
+                    logger.debug(f"방정식이 2개가 아님: {len(equations)}")
+                    return False, "zero_product_rule_error"
+            except Exception as e:
+                logger.error(f"방정식 추출 오류: {e}")
+                return False, "zero_product_rule_error"
+
+            # 각 방정식이 "인수 = 0" 형태인지 확인
+            valid_equations = []
+            for eq in equations:
+                try:
+                    lhs, rhs = LatexParser.extract_equation_parts(eq)
+                    if rhs != "0":
+                        logger.debug(f"방정식 우변이 0이 아님: {eq}")
+                        return False, "zero_product_rule_error"
+                    valid_equations.append(lhs)
+                except Exception as e:
+                    logger.error(f"방정식 형식 확인 오류: {e}")
+                    return False, "zero_product_rule_error"
+
+            # 인수와 방정식 좌변 비교 (순서 무관)
+            try:
+                # SymPy 표현식으로 변환하여 equals 비교
+                factor_exprs = []
+                equation_exprs = []
+                
+                for f in factors:
+                    try:
+                        factor_exprs.append(LatexParser.parse_expression(f))
+                    except Exception as e:
+                        logger.error(f"인수 파싱 오류: {e}, 인수: {f}")
+                        return False, "zero_product_rule_error"
+                
+                for e in valid_equations:
+                    try:
+                        equation_exprs.append(LatexParser.parse_expression(e))
+                    except Exception as e:
+                        logger.error(f"방정식 파싱 오류: {e}, 방정식: {e}")
+                        return False, "zero_product_rule_error"
+                
+                logger.debug(f"인수 표현식: {factor_exprs}")
+                logger.debug(f"방정식 표현식: {equation_exprs}")
+                
+                # 모든 인수가 하나의 방정식과 일치하는지 확인
+                matches = 0
+                for factor_expr in factor_exprs:
+                    for eq_expr in equation_exprs:
+                        try:
+                            if self.are_expressions_equal(factor_expr, eq_expr):
+                                matches += 1
+                                break
+                        except Exception as e:
+                            logger.error(f"표현식 비교 오류: {e}")
+                
+                logger.debug(f"일치하는 표현식 수: {matches}/{len(factors)}")
+                is_valid = matches == len(factors)
+                
+                return is_valid, None if is_valid else "zero_product_rule_error"
+            except Exception as e:
+                logger.error(f"인수-방정식 비교 오류: {e}")
+                return False, "zero_product_rule_error"
+        except Exception as e:
+            logger.error(f"ZeroProductRuleValidator 전체 오류: {e}")
+            return False, "zero_product_rule_error"
+
+
+class SolutionCalculationValidator(StepValidator):
+    """해 계산 단계 검증 (x+a=0 ∨ x+b=0 → x=-a ∨ x=-b)"""
+
+    def validate(self, prev_latex: str, curr_latex: str) -> ValidationResult:
+        try:
+            logger.debug(f"해 계산 검증 시작 - 이전: {prev_latex}, 현재: {curr_latex}")
+            
+            # 논리합 형태 확인
+            if "\\lor" not in prev_latex or "\\lor" not in curr_latex:
+                logger.debug("이전 또는 현재 식이 논리합 형태가 아님")
+                return False, "solution_calculation_error"
+
+            # 이전 단계의 방정식들 추출
+            try:
+                prev_equations = LatexParser.extract_or_equations(prev_latex)
+                logger.debug(f"이전 방정식들: {prev_equations}")
+            except Exception as e:
+                logger.error(f"이전 방정식 추출 오류: {e}")
+                return False, "solution_calculation_error"
+
+            # 현재 단계의 해들 추출
+            try:
+                curr_solutions = LatexParser.extract_or_equations(curr_latex)
+                logger.debug(f"현재 해들: {curr_solutions}")
+            except Exception as e:
+                logger.error(f"현재 해 추출 오류: {e}")
+                return False, "solution_calculation_error"
+
+            if len(prev_equations) != len(curr_solutions):
+                logger.debug(f"방정식 수와 해 수가 다름: {len(prev_equations)} vs {len(curr_solutions)}")
+                return False, "solution_calculation_error"
+
+            # 각 방정식에서 계산된 해와 제공된 해 비교
+            solved_values = []
+            for eq in prev_equations:
+                try:
+                    lhs, rhs = LatexParser.extract_equation_parts(eq)
+                    if rhs != "0":
+                        logger.debug(f"방정식 우변이 0이 아님: {eq}")
+                        return False, "solution_calculation_error"
+                    
+                    # 일차방정식 해결 (x+a=0 → x=-a)
+                    x = Symbol('x')
+                    lhs_expr = LatexParser.parse_expression(lhs)
+                    eq_sympy = Eq(lhs_expr, 0)
+                    solved = solve(eq_sympy, x)
+                    if solved:
+                        solved_values.extend(solved)
+                        logger.debug(f"방정식 {eq}의 해: {solved}")
+                except Exception as e:
+                    logger.error(f"방정식 해결 오류: {e}, 방정식: {eq}")
+                    return False, "solution_calculation_error"
+
+            # 제공된 해 추출
+            provided_values = []
+            for sol in curr_solutions:
+                try:
+                    lhs, rhs = LatexParser.extract_equation_parts(sol)
+                    if lhs != "x":
+                        logger.debug(f"해 좌변이 x가 아님: {sol}")
+                        return False, "solution_calculation_error"
+                    
+                    provided_values.append(LatexParser.parse_expression(rhs))
+                    logger.debug(f"제공된 해: {rhs}")
+                except Exception as e:
+                    logger.error(f"해 추출 오류: {e}, 해: {sol}")
+                    return False, "solution_calculation_error"
+
+            # 모든 해가 일치하는지 확인 (순서 무관)
+            try:
+                matches = 0
+                for solved_val in solved_values:
+                    for provided_val in provided_values:
+                        if self.are_expressions_equal(solved_val, provided_val):
+                            matches += 1
+                            break
+                
+                logger.debug(f"일치하는 해 수: {matches}/{len(solved_values)}")
+                is_valid = matches == len(solved_values)
+                
+                return is_valid, None if is_valid else "solution_calculation_error"
+            except Exception as e:
+                logger.error(f"해 비교 오류: {e}")
+                return False, "solution_calculation_error"
+        except Exception as e:
+            logger.error(f"SolutionCalculationValidator 전체 오류: {e}")
+            return False, "solution_calculation_error"
+
+
+class StepPattern:
+    """단계 패턴 판별 유틸리티 클래스"""
+
+    @staticmethod
+    def is_factorization(latex: str) -> bool:
+        """인수분해 형태인지 확인"""
+        return bool(re.search(r"\(.*\)(?:\*?)\(.*\)\s*=\s*0", latex))
+
+    @staticmethod
+    def is_or_expression(latex: str) -> bool:
+        """논리합 형태인지 확인"""
+        return "\\lor" in latex
+
+    @staticmethod
+    def is_solution_form(latex: str) -> bool:
+        """해 형태인지 확인 (x = 값)"""
+        return bool(re.search(r"x\s*=\s*[-\d\w+*/()]+", latex))
+
+    @staticmethod
+    def is_quadratic_equation(latex: str) -> bool:
+        """이차방정식 형태인지 확인"""
+        if "=" not in latex:
+            return False
+
+        lhs, rhs = latex.split("=")
+        if rhs.strip() != "0":
+            return False
+
+        try:
+            expr = LatexParser.parse_expression(lhs)
+            x = Symbol('x')
+            poly = expand(expr)
+            degree = poly.as_poly(x).degree()
+            return degree == 2
+        except:
+            return False
 
 
 class EquationStepValidator:
     """수식 단계 검증기 메인 클래스"""
 
     def __init__(self):
-        self.validator = GeneralStepValidator()
+        self.validators = {
+            'general': GeneralStepValidator(),
+            'factorization': FactorizationValidator(),
+            'zero_product_rule': ZeroProductRuleValidator(),
+            'solution_calculation': SolutionCalculationValidator()
+        }
 
     def validate_step(self, prev_latex: str, curr_latex: str) -> ValidationResult:
         """단계별 수식 변환 검증"""
@@ -472,25 +541,25 @@ class EquationStepValidator:
             logger.debug(f"검증 시작 - 이전: {prev_latex}")
             logger.debug(f"검증 시작 - 현재: {curr_latex}")
             
-            # 강제 성공 케이스: 중첩된 \text 태그가 있는 해 풀이
-            if "\\text " in curr_latex and "x=-2" in curr_latex and "x=-3" in curr_latex:
-                logger.info("해 풀이 형태 감지 (\\text) - 성공 처리")
-                return {"is_valid": True, "error_type": None}
-            
-            # 이전 단계와 현재 단계를 딕셔너리로 변환
-            prev_step = {"latex": prev_latex}
-            curr_step = {"latex": curr_latex}
-            
-            # 검증 수행
-            return self.validator.validate(curr_step, prev_step)
-            
+            if StepPattern.is_factorization(curr_latex):
+                logger.debug("인수분해 형태 감지")
+                return self.validators['factorization'].validate(prev_latex, curr_latex)
+
+            elif StepPattern.is_factorization(prev_latex) and StepPattern.is_or_expression(curr_latex):
+                logger.debug("영 곱셈 규칙 형태 감지")
+                return self.validators['zero_product_rule'].validate(prev_latex, curr_latex)
+
+            elif StepPattern.is_or_expression(prev_latex) and StepPattern.is_or_expression(curr_latex) and StepPattern.is_solution_form(curr_latex):
+                logger.debug("해 계산 형태 감지")
+                return self.validators['solution_calculation'].validate(prev_latex, curr_latex)
+
+            # 일반적인 검증
+            logger.debug("일반 형태로 검증")
+            return self.validators['general'].validate(prev_latex, curr_latex)
+
         except Exception as e:
             logger.error(f"validate_step 오류: {str(e)}")
-            # 중첩된 \text 태그가 있는 해 풀이는 항상 성공 처리
-            if "\\text " in curr_latex and "x=-2" in curr_latex and "x=-3" in curr_latex:
-                logger.info("예외 발생 후 해 풀이 형태 감지 (\\text) - 성공 처리")
-                return {"is_valid": True, "error_type": None}
-            return {"is_valid": False, "error_type": "general_error"}
+            return False, "general_error"
 
 
 def check_quadratic_solution(solution_data: Dict) -> Dict:
@@ -506,21 +575,21 @@ def check_quadratic_solution(solution_data: Dict) -> Dict:
         curr_step = steps[i]
 
         # 이전 단계와 현재 단계 검증
-        result = validator.validate_step(
+        is_valid, error_type = validator.validate_step(
             prev_step["latex"],
             curr_step["latex"]
         )
 
         # 검증 결과 업데이트
-        curr_step["is_valid"] = result["is_valid"]
+        curr_step["is_valid"] = is_valid
 
-        if not result["is_valid"] and "error_type" in result:
+        if not is_valid and error_type:
             if "metadata" not in curr_step:
                 curr_step["metadata"] = {}
 
             curr_step["metadata"]["prev_clean"] = prev_step["latex"]
             curr_step["metadata"]["curr_clean"] = curr_step["latex"]
-            curr_step["metadata"]["error_type"] = result["error_type"]
+            curr_step["metadata"]["error_type"] = error_type
 
     return solution_data
 
@@ -542,28 +611,18 @@ def analyze_step_change(prev_latex: str, curr_latex: str) -> Dict[str, Any]:
     prev_clean = prev_latex
     curr_clean = curr_latex
     
-    # 특수 케이스: 3번째 단계가 x=-2 \text { \text { or } } x=-3 형태인 경우 항상 성공
-    if "\\text" in curr_latex and "x=-2" in curr_latex and "x=-3" in curr_latex:
-        logger.info("3번째 단계 해 풀이 형태 감지 - 강제 성공 처리")
-        return {
-            "is_valid": True,
-            "prev_clean": prev_clean,
-            "curr_clean": curr_clean,
-            "details": {}
-        }
-    
     # 검증 수행
-    result = validator.validate_step(prev_latex, curr_latex)
+    is_valid, error_type = validator.validate_step(prev_latex, curr_latex)
     
     # 분석 결과 반환
-    analysis_result = {
-        "is_valid": result["is_valid"],
+    result = {
+        "is_valid": is_valid,
         "prev_clean": prev_clean,
         "curr_clean": curr_clean,
         "details": {}
     }
     
-    if not result["is_valid"] and "error_type" in result:
-        analysis_result["details"]["error_type"] = result["error_type"]
+    if not is_valid and error_type:
+        result["details"]["error_type"] = error_type
     
-    return analysis_result
+    return result

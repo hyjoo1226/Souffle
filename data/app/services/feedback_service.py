@@ -67,10 +67,10 @@ def get_positive_feedback(prev_expr: str, curr_expr: str, step_number: int) -> s
         str: 생성된 긍정 피드백
     """
     # 단계 인덱스에 따른 맞춤형 긍정 피드백
-    if step_number == 2:  # 인수분해 단계 (1-기반 인덱싱)
+    if step_number == 1:  # 인수분해 단계
         return POSITIVE_FEEDBACK["인수분해_정확"]
     
-    elif step_number == 3:  # 인수의 영점 적용 단계 (1-기반 인덱싱)
+    elif step_number == 2:  # 인수의 영점 적용 단계
         return POSITIVE_FEEDBACK["곱셈_영_법칙_정확"]
     
     # 인수분해 패턴 확인 (x^2 + bx + c = 0 → (x+p)(x+q) = 0)
@@ -146,8 +146,8 @@ async def generate_batch_feedback(
     uncached_steps = []
     
     for step_num, prev, curr in step_errors:
-        # 모든 단계는 유효한 것으로 간주 (수정된 부분)
-        is_valid = True  
+        # step_num에 따라 유효성 결정
+        is_valid = (step_num == 1 or step_num == 2)
         cache_key = generate_cache_key(prev, curr, is_valid)
         cached = feedback_cache.get(cache_key)
         
@@ -271,27 +271,24 @@ async def generate_feedback(step_data: Dict[str, Any]) -> str:
     Returns:
         str: 생성된 피드백
     """
-    # 항상 모든 단계는 유효한 것으로 간주 (수정된 부분)
-    # 두 번째와 세 번째 단계는 항상 긍정적 피드백 생성
-    step_index = step_data.get('step_index', 0)
-    metadata = step_data.get('metadata', {})
-    prev_expr = metadata.get('prev_clean', '')
-    curr_expr = metadata.get('curr_clean', '')
-    
-    # 초기값으로 유효하다고 처리 (정확한 값은 아래에서 설정)
-    is_valid = step_data.get('is_valid', True)  # 기본값 True로 설정
-    
-    # 두 번째와 세 번째 단계에 대한 특별 처리
-    if step_index == 1 or step_index == 2:  # 0-기반 인덱싱: 1 = 두번째, 2 = 세번째
-        is_valid = True
-        return get_positive_feedback(prev_expr, curr_expr, step_index + 1)  # 1-기반 인덱싱으로 변환
-    
     # 유효한 단계일 경우 긍정적 피드백 생성
-    if is_valid:
-        return get_positive_feedback(prev_expr, curr_expr, step_index + 1)  # 1-기반 인덱싱으로 변환
+    if step_data.get('is_valid', False):
+        # 단계 인덱스에 따른 맞춤형 긍정 피드백
+        step_index = step_data.get('step_index', 0)
+        metadata = step_data.get('metadata', {})
+        prev_expr = metadata.get('prev_clean', '')
+        curr_expr = metadata.get('curr_clean', '')
+        
+        return get_positive_feedback(prev_expr, curr_expr, step_index)
     
     # 유효하지 않은 단계일 경우 오류 피드백 생성
     try:
+        # 필요한 데이터 추출
+        step_index = step_data.get('step_index', 0)
+        metadata = step_data.get('metadata', {})
+        prev_expr = metadata.get('prev_clean', '')
+        curr_expr = metadata.get('curr_clean', '')
+        
         # 캐시 키 생성
         cache_key = generate_cache_key(prev_expr, curr_expr, False)
         
@@ -305,7 +302,7 @@ async def generate_feedback(step_data: Dict[str, Any]) -> str:
         api_key = settings.OPENAI_API_KEY
         if not api_key:
             logger.warning("OPENAI_API_KEY가 settings에 설정되지 않아 Mock 피드백을 사용합니다.")
-            feedback = get_mock_feedback(prev_expr, curr_expr, step_index + 1, False)
+            feedback = get_mock_feedback(prev_expr, curr_expr, step_index, False)
             feedback_cache.set(cache_key, feedback)
             return feedback
             
@@ -351,6 +348,6 @@ async def generate_feedback(step_data: Dict[str, Any]) -> str:
         return get_mock_feedback(
             step_data.get('metadata', {}).get('prev_clean', ''),
             step_data.get('metadata', {}).get('curr_clean', ''),
-            step_data.get('step_index', 0) + 1,  # 1-기반 인덱싱으로 변환
+            step_data.get('step_index', 0),
             False
         )
