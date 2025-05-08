@@ -20,7 +20,7 @@ import {
 } from '@nestjs/swagger';
 
 @ApiTags('submission')
-@Controller('api/v1/submission')
+@Controller('api/v1/submissions')
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
