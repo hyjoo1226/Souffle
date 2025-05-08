@@ -7,13 +7,13 @@ import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const ProblemSolvingPage = () => {
   const answerRef = useRef<any>(null);
   const solutionRef = useRef<any>(null);
-  // const { id } = useParams(); // 문제 ID 추출
-  const id = 1; // 문제 ID (임시로 1로 설정)
+  const { problemId } = useParams(); // 문제 ID 추출
+  // const id = 1; // 문제 ID (임시로 1로 설정)
   const [submissionId, setSubmissionId] = useState<number | null>(null); // 제출 ID 상태
   const [problem, setProblem] = useState<any>(null); // 문제 데이터 상태
   const [isCorrect, setIscorrect] = useState(null); // 정답 여부 상태
@@ -30,12 +30,13 @@ const ProblemSolvingPage = () => {
 
   useEffect(() => {
     const fetchProblem = async () => {
-      if (!id) return;
-      const res = await getProblemDataApi(Number(id)); // 문제 데이터 요청
+      console.log("문제 ID", problemId);
+      if (!problemId) return;
+      const res = await getProblemDataApi(Number(problemId)); // 문제 데이터 요청
       setProblem(res);
     };
     fetchProblem();
-  }, [id]);
+  }, [problemId]);
 
   const handleSubmit = async () => {
     const formData = new FormData();

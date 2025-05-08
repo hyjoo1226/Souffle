@@ -8,7 +8,7 @@ export const getAllCategoriesApi = async () => {
 
 // 풀이 데이터 전송
 export const sendProblemSolvingDataApi = async (formData: FormData) => {
-  const response = await multipartApi.post("/submission", formData);
+  const response = await multipartApi.post("/submissions", formData);
   return response.data;
 };
 

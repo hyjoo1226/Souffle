@@ -173,7 +173,7 @@ export const dummyProblemList = [
         type: 2,
         problem_avg_accuracy: 0.79,
         try_count: 18,
-        correct_count: 80,
+        correct_count: 0,
       },
       {
         problem_id: 14,
