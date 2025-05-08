@@ -70,7 +70,7 @@ export const shouldCreateNewBlock = (
     ? Math.hypot(first.x - lastPoint.x, first.y - lastPoint.y)
     : 0;
   const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
-  const movedLeft = lastPoint && first.x < lastPoint.x - 30;
+  const movedLeft = lastPoint && first.x + 150 < lastPoint.x;
   const movedDown = lastPoint && first.y > lastPoint.y + 10;
 
   return distance > 100 || timeGap > 3000 || (movedLeft && movedDown);
