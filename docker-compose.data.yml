@@ -1,0 +1,55 @@
+services:
+  data:
+    build:
+      context: ./data
+    container_name: data
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - redis
+      - db
+        #    env_file:
+        #      - ./analyzer/.env
+    networks:
+      - internal
+      - public
+
+  db:
+    image: postgres:14
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: ssafy
+      POSTGRES_PASSWORD: ssafy1234
+      POSTGRES_DB: app
+    volumes:
+      - ./volumes/db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ssafy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+networks:
+  public:
+  internal:
