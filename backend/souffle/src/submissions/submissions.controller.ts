@@ -17,6 +17,7 @@ import {
   ApiResponse,
   ApiConsumes,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
 
 @ApiTags('submission')
@@ -24,6 +25,7 @@ import {
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
+  // 풀이 데이터 전송 API(FE-BE)
   @Post()
   @ApiOperation({ summary: '풀이 데이터 전송' })
   @ApiConsumes('multipart/form-data')
@@ -110,6 +112,7 @@ export class SubmissionController {
     return this.submissionService.createSubmission(submissionDto, files);
   }
 
+  // 풀이 분석 조회 요청 API
   @Get(':submissionId')
   @ApiOperation({ summary: '풀이 분석 조회' })
   @ApiResponse({
@@ -153,5 +156,25 @@ export class SubmissionController {
   @ApiResponse({ status: 500, description: '서버 내부 오류' })
   async getSubmissionAnalysis(@Param('submissionId', ParseIntPipe) id: number) {
     return this.submissionService.getSubmissionAnalysis(id);
+  }
+
+  // 문제별 모든 제출id 조회 API
+  @Get('problem/:problemId')
+  @ApiOperation({ summary: '문제의 모든 제출 기록 조회' })
+  // @ApiParam({ name: 'userId', description: '유저 ID' })
+  @ApiParam({ name: 'problemId', description: '문제 ID' })
+  @ApiResponse({
+    status: 200,
+    description: '제출 ID 리스트 반환',
+    schema: { example: [1, 2, 3] },
+  })
+  @ApiResponse({ status: 404, description: '제출 기록 없음' })
+  async getSubmissionIds(
+    // @Param('userId', ParseIntPipe) userId: number,
+    @Param('problemId', ParseIntPipe) problemId: number,
+  ) {
+    // 인증 미구현이므로 임시 user 1
+    const userId = 1;
+    return this.submissionService.getSubmissionIds(userId, problemId);
   }
 }

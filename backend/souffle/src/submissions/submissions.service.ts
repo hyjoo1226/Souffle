@@ -29,7 +29,7 @@ export class SubmissionService {
     private analysisService: AnalysisService,
   ) {}
 
-  // 풀이 데이터 전송 API(FE-BE)
+  // 풀이 데이터 전송 API
   async createSubmission(
     submissionDto: CreateSubmissionDto,
     files: Express.Multer.File[],
@@ -212,7 +212,7 @@ export class SubmissionService {
     });
   }
 
-  // 풀이 분석 조회 요청 API(FE-BE)
+  // 풀이 분석 조회 요청 API
   async getSubmissionAnalysis(submissionId: number) {
     const submission = await this.submissionRepository.findOne({
       where: { id: submissionId },
@@ -253,5 +253,20 @@ export class SubmissionService {
       weakness: submission.weakness,
       status,
     };
+  }
+
+  // 문제별 모든 제출id 조회 API
+  async getSubmissionIds(userId: number, problemId: number): Promise<number[]> {
+    const submissions = await this.submissionRepository.find({
+      where: { user: { id: userId }, problem: { id: problemId } },
+      select: ['id'],
+      order: { id: 'DESC' },
+    });
+
+    if (submissions.length === 0) {
+      throw new NotFoundException('제출 기록이 없습니다');
+    }
+
+    return submissions.map((submission) => submission.id);
   }
 }
