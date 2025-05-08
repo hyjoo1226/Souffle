@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.804.0",
+    "@aws-sdk/credential-providers": "^3.804.0",
     "@bull-board/api": "^6.9.2",
     "@bull-board/express": "^6.9.2",
     "@bull-board/nestjs": "^6.9.2",

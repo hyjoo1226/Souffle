@@ -14,10 +14,14 @@ import { AnalysisModule } from './analyses/analyses.module';
 import { BookModule } from './books/books.module';
 import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
+import { ConfigModule } from '@nestjs/config';
 import * as path from 'path';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     TypeOrmModule.forRoot(typeORMConfig),
     SubmissionModule,
     UserModule,

@@ -8,20 +8,32 @@ export class FileService {
   private readonly bucket: string;
 
   constructor(private configService: ConfigService) {
+    const region = this.configService.get<string>('AWS_REGION');
+    const accessKeyId = this.configService.get<string>('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.get<string>(
+      'AWS_SECRET_ACCESS_KEY',
+    );
+
+    if (!region || !accessKeyId || !secretAccessKey) {
+      console.error('AWS 환경 변수가 설정되지 않았습니다:', {
+        region,
+        accessKeyId: !!accessKeyId,
+        secretAccessKey: !!secretAccessKey,
+      });
+      throw new Error('AWS 환경 변수가 올바르게 설정되지 않았습니다');
+    }
+
     this.s3 = new S3Client({
-      region: this.configService.get<string>('AWS_REGION') as string,
+      region,
       credentials: {
-        accessKeyId: this.configService.get<string>(
-          'AWS_ACCESS_KEY_ID',
-        ) as string,
-        secretAccessKey: this.configService.get<string>(
-          'AWS_SECRET_ACCESS_KEY',
-        ) as string,
+        accessKeyId,
+        secretAccessKey,
       },
     });
-    this.bucket = this.configService.get<string>(
-      'AWS_S3_BUCKET_NAME',
-    ) as string;
+
+    this.bucket =
+      this.configService.get<string>('AWS_S3_BUCKET_NAME') ||
+      'default-bucket-name';
   }
 
   async uploadFile(
