@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { ReactComponent as Spring_Note } from "@/assets/icons/Spring_Note.svg";
 import CanvasArea from "@/components/reviewNoteDetail/CanvasArea";
 
+import mockData from '@/mocks/strokes.json';
+
 const SolutionNote = () => {
   const [selected, setSelected] = useState('풀이/개념 정리');
   const tabs = ['풀이/개념 정리', '이전 풀이 분석'];
@@ -30,11 +32,17 @@ const SolutionNote = () => {
         <div className="flex w-full border border-gray-200 bg-white mt-4 max-h-[579px]">
             {/* 풀이/개념 정리 영역: 보여질 때만 flex, 아니면 hidden */}
             <div className={selected === '풀이/개념 정리' ? 'flex w-full' : 'hidden'}>
-                <CanvasArea title="풀이 정리" />
+                <CanvasArea 
+                 title="풀이 정리" 
+                 initialStrokes={mockData.strokes}
+                />
                 <div className="flex items-center">
                     <Spring_Note className="h-full" />
                 </div>
-                <CanvasArea title="개념 정리" />
+                <CanvasArea 
+                 title="개념 정리" 
+                 initialStrokes={mockData.strokes}
+                />
             </div>
 
             {/* 이전 풀이 분석 영역: 마찬가지로 hidden 토글 */}
