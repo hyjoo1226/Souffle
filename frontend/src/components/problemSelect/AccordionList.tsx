@@ -5,6 +5,7 @@ const AccordianList = ({
   categoryData,
   selectedLessonId,
   setSelectedLessonId,
+  setSelectedLessonName,
 }: CategoryProps) => {
   const [openSubjectId, setOpenSubjectId] = useState<number[]>([]);
   const [openUnitId, setOpenUnitId] = useState<number[]>([]);
@@ -21,10 +22,11 @@ const AccordianList = ({
     );
   };
 
-  const handleLessonClick = (lessonId: number) => {
+  const handleLessonClick = (lessonId: number, lessonName: string) => {
     setSelectedLessonId(lessonId); // 선택된 소단원 ID 설정
+    setSelectedLessonName(lessonName);
     console.log(lessonId); // 선택된 소단원 ID 출력
-    console.log(selectedLessonId); // 선택된 소단원 ID 상태 출력
+    console.log("lessonName", lessonName); // 선택된 소단원 ID 상태 출력
   };
   useEffect(() => {
     console.log(selectedLessonId); // 열려 있는 대단원 ID 출력
@@ -32,7 +34,7 @@ const AccordianList = ({
 
   return (
     <div>
-      <div className="border border-gray-200 rounded-[20px] ">
+      <div className="border border-gray-200 rounded-[10px] ">
         {categoryData.map((subject) => (
           <div key={subject.id}>
             {/* 대단원 */}
@@ -61,7 +63,9 @@ const AccordianList = ({
                     unit.children.map((lesson, lessonIndex) => (
                       <div
                         key={lesson.id}
-                        onClick={() => handleLessonClick(lesson.id)}
+                        onClick={() =>
+                          handleLessonClick(lesson.id, lesson.name)
+                        }
                         className={`body-medium px-4 pl-20 py-4.5 text-gray-700 flex items-center justify-between transition-colors duration-200 ${
                           selectedLessonId === lesson.id ? "bg-primary-100" : ""
                         }`}
