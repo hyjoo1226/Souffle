@@ -34,7 +34,7 @@ build-data:
   stage: build
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml build data
+    - docker-compose -f docker-compose.data.yml build data
   rules:
     - if: '$CI_COMMIT_BRANCH == "data-dev"'
     - if: '$CI_COMMIT_BRANCH == "master"'
