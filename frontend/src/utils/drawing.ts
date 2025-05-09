@@ -250,12 +250,15 @@ export async function generateStepImages(
     const prevBlock = blocks[i - 1];
     const currBlock = blocks[i];
     const prevStroke = prevBlock?.strokes.at(-1);
-    const currStroke = currBlock?.strokes[0];
+    // const currStroke = currBlock?.strokes[0];
 
     const prevEnd = (prevStroke?.timestamp ?? 0) + (prevStroke?.duration ?? 0);
-    const currStart = currStroke?.timestamp ?? 0;
+    const currEnd =
+      (currBlock?.strokes.at(-1)?.timestamp ?? 0) +
+      (currBlock?.strokes.at(-1)?.duration ?? 0);
 
-    const blockGapTime = Math.max(0, Math.round((currStart - prevEnd) / 1000));
+    //  사용자가 이전 블록을 마치고 다음 블록을 끝낼 때까지 걸린 시간
+    const blockGapTime = Math.max(0, Math.round((currEnd - prevEnd) / 1000));
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "white";

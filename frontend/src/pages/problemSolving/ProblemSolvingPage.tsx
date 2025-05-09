@@ -84,6 +84,15 @@ const ProblemSolvingPage = () => {
       formData.append("files", blob, file_name);
     });
 
+    const used = stepMeta.reduce(
+      (acc: number, s: { step_time: number }) => acc + s.step_time,
+      0
+    );
+    const lastGap = Math.max(0, timing.solveTime - used);
+
+    // 마지막 step에 보정 적용
+    stepMeta[stepMeta.length - 1].step_time = lastGap;
+
     // fullStep 이미지 파일 추가
     if (fullStep?.blob) {
       formData.append("files", fullStep.blob, fullStep.file_name);
