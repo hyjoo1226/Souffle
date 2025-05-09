@@ -25,7 +25,7 @@ build-fe:
   stage: build
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml build frontend
+    - docker-compose -f docker-compose.frontend.yml build frontend
   rules:
     - if: '$CI_COMMIT_BRANCH == "fe-dev"'
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -35,7 +35,7 @@ integration-test:
   tags: [deploy]
   needs: [build-be, build-data, build-fe]
   script:
-    - docker-compose -f docker-compose.yml up -d
+    - docker-compose -f docker-compose.ci.yml up -d
     - sleep 10
     - curl -sSf https://www.souffle.kr/data/api/v1/healthcheck || exit 1
     - docker-compose down
