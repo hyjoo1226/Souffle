@@ -1,6 +1,6 @@
 services:
   backend:
-    build: ./backend/backend/souffle
+    build: ./backend/souffle
     container_name: backend
     ports:
       - "4000:4000"
