@@ -1,30 +1,48 @@
-import { CategoryProps } from "../../types/ProblemSolving";
+import { CategoryData } from "../../types/ProblemSolving";
 import { useEffect, useState } from "react";
 
 const AccordianList = ({
+  categoryOpen,
+  setCategoryOpen,
   categoryData,
   selectedLessonId,
   setSelectedLessonId,
   setSelectedLessonName,
-}: CategoryProps) => {
+  setSelectedSubject,
+  setSelectedUnit,
+}: {
+  categoryOpen: boolean;
+  setCategoryOpen: (open: boolean) => void;
+  categoryData: CategoryData[];
+  selectedLessonId: number | null;
+  setSelectedLessonId: (id: number) => void;
+  setSelectedLessonName: (name: string) => void;
+  setSelectedSubject: (name: string) => void;
+  setSelectedUnit: (name: string) => void;
+}) => {
   const [openSubjectId, setOpenSubjectId] = useState<number[]>([]);
   const [openUnitId, setOpenUnitId] = useState<number[]>([]);
 
-  const handleSubjectClick = (id: number) => {
+  const handleSubjectClick = (id: number, subjectName: string) => {
     setOpenSubjectId((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+    // console.log(subjectName);
+    setSelectedSubject(subjectName);
   };
 
-  const handleUnitClick = (id: number) => {
+  const handleUnitClick = (id: number, unitName: string) => {
     setOpenUnitId((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
+    console.log(unitName);
+    setSelectedUnit(unitName);
   };
 
   const handleLessonClick = (lessonId: number, lessonName: string) => {
     setSelectedLessonId(lessonId); // 선택된 소단원 ID 설정
     setSelectedLessonName(lessonName);
+    setCategoryOpen(!categoryOpen);
     console.log(lessonId); // 선택된 소단원 ID 출력
     console.log("lessonName", lessonName); // 선택된 소단원 ID 상태 출력
   };
@@ -40,7 +58,7 @@ const AccordianList = ({
             {/* 대단원 */}
             <div
               className="headline-small px-4 py-4.5 text-gray-700 flex items-center justify-between cursor-pointer"
-              onClick={() => handleSubjectClick(subject.id)}
+              onClick={() => handleSubjectClick(subject.id, subject.name)}
             >
               {subject.name}
               <img src="/icons/down.png" alt="" className="w-9 h-9" />
@@ -52,7 +70,7 @@ const AccordianList = ({
                 <div key={unit.id}>
                   <div
                     className="body-medium px-4 pl-12 py-4.5 text-gray-700 flex items-center justify-between cursor-pointer"
-                    onClick={() => handleUnitClick(unit.id)}
+                    onClick={() => handleUnitClick(unit.id, unit.name)}
                   >
                     {`${unitIndex + 1}. ${unit.name}`}
                     <img src="/icons/down.png" alt="" className="w-9 h-9" />
