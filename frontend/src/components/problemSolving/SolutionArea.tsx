@@ -87,10 +87,10 @@ const SolutionArea = forwardRef((_props, ref) => {
 
   useEffect(() => {
     // 블록 또는 strokes 변경될 때마다 현재 상태 백업
-    if (!eraseMode && blocks.length > 0) {
+    if (blocks.length > 0) {
       lastSavedBlocksRef.current = JSON.parse(JSON.stringify(blocks));
     }
-  }, [blocks, eraseMode]);
+  }, [blocks]);
 
   // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
@@ -254,6 +254,8 @@ const SolutionArea = forwardRef((_props, ref) => {
           solveTime: Math.round(solveTime / 1000),
           reviewTime: Math.round(reviewTime / 1000),
         },
+        blockSnapshots: blockSnapshotsRef.current,
+        lastSavedBlocks: lastSavedBlocksRef.current,
       };
     },
   }));

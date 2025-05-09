@@ -204,7 +204,6 @@ export function getPointerUpHandler(
       const snapshot = JSON.parse(JSON.stringify(lastSavedBlocksRef.current));
       blockSnapshotsRef.current.push(snapshot);
     }
-
     const newBlocks = updateBlocksWithStroke({
       stroke,
       blocks,
