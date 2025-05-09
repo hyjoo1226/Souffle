@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+@theme {
+  /* Uncategorized Colors */
+  --color-background: #011728;
+  --color-negative: #e2695c;
+  --color-positive: #5279bd;
+  --color-neutral: #d3e67e;
+  --color-chart1: #80bf56;
+  --color-chart2: #af5c97;
+  --color-unsolved: #ff0d0d;
+
+  /* primary Colors(blue) */
+  --color-primary-100: #ebf2fe;
+  --color-primary-200: #cdd3fd;
+  --color-primary-300: #b5bcfc;
+  --color-primary-400: #9ca6fb;
+  --color-primary-500: #8390fa;
+  --color-primary-600: #6973c8;
+  --color-primary-700: #4f5696;
+  --color-primary-800: #343a64;
+  --color-primary-900: #1a1d32;
+
+  /* secondary Colors(pink) */
+  --color-secondary-100: #fee8ef;
+  --color-secondary-200: #fcd1de;
+  --color-secondary-300: #fbbbce;
+  --color-secondary-400: #f9a4bd;
+  --color-secondary-500: #f88dad;
+  --color-secondary-600: #c6718a;
+  --color-secondary-700: #955568;
+  --color-secondary-800: #633845;
+  --color-secondary-900: #321c23;
+
+  /* System Colors */
+  --color-system-danger: #c22b20;
+  --color-system-warning: #ffe949;
+  --color-system-success: #00c380;
+  --color-system-info: #4fa5ff;
+
+  /* Gray Colors */
+  --color-gray-0: #ffffff;
+  --color-gray-100: #eff1ef;
+  --color-gray-200: #c6cdc6;
+  --color-gray-300: #a0a6a0;
+  --color-gray-400: #7c807c;
+  --color-gray-500: #595d59;
+  --color-gray-600: #393b39;
+  --color-gray-700: #1b1d1b;
+
+  /* Shadow 설정 */
+  --shadow-xxsmall: 0px 2px 14px 2px rgba(33, 33, 33, 0.03);
+  --shadow-xsmall: 0px 2px 12px 1px rgba(33, 33, 33, 0.09);
+  --shadow-small: 0px 3px 6px 0px rgba(33, 33, 33, 0.23);
+  --shadow-medium: 0px 8px 18px 0px rgba(33, 33, 33, 0.14);
+  --shadow-large: 0px 8px 20px 0px rgba(33, 33, 33, 0.22);
+  --shadow-xlarge: 0px 8px 24px 0px rgba(33, 33, 33, 0.37);
+  --shadow-light: 0px 1px 12px 0px rgba(227, 228, 255, 0.8);
+
+  /* Spacing 토큰 추가 */
+  --spacing-4: 1rem; /* 16px gutter */
+  --spacing-6: 1.5rem; /* 24px margin */
+}
+
+@layer utilities {
+  /* Display */
+  .display-xlarge {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 72px;
+    line-height: 74px;
+  }
+
+  .display-large {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 64px;
+    line-height: 70px;
+  }
+
+  .display-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 48px;
+    line-height: 54px;
+  }
+
+  .display-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 40px;
+    line-height: 44px;
+  }
+
+  /* Headline */
+  .headline-xlarge {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 32px;
+    line-height: 36px;
+  }
+
+  .headline-large {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 26px;
+    line-height: 30px;
+  }
+
+  .headline-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 22px;
+    line-height: 26px;
+  }
+
+  .headline-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600; /* SemiBold */
+    font-size: 18px;
+    line-height: 24px;
+  }
+
+  /* Body */
+  .body-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .body-medium-bold {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 700; /* Regular */
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  .body-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  /* Caption */
+  .caption-medium {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .caption-small {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400; /* Regular */
+    font-size: 10px;
+    line-height: 12px;
+  }
+
+  /* 12컬럼 그리드 */
+  .grid-cols-12 {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .page-wrapper {
+    /* 가로 100% 풀폭 + 좌우 24px 패딩 */
+    width: 100%;
+    padding-left: var(--spacing-6);
+    padding-right: var(--spacing-6);
+    /* 가운데 정렬용 auto 마진은 제거 */
+    margin: 0;
+  }
+
+  /* figma 기준 shadow */
+  .figma-shadow {
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.25);
+  }
+
+  /* 스크롤바 숨기기 */
+  .scrollbar-none {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE & Edge */
+
+    &::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+  }
+}
+
+body {
+  font-family: "Pretendard", sans-serif;
+  color: rgb(255, 255, 255);
+  margin: 0px;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+@font-face {
+  font-family: "Cafe24ClassicType-Regular";
+  src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-2@1.0/Cafe24ClassicType-Regular.woff2")
+    format("woff2");
+  font-weight: normal;
+  font-style: normal;
+}
