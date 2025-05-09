@@ -10,8 +10,10 @@ services:
       #        condition: service_healthy
           #    environment:
           #      - NODE_ENV=production
-    env_file:
-      - ./frontend/.env
+    # env_file:
+    #   - ./frontend/.env
+    environment:
+      VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
       - public
 
