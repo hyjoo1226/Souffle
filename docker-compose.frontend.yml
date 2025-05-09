@@ -1,0 +1,20 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+      #    ports:
+      #      - "3000:3000"
+    restart: always
+      #    depends_on:
+      #      backend:
+      #        condition: service_healthy
+          #    environment:
+          #      - NODE_ENV=production
+    env_file:
+      - ./frontend/.env
+    networks:
+      - public
+
+networks:
+  public:
+  internal:
