@@ -9,6 +9,7 @@ const EntryPage = () => {
 
       {/* 임시로 submissionId 1번으로 넣어놨어요 */}
       <Link to="/review">오답노트</Link>
+      <Link to="/review-list">오답노트 리스트</Link>
     </nav>
   );
 };
