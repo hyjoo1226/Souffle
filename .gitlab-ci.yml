@@ -1,21 +1,3 @@
-# This file is a template, and might need editing before it works on your project.
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
-#
-# You can copy and paste this template into a new `.gitlab-ci.yml` file.
-# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
-#
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-
 stages:
   - build
   - test
@@ -25,7 +7,7 @@ build-be:
   stage: build
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml build backend
+    - docker-compose -f docker-compose.backend.yml build backend
   rules:
     - if: '$CI_COMMIT_BRANCH == "be-mvp"'
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -43,7 +25,7 @@ build-fe:
   stage: build
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml build frontend
+    - docker-compose -f docker-compose.frontend.yml build frontend
   rules:
     - if: '$CI_COMMIT_BRANCH == "fe-dev"'
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -53,7 +35,7 @@ integration-test:
   tags: [deploy]
   needs: [build-be, build-data, build-fe]
   script:
-    - docker-compose -f docker-compose.yml up -d
+    - docker-compose -f docker-compose.ci.yml up -d
     - sleep 10
     - curl -sSf https://www.souffle.kr/data/api/v1/healthcheck || exit 1
     - docker-compose down
