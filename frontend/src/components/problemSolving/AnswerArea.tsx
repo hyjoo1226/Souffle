@@ -35,6 +35,8 @@ const AnswerArea = forwardRef((_props, ref) => {
   const [showEraseModal, setShowEraseModal] = useState(false); // 모달 표시
   const [eraseOption, setEraseOption] = useState<"all" | "last" | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
+  const blockSnapshotsRef = useRef<any[]>([]);
+  const lastSavedBlocksRef = useRef<any[]>([]); // 항상 최신 blocks 상태 백업
 
   const [lastBlockId, setLastBlockId] = useState<number | null>(null);
 
@@ -158,6 +160,8 @@ const AnswerArea = forwardRef((_props, ref) => {
       lastStrokeTime,
       lastBlockId,
       lastStrokeEndTime,
+      blockSnapshotsRef,
+      lastSavedBlocksRef,
       setStrokes,
       setBlocks,
       setLastPoint,
