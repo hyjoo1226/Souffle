@@ -16,9 +16,6 @@ export class User extends BaseEntity {
   id: number;
 
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
-  username: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   nickname: string;
 
   @OneToMany(() => Submission, (submission) => submission.user)

@@ -28,9 +28,29 @@ export class UserService {
     return userAuth ? userAuth.user : null;
   }
 
+  // 닉네임 중복 체크 및 랜덤 문자열 추가
+  async generateUniqueNickname(baseNickname: string): Promise<string> {
+    let nickname = baseNickname;
+    let exists = await this.userRepository.findOne({ where: { nickname } });
+    while (exists) {
+      // 랜덤 4자리 숫자 추가
+      const randomNum = Math.floor(1000 + Math.random() * 9000);
+      nickname = `${baseNickname}${randomNum}`;
+      exists = await this.userRepository.findOne({ where: { nickname } });
+    }
+    return nickname;
+  }
+
   // 소셜 로그인 시 유저 없으면 생성
   async create(userInfo: Partial<User>): Promise<User> {
-    const user = this.userRepository.create(userInfo);
+    const baseNickname =
+      userInfo.nickname || `User${Math.floor(Math.random() * 1000)}`;
+    const nickname = await this.generateUniqueNickname(baseNickname);
+
+    const user = this.userRepository.create({
+      ...userInfo,
+      nickname,
+    });
     return this.userRepository.save(user);
   }
 
