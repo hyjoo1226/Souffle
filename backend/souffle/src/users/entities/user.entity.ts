@@ -8,6 +8,7 @@ import {
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { UserCategoryProgress } from './user-category-progress.entity';
 import { UserProblem } from './user-problem.entity';
+import { UserAuthentication } from './user-authentication.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -28,4 +29,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserProblem, (userProblem) => userProblem.user)
   userProblems: UserProblem[];
+
+  @OneToMany(() => UserAuthentication, (auth) => auth.user)
+  authentications: UserAuthentication[];
 }
