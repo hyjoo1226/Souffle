@@ -1,8 +1,11 @@
 import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { AuthService } from './auth.service';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   // 구글 OAuth
   @Get('google')
   // 구글 로그인 페이지 리다이렉트
@@ -13,11 +16,9 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
-    // req.user에 validate에서 반환한 유저 정보가 들어있음
-    // 여기서 JWT 발급 및 프론트로 리다이렉트 등 처리
-    // 예시: JWT 발급 후 프론트로 전달
-    // const token = this.authService.login(req.user);
-    // return res.redirect(`http://localhost:3001?token=${token}`);
-    return res.json(req.user);
+    // JWT 발급
+    const token = this.authService.login(req.user);
+    // 프론트엔드로 리다이렉트 + 토큰 전달
+    return res.json({ token: token.access_token, user: req.user });
   }
 }
