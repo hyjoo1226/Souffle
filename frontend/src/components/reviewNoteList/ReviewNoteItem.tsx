@@ -9,14 +9,28 @@ interface Problem {
 
 interface Props {
   problem: Problem;
+  isSelected: boolean;
+  onToggle: (id: number) => void;
+  selectedProblemIds: number[];
 }
   
-const ReviewNoteItem = ({ problem }: Props) => {
+const ReviewNoteItem = ({ problem, isSelected, onToggle, selectedProblemIds }: Props) => {
   return (
-    <div className="flex justify-between items-center">
+    <div 
+      className="flex justify-between items-center"
+      draggable
+      onDragStart={(e) => {
+        const data = JSON.stringify(selectedProblemIds.length > 0 ? selectedProblemIds : [problem.id]);
+        e.dataTransfer.setData("application/json", data);
+      }}
+    >
       <div className="flex items-center">
         <label className="inline-flex items-center">
-          <input type="checkbox" className="peer hidden" />
+          <input 
+            type="checkbox" 
+            checked={isSelected}
+            onChange={() => onToggle(problem.id)}
+            className="peer hidden" />
           <div className="w-4 h-4 mr-5 border-1 border-primary-500 rounded-sm peer-checked:bg-primary-500 peer-checked:after:content-['✓'] peer-checked:after:text-white peer-checked:after:absolute peer-checked:after:text-xs peer-checked:after:ml-[2px] peer-checked:after:mt-[-1.5px] relative" />
         </label>
         <Star className='mr-5' />

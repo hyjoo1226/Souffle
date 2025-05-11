@@ -3,7 +3,7 @@ import { useState } from "react";
 import NoteFolder from "@/components/reviewNoteList/NoteFolder";
 import ReviewNoteItem from "@/components/reviewNoteList/ReviewNoteItem";
 import { ReactComponent as UploadLight } from "@/assets/icons/UploadLight.svg";
-import { ReactComponent as Tresh } from "@/assets/icons/Tresh.svg";
+import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
 
 const ReviewNoteListPage = () => {
     const mockProblemData: Record<string, Record<string, { id: number; title: string; correctCount: number, totalCount: number }[]>> = {
@@ -57,15 +57,50 @@ const ReviewNoteListPage = () => {
 
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
 
   const tabs = ['정답률↑', '정답률↓', '미해결'];
-  const [selected, setSelected] = useState('정답률');
+  const [selected, setSelected] = useState('정답률↑');
 
   const handleSelectSection = (chapter: string, section: string) => {
     setSelectedChapter(chapter);
     setSelectedSection(section);
   };
 
+  const handleCheckboxToggle = (problemId: number) => {
+    setSelectedProblemIds((prev) =>
+      prev.includes(problemId)
+        ? prev.filter((id) => id !== problemId)
+        : [...prev, problemId]
+    );
+  };
+
+  const handleDropProblemToSection = (targetSection: string) => {
+    console.log("이동할 문제들:", selectedProblemIds);
+    console.log("타겟 소단원:", targetSection);
+    // 일단 드래그 앤 드랍으로 문제 이동하는 기능은 구현했으나 태블릿 환경에 적합한지는 의문
+    // 고도화 할 기회가 있다면 논의 후 폴더 이동 버튼 구현
+
+    // TODO: 여기에 백엔드 요청 붙이면 됨
+    // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
+  };
+
+  const getFilteredAndSortedProblems = () => {
+    const problems = selectedChapter && selectedSection 
+        ? mockProblemData[selectedChapter]?.[selectedSection] ?? [] 
+        : [];
+
+    if (selected === "미해결") {
+      return problems.filter((p) => p.correctCount === 0);
+    }
+
+    return [...problems].sort((a, b) => {
+      const rateA = a.totalCount === 0 ? 0 : a.correctCount / a.totalCount;
+      const rateB = b.totalCount === 0 ? 0 : b.correctCount / b.totalCount;
+
+      return selected === "정답률↑" ? rateA - rateB : rateB - rateA;
+    });
+  };
 
   return (
     <div className="grid grid-cols-12 gap-x-4 py-[clamp(16px,2.33vh,28px)] h-screen">
@@ -77,6 +112,7 @@ const ReviewNoteListPage = () => {
             chapter={item.chapter}
             sections={item.sections}
             onSelectSection={handleSelectSection}
+            onDropProblem={handleDropProblemToSection}
           />
         ))}
       </div>
@@ -95,10 +131,11 @@ const ReviewNoteListPage = () => {
                 </div>
                 <div className="w-full flex justify-between">
                   <div className="flex items-center text-gray-700 gap-x-1">
-                    <Tresh />
+                    <Trash />
                     <p className="caption-medium">삭제하기</p>
                   </div>
                   <div className="flex overflow-hidden w-fit">
+                    {/* 오답 리스트 정렬 버튼 */}
                     {tabs.map((tab, i) => (
                         <button
                         key={tab}
@@ -119,8 +156,14 @@ const ReviewNoteListPage = () => {
                     <p>문항</p>
                     <p>정답 수/시도 수</p>
                   </div>
-                  {(mockProblemData[selectedChapter]?.[selectedSection] ?? []).map((problem) => (
-                    <ReviewNoteItem key={problem.id} problem={problem} />
+                  {getFilteredAndSortedProblems().map((problem) => (
+                    <ReviewNoteItem 
+                      key={problem.id} 
+                      problem={problem} 
+                      isSelected={selectedProblemIds.includes(problem.id)} 
+                      onToggle={() => handleCheckboxToggle(problem.id)} 
+                      selectedProblemIds={selectedProblemIds}
+                    />
                   ))}
                 </div>
               </>

@@ -8,9 +8,10 @@ interface Props {
   chapter: string;
   sections: { title: string; count: number }[];
   onSelectSection: (chapter: string, section: string) => void;
+  onDropProblem?: (targetSection: string, problemIds: number[]) => void;
 }
 
-const NoteFolder = ({ chapter, sections, onSelectSection }: Props) => {
+const NoteFolder = ({ chapter, sections, onSelectSection, onDropProblem }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
@@ -35,11 +36,14 @@ const NoteFolder = ({ chapter, sections, onSelectSection }: Props) => {
       {isOpen && (
         <div className="flex flex-col gap-y-2">
           {sections.map((section) => (
-            <NoteSectionItem 
-                key={section.title} 
-                title={section.title} 
-                count={section.count}
-                onClick={() => onSelectSection(chapter, section.title)} 
+            <NoteSectionItem
+              key={section.title}
+              title={section.title}
+              count={section.count}
+              onClick={() => onSelectSection(chapter, section.title)}
+              onDropProblem={(targetSection, problemIds) =>
+                onDropProblem?.(targetSection, problemIds)
+              }
             />
           ))}
         </div>
