@@ -1,6 +1,6 @@
 // import { Link } from "react-router-dom";
 import { useState } from "react";
-import SideBar from "./layouts/sidebar";
+import SideBar from "./layouts/SideBar";
 import Router from "./routes/Router";
 
 function App() {
