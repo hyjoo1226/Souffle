@@ -7,8 +7,8 @@ const MyStudyReportPage = () => {
     "learning"
   );
   return (
-    <div className="grid grid-cols-12 gap-x-4 h-screen">
-      <div className="col-span-3 py-5 border-r border-gray-200 flex flex-col items-center">
+    <div className="grid grid-cols-12 gap-x-4 h-screen ">
+      <div className="sticky top-0 col-span-3 py-5 border-r border-gray-200 flex flex-col items-center">
         <p className="body-small text-gray-700 mb-11">
           수플래와 함께 <span className="text-primary-500">253</span>일째 성장
           중!

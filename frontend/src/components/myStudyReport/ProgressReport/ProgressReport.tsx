@@ -1,3 +1,4 @@
+import SolvingActivity from "./SolvingActivity";
 import StudyTimeChart from "./StudyTimeChart";
 import UnitAnalysis from "./UnitAnalysis";
 
@@ -7,6 +8,7 @@ const ProgressReport = () => {
       <div className="flex flex-col gap-20 w-full max-w-[82%]">
         {" "}
         {/* 7 / 9 ≈ 77~82% 정도 */}
+        <SolvingActivity />
         <StudyTimeChart />
         <UnitAnalysis />
       </div>
