@@ -4,6 +4,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { UserCategoryProgress } from './user-category-progress.entity';
@@ -16,10 +18,13 @@ export class User extends BaseEntity {
   id: number;
 
   @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
-  username: string;
-
-  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
   nickname: string;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
 
   @OneToMany(() => Submission, (submission) => submission.user)
   submissions: Submission[];
