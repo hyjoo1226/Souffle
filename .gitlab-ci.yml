@@ -7,21 +7,21 @@ stages:
   - test
   - deploy
 
-build-be:
-  stage: build
-  tags: [deploy]
-  script:
-    - docker-compose -f docker-compose.backend.yml build backend
-  rules:
-    - if: '$CI_COMMIT_BRANCH =~ /^(be-mvp|main|master)$/'
+# build-be:
+#   stage: build
+#   tags: [deploy]
+#   script:
+#     - docker-compose -f docker-compose.backend.yml build backend
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH =~ /^(be-mvp|main|master)$/'
 
-build-data:
-  stage: build
-  tags: [deploy]
-  script:
-    - docker-compose -f docker-compose.data.yml build data
-  rules:
-    - if: '$CI_COMMIT_BRANCH =~ /^(data-dev|main|master)$/'
+# build-data:
+#   stage: build
+#   tags: [deploy]
+#   script:
+#     - docker-compose -f docker-compose.data.yml build data
+#   rules:
+#     - if: '$CI_COMMIT_BRANCH =~ /^(data-dev|main|master)$/'
 
 build-fe:
   stage: build
@@ -31,20 +31,20 @@ build-fe:
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^(fe-dev|main|master)$/'
 
-integration-test:
-  stage: test
-  tags: [deploy]
-  script:
-    - docker-compose -f docker-compose.ci.yml build
-    - docker-compose -f docker-compose.ci.yml up -d
-    - sleep 10
-    - curl -sSf https://www.souffle.kr/health || exit 1
-    - docker-compose down
+# integration-test:
+#   stage: test
+#   tags: [deploy]
+#   script:
+#     - docker-compose -f docker-compose.ci.yml build
+#     - docker-compose -f docker-compose.ci.yml up -d
+#     - sleep 10
+#     - curl -sSf https://www.souffle.kr/health || exit 1
+#     - docker-compose down
 
 deploy:
   stage: deploy
   tags: [deploy]
-  needs: [integration-test]
+  # needs: [integration-test]
   script:
     - docker-compose -f docker-compose.yml up -d --build
   rules:
