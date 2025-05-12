@@ -10,7 +10,7 @@ import {
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { UserCategoryProgress } from './user-category-progress.entity';
 import { UserProblem } from './user-problem.entity';
-import { Note } from 'src/notes/entities/note.entity';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -35,6 +35,6 @@ export class User extends BaseEntity {
   @OneToMany(() => UserProblem, (userProblem) => userProblem.user)
   userProblems: UserProblem[];
 
-  @OneToMany(() => Note, (note) => note.user)
-  notes: Note[];
+  @OneToMany(() => NoteFolder, (note) => note.user)
+  notes: NoteFolder[];
 }

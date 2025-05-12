@@ -10,8 +10,8 @@ import {
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 
-@Entity({ name: 'note' })
-export class Note {
+@Entity({ name: 'note_folder' })
+export class NoteFolder {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -25,12 +25,12 @@ export class Note {
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
-  @ManyToOne(() => Note, (note) => note.children, { nullable: true })
+  @ManyToOne(() => NoteFolder, (note) => note.children, { nullable: true })
   @JoinColumn({ name: 'parent_id' })
-  parent: Note;
+  parent: NoteFolder;
 
-  @OneToMany(() => Note, (note) => note.parent)
-  children: Note[];
+  @OneToMany(() => NoteFolder, (note) => note.parent)
+  children: NoteFolder[];
 
   @Column({ type: 'int', nullable: true })
   sort_order: number;
