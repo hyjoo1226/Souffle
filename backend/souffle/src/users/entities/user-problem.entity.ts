@@ -5,9 +5,11 @@ import {
   Index,
   ManyToOne,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
+import { NoteContent } from 'src/notes/entities/note-content.entity';
 
 @Entity()
 @Index(['user', 'problem'], { unique: true })
@@ -37,4 +39,7 @@ export class UserProblem {
 
   @Column({ nullable: true })
   last_submission_id: number;
+
+  @OneToMany(() => NoteContent, (noteContent) => noteContent.user_problem)
+  noteContents: NoteContent[];
 }

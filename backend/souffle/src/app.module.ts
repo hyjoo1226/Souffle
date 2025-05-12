@@ -15,6 +15,7 @@ import { BookModule } from './books/books.module';
 import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
 import { ConfigModule } from '@nestjs/config';
+import { NoteModule } from './note/note.module';
 import * as path from 'path';
 
 @Module({
@@ -48,6 +49,7 @@ import * as path from 'path';
       adapter: ExpressAdapter,
     }),
     OcrModule,
+    NoteModule,
   ],
 })
 export class AppModule {}
