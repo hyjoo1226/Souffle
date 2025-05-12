@@ -6,6 +6,7 @@ import EntryPage from "../pages/EntryPage";
 import ReviewNoteDetailPage from "@/pages/reviewNote/ReviewNoteDetailPage";
 import ReviewNoteListPage from "@/pages/reviewNote/ReviewNoteListPage";
 import SelectUnitPage from "@/pages/concept/SelectUnitPage";
+import ConceptStudyPage from "@/pages/concept/ConceptStudyPage";
 
 const Router = () => {
   return (
@@ -20,6 +21,7 @@ const Router = () => {
       <Route path="/review" element={<ReviewNoteDetailPage />} />
       <Route path="/review-list" element={<ReviewNoteListPage />} />
       <Route path="/select-unit" element={<SelectUnitPage />} />
+      <Route path="/study" element={<ConceptStudyPage />} />
     </Routes>
   );
 };
