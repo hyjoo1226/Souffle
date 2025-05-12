@@ -2,10 +2,13 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Body,
   Req,
   Query,
   UseGuards,
+  Param,
 } from '@nestjs/common';
 import { NoteService } from './notes.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -16,7 +19,9 @@ import {
   ApiQuery,
   ApiResponse,
   ApiBody,
+  ApiParam,
 } from '@nestjs/swagger';
+import { UpdateNoteFolderDto } from './dto/update-note-folder.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -102,5 +107,21 @@ export class NoteController {
     const userId = 1;
     // const userId = req.user.id;
     return this.noteService.createNoteFolder(userId, createFolderDto);
+  }
+
+  // 폴더 이름 변경 API
+  @ApiOperation({ summary: '오답노트 폴더 이름 변경' })
+  @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
+  @ApiBody({
+    type: UpdateNoteFolderDto,
+    description: '변경할 폴더 이름',
+  })
+  @ApiResponse({ status: 200, description: '변경된 폴더 정보 반환' })
+  @Patch('folder/:folder_id')
+  async updateFolderName(
+    @Param('folder_id') folderId: number,
+    @Body() updateDto: UpdateNoteFolderDto,
+  ) {
+    return this.noteService.updateNoteFolderName(folderId, updateDto.name);
   }
 }

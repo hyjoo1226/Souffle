@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NoteFolder } from './entities/note-folder.entity';
 import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class NoteService {
@@ -69,5 +70,16 @@ export class NoteService {
 
     // 저장 및 반환
     return this.noteFolderRepository.save(newFolder);
+  }
+
+  // 폴더 이름 변경 API
+  async updateNoteFolderName(folderId: number, name: string) {
+    const folder = await this.noteFolderRepository.findOne({
+      where: { id: folderId },
+    });
+    if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
+
+    folder.name = name;
+    return this.noteFolderRepository.save(folder);
   }
 }
