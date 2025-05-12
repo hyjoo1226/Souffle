@@ -18,7 +18,14 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res) {
     // JWT 발급
     const token = this.authService.login(req.user);
+
+    const userInfo = {
+      id: req.user.id,
+      nickname: req.user.nickname,
+      email: req.user.email,
+      profileImage: req.user.profileImage,
+    };
     // 프론트엔드로 리다이렉트 + 토큰 전달
-    return res.json({ token: token.access_token, user: req.user });
+    return res.json({ token: token.access_token, user: userInfo });
   }
 }
