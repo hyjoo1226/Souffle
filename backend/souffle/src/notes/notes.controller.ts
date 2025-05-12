@@ -21,7 +21,10 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { UpdateNoteFolderDto } from './dto/update-note-folder.dto';
+import {
+  UpdateNoteFolderDto,
+  UpdateNoteFolderOrderDto,
+} from './dto/update-note-folder.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -117,11 +120,32 @@ export class NoteController {
     description: '변경할 폴더 이름',
   })
   @ApiResponse({ status: 200, description: '변경된 폴더 정보 반환' })
+  // @UseGuards(AuthGuard('jwt'))
   @Patch('folder/:folder_id')
   async updateFolderName(
     @Param('folder_id') folderId: number,
     @Body() updateDto: UpdateNoteFolderDto,
   ) {
     return this.noteService.updateNoteFolderName(folderId, updateDto.name);
+  }
+
+  // 폴더 순서 변경 API
+  @ApiOperation({ summary: '오답노트 폴더 순서 변경' })
+  @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
+  @ApiBody({
+    type: UpdateNoteFolderOrderDto,
+    description: '변경할 sort_order 값',
+  })
+  @ApiResponse({ status: 200, description: '변경된 폴더 정보 반환' })
+  // @UseGuards(AuthGuard('jwt'))
+  @Patch('folder/:folder_id/order')
+  async updateFolderOrder(
+    @Param('folder_id') folderId: number,
+    @Body() updateDto: UpdateNoteFolderOrderDto,
+  ) {
+    return this.noteService.updateNoteFolderOrder(
+      folderId,
+      updateDto.sort_order,
+    );
   }
 }

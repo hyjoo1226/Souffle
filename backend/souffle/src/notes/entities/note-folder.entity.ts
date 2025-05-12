@@ -20,6 +20,9 @@ export class NoteFolder {
   @JoinColumn({ name: 'user_id' })
   user: User;
 
+  @RelationId((folder: NoteFolder) => folder.user)
+  user_id: number;
+
   @Column({ type: 'int', nullable: false })
   type: number;
 
