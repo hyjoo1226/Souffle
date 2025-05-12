@@ -2,9 +2,13 @@
 import { useState } from "react";
 import SideBar from "./layouts/SideBar";
 import Router from "./routes/Router";
+import { useLocation } from "react-router-dom";
 
 function App() {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
+  const location = useLocation();
+
+  const isLandingPage = location.pathname === "/landing";
 
   return (
     <>
@@ -28,7 +32,7 @@ function App() {
         />
       )}
 
-      <div className="page-wrapper">
+      <div className={isLandingPage ? "" : "page-wrapper"}>
         {/* 라우팅 영역 */}
         <Router />
       </div>
