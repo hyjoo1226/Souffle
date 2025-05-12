@@ -15,10 +15,29 @@ const ProblemSelectPage = () => {
   const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
   const [selectedLessonName, setSelectedLessonName] = useState<string | null>(
     null
-  ); // 선택된 카테고리 ID 상태
+  );
+
+  // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
   const [progressRate, setProgressRate] = useState<number | null>(null); // 진도율 상태
   const [accuracyRate, setAccuracyRate] = useState<number>(0); // 정답률 상태
+  const [sortType, setSortType] = useState<
+    "default" | "accuracy-asc" | "accuracy-desc" | "unsolved"
+  >("default");
+
+  const sortedProblemList = [...problemList].sort((a, b) => {
+    switch (sortType) {
+      case "accuracy-desc":
+        return b.problem_avg_accuracy - a.problem_avg_accuracy;
+      case "accuracy-asc":
+        return a.problem_avg_accuracy - b.problem_avg_accuracy;
+      case "unsolved":
+        return (a.correct_count >= 1 ? 1 : 0) - (b.correct_count >= 1 ? 1 : 0);
+      case "default":
+      default:
+        return a.inner_no - b.inner_no;
+    }
+  });
 
   // const [categoryId, setCategoryId] = useState<number>(1); // 카테고리 ID 상태
   const navigate = useNavigate();
@@ -68,6 +87,7 @@ const ProblemSelectPage = () => {
             categoryData={categoryData}
             selectedLessonId={selectedLessonId}
             setSelectedLessonId={setSelectedLessonId}
+            selectedLessonName={selectedLessonName}
             setSelectedLessonName={setSelectedLessonName}
           />
           {/* 진도율, 정답률 차트 */}
@@ -111,49 +131,72 @@ const ProblemSelectPage = () => {
           </div>
         </div>
         {/* 문제 리스트 */}
-        <div className="flex flex-col">
+        <div className="flex flex-col h-screen overflow-y-auto">
           <div className="flex justify-end">
             <div className="flex body-small text-gray-700 w-60">
-              <p className="flex justify-center flex-1 py-2.5 px-3.5 border border-gray-200 ">
+              <p
+                onClick={() => setSortType("accuracy-desc")}
+                className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
+                  sortType === "accuracy-desc"
+                    ? "bg-white text-primary-500 border-primary-500"
+                    : ""
+                }`}
+              >
                 정답률↑
               </p>
-              <p className="flex justify-center flex-1 py-2.5 px-3.5 border border-gray-200">
+              <p
+                onClick={() => setSortType("accuracy-asc")}
+                className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
+                  sortType === "accuracy-asc"
+                    ? "bg-white font-bold text-primary-500 border-primary-500"
+                    : ""
+                }`}
+              >
                 정답률↓
               </p>
-              <p className="flex flex-1 py-2.5 px-3.5 border border-gray-200 justify-center">
+              <p
+                onClick={() => setSortType("unsolved")}
+                className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
+                  sortType === "unsolved"
+                    ? "bg-white font-bold text-primary-500 border-primary-500"
+                    : ""
+                }`}
+              >
                 미해결
               </p>
             </div>
           </div>
-          {problemList.map((problem, index) => (
-            <div key={index} className="flex px-4 py-4 mt-2">
-              <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
-                <p
-                  className="body-medium text-gray-700"
-                  onClick={() => handleProblemClick(problem.problem_id)}
-                >
-                  {`${selectedLessonName} ${problem.inner_no}번 문제`}
-                </p>
-                <div
-                  className={`rounded-[8px] px-1.5 py-1 caption-small ${
-                    problem.correct_count >= 1
-                      ? "bg-primary-500 text-white"
-                      : "bg-unsolved text-white"
-                  }`}
-                >
-                  {problem.correct_count >= 1 ? "해결" : "미해결"}
+          <div className="flex-1 overflow-y-auto">
+            {sortedProblemList.map((problem, index) => (
+              <div key={index} className="flex px-4 py-4 mt-4 ">
+                <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
+                  <p
+                    className="body-medium text-gray-700"
+                    onClick={() => handleProblemClick(problem.problem_id)}
+                  >
+                    {`${selectedLessonName} ${problem.inner_no}번 문제`}
+                  </p>
+                  <div
+                    className={`rounded-[8px] px-1.5 py-1 caption-small ${
+                      problem.correct_count >= 1
+                        ? "bg-primary-500 text-white"
+                        : "bg-unsolved text-white"
+                    }`}
+                  >
+                    {problem.correct_count >= 1 ? "해결" : "미해결"}
+                  </div>
+                </div>
+                <div className="basis-2/7 flex justify-center items-center">
+                  <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
+                </div>
+                <div className="basis-1/7 flex justify-center items-center">
+                  <p className="body-medium text-gray-700">{`${
+                    problem.problem_avg_accuracy * 100
+                  }%`}</p>
                 </div>
               </div>
-              <div className="basis-2/7 flex justify-center items-center">
-                <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
-              </div>
-              <div className="basis-1/7 flex justify-center items-center">
-                <p className="body-medium text-gray-700">{`${
-                  problem.problem_avg_accuracy * 100
-                }%`}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
     </div>
