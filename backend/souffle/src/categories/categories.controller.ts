@@ -1,6 +1,8 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { CategoryService } from './categories.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('categories')
 @Controller('api/v1/categories')
@@ -64,6 +66,7 @@ export class CategoryController {
   }
 
   // 단원 상세 조회 API
+  @UseGuards(AuthGuard('jwt'))
   @Get(':category_id')
   @ApiOperation({ summary: '단원 상세 조회' })
   @ApiParam({ name: 'category_id', description: '단원 ID' })
@@ -97,9 +100,9 @@ export class CategoryController {
   })
   async getCategoryDetail(
     @Param('category_id', ParseIntPipe) categoryId: number,
+    @Req() req,
   ) {
-    // 토큰이 아직 없으므로 테스트유저 1로 임시 고정
-    const userId = 1;
+    const userId = req.user.id;
     return this.categoriesService.getCategoryDetail(categoryId, userId);
   }
 }

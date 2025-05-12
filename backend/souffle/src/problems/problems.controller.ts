@@ -1,6 +1,8 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ProblemService } from './problems.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('problems')
 @Controller('api/v1/problems')
@@ -41,6 +43,7 @@ export class ProblemController {
   }
 
   // 개별 문제 조회(모든 데이터) API
+  @UseGuards(AuthGuard('jwt'))
   @Get(':problem_id/full')
   @ApiOperation({ summary: '개별 문제 조회 (모든 데이터)' })
   @ApiParam({ name: 'problem_id', description: '문제 ID' })
@@ -79,9 +82,11 @@ export class ProblemController {
       },
     },
   })
-  async getProblemFull(@Param('problem_id', ParseIntPipe) problemId: number) {
-    // 토큰이 아직 없으므로 테스트유저 1로 임시 고정
-    const userId = 1;
+  async getProblemFull(
+    @Param('problem_id', ParseIntPipe) problemId: number,
+    @Req() req,
+  ) {
+    const userId = req.user.id;
 
     return this.problemsService.getProblemFull(problemId, userId);
   }

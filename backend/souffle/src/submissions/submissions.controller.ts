@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submissions.service';
-// import { CreateSubmissionDto } from './dto/create-submission.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -19,6 +18,8 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('submission')
 @Controller('api/v1/submissions')
@@ -26,6 +27,7 @@ export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   // 풀이 데이터 전송 API(FE-BE)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: '풀이 데이터 전송' })
   @ApiConsumes('multipart/form-data')
@@ -33,7 +35,6 @@ export class SubmissionController {
     schema: {
       type: 'object',
       properties: {
-        user_id: { type: 'string', example: 1 },
         problem_id: { type: 'string', example: 1 },
         answer: { type: 'string', example: '{"file_name":"answer.jpg"}' },
         full_step: { type: 'string', example: '{"file_name":"full_step.jpg"}' },
@@ -56,7 +57,6 @@ export class SubmissionController {
         },
       },
       required: [
-        'user_id',
         'problem_id',
         'answer',
         'full_step',
@@ -96,9 +96,11 @@ export class SubmissionController {
   async createSubmission(
     @Body() body: any,
     @UploadedFiles() files: Express.Multer.File[],
+    @Req() req,
   ) {
+    const userId = req.user.id;
     const submissionDto = {
-      user_id: parseInt(body.user_id, 10),
+      user_id: userId,
       problem_id: parseInt(body.problem_id, 10),
       total_solve_time: parseInt(body.total_solve_time, 10),
       understand_time: parseInt(body.understand_time, 10),
@@ -113,6 +115,7 @@ export class SubmissionController {
   }
 
   // 풀이 분석 조회 요청 API
+  @UseGuards(AuthGuard('jwt'))
   @Get(':submissionId')
   @ApiOperation({ summary: '풀이 분석 조회' })
   @ApiResponse({
@@ -159,9 +162,9 @@ export class SubmissionController {
   }
 
   // 문제별 모든 제출id 조회 API
+  @UseGuards(AuthGuard('jwt'))
   @Get('problem/:problemId')
   @ApiOperation({ summary: '문제의 모든 제출 기록 조회' })
-  // @ApiParam({ name: 'userId', description: '유저 ID' })
   @ApiParam({ name: 'problemId', description: '문제 ID' })
   @ApiResponse({
     status: 200,
@@ -170,11 +173,10 @@ export class SubmissionController {
   })
   @ApiResponse({ status: 404, description: '제출 기록 없음' })
   async getSubmissionIds(
-    // @Param('userId', ParseIntPipe) userId: number,
     @Param('problemId', ParseIntPipe) problemId: number,
+    @Req() req,
   ) {
-    // 인증 미구현이므로 임시 user 1
-    const userId = 1;
+    const userId = req.user.id;
     return this.submissionService.getSubmissionIds(userId, problemId);
   }
 }
