@@ -54,7 +54,6 @@ build-fe:
 integration-test:
   stage: test
   tags: [deploy]
-  needs: [build-be, build-data, build-fe]
   script:
     - docker-compose -f docker-compose.yml up -d
     - sleep 10
