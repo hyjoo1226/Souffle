@@ -148,4 +148,15 @@ export class NoteController {
       updateDto.sort_order,
     );
   }
+
+  // 폴더 삭제 API
+  @ApiOperation({ summary: '오답노트 폴더 삭제' })
+  @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
+  @ApiResponse({ status: 200, description: '폴더 삭제 성공' })
+  @ApiResponse({ status: 404, description: '폴더를 찾을 수 없음' })
+  // @UseGuards(AuthGuard('jwt'))
+  @Delete('folder/:folder_id')
+  async deleteNoteFolder(@Param('folder_id') folderId: number) {
+    return this.noteService.deleteNoteFolder(folderId);
+  }
 }

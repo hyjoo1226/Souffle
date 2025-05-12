@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { NoteFolder } from './entities/note-folder.entity';
 import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 @Injectable()
 export class NoteService {
@@ -100,10 +100,8 @@ export class NoteService {
       return folder;
     }
 
-    // 쿼리 빌더 준비
-    const queryBuilder = this.noteFolderRepository.createQueryBuilder();
-
     // 같은 유저의 같은 부모 아래의 폴더들만 조정
+    const queryBuilder = this.noteFolderRepository.createQueryBuilder();
     queryBuilder.where('user_id = :userId', { userId: folder.user_id });
 
     // 부모 ID 조건 추가 (null 고려)
@@ -115,9 +113,8 @@ export class NoteService {
       });
     }
 
-    // 폴더를 위로 이동 (더 작은 순서 번호로)
+    // 폴더를 위로 이동
     if (newOrder < originalOrder) {
-      // newOrder ~ originalOrder-1 범위의 폴더들 순서 1씩 증가
       await queryBuilder
         .update(NoteFolder)
         .set({ sort_order: () => 'sort_order + 1' })
@@ -125,9 +122,8 @@ export class NoteService {
         .andWhere('sort_order < :originalOrder', { originalOrder })
         .execute();
     }
-    // 폴더를 아래로 이동 (더 큰 순서 번호로)
+    // 폴더를 아래로 이동
     else {
-      // originalOrder+1 ~ newOrder 범위의 폴더들 순서 1씩 감소
       await queryBuilder
         .update(NoteFolder)
         .set({ sort_order: () => 'sort_order - 1' })
@@ -139,5 +135,21 @@ export class NoteService {
     // 이동할 폴더의 순서 변경
     folder.sort_order = newOrder;
     return this.noteFolderRepository.save(folder);
+  }
+
+  // 폴더 삭제 API
+  async deleteNoteFolder(folderId: number) {
+    const folder = await this.noteFolderRepository.findOne({
+      where: { id: folderId },
+    });
+    if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
+
+    // 고정 폴더(예: id 0, 1, 2)는 삭제 불가
+    if ([0, 1, 2].includes(folderId)) {
+      throw new BadRequestException('고정 폴더는 삭제할 수 없습니다.');
+    }
+
+    await this.noteFolderRepository.delete(folderId);
+    return { message: '폴더가 삭제되었습니다.' };
   }
 }
