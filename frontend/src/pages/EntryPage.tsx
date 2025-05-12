@@ -13,6 +13,10 @@ const EntryPage = () => {
           <Link to="/analysis/1">풀이 분석</Link>
           <Link to="/problem-select/">문제 선택</Link>
 
+      {/* 임시로 submissionId 1번으로 넣어놨어요 */}
+      <Link to="/review">오답노트</Link>
+      <Link to="/review-list">오답노트 리스트</Link>
+    </nav>
           {/* 임시로 submissionId 1번으로 넣어놨어요 */}
           <Link to="/review">오답노트</Link>
         </nav>
