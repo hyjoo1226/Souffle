@@ -3,10 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToMany,
+  OneToOne,
+  JoinColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
+  RelationId,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 
@@ -20,17 +21,20 @@ export class NoteFolder {
   user: User;
 
   @Column({ type: 'int', nullable: false })
-  type: number; // 1: 오답노트, 2: 즐겨찾기
+  type: number;
 
   @Column({ type: 'varchar', nullable: false })
   name: string;
 
-  @ManyToOne(() => NoteFolder, (note) => note.children, { nullable: true })
+  @ManyToOne(() => NoteFolder, { nullable: true })
   @JoinColumn({ name: 'parent_id' })
   parent: NoteFolder;
 
-  @OneToMany(() => NoteFolder, (note) => note.parent)
-  children: NoteFolder[];
+  @RelationId((folder: NoteFolder) => folder.parent)
+  parent_id: number;
+
+  @OneToOne(() => NoteFolder, (folder) => folder.parent)
+  child: NoteFolder;
 
   @Column({ type: 'int', nullable: true })
   sort_order: number;

@@ -35,6 +35,6 @@ export class User extends BaseEntity {
   @OneToMany(() => UserProblem, (userProblem) => userProblem.user)
   userProblems: UserProblem[];
 
-  @OneToMany(() => NoteFolder, (note) => note.user)
+  @OneToMany(() => NoteFolder, (noteFolder) => noteFolder.user)
   notes: NoteFolder[];
 }
