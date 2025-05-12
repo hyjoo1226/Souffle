@@ -48,6 +48,18 @@ const ProblemSolvingPage = () => {
       formData.append("answer", JSON.stringify({ file_name: "answer.jpg" }));
     }
 
+    const blockSnapshots = solutionRef.current?.blockSnapshots;
+    const lastSavedBlocks = solutionRef.current?.lastSavedBlocks;
+
+    if (blockSnapshots && lastSavedBlocks) {
+      const latest = blockSnapshots.at(-1);
+      const current = JSON.parse(JSON.stringify(lastSavedBlocks));
+
+      if (JSON.stringify(latest) !== JSON.stringify(current)) {
+        blockSnapshots.push(current); // ✅ 마지막 블록 snapshot 추가
+      }
+    }
+
     // SolutionArea: steps, fullStep, 메타데이터 수집
     const solutionData = await solutionRef.current?.getStepData();
     const {
@@ -71,6 +83,15 @@ const ProblemSolvingPage = () => {
     stepsData.forEach(({ blob, file_name }) => {
       formData.append("files", blob, file_name);
     });
+
+    const used = stepMeta.reduce(
+      (acc: number, s: { step_time: number }) => acc + s.step_time,
+      0
+    );
+    const lastGap = Math.max(0, timing.solveTime - used);
+
+    // 마지막 step에 보정 적용
+    stepMeta[stepMeta.length - 1].step_time = lastGap;
 
     // fullStep 이미지 파일 추가
     if (fullStep?.blob) {
