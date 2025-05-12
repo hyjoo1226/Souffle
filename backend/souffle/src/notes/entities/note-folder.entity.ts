@@ -28,7 +28,7 @@ export class NoteFolder {
 
   @ManyToOne(() => NoteFolder, { nullable: true })
   @JoinColumn({ name: 'parent_id' })
-  parent: NoteFolder;
+  parent: NoteFolder | null;
 
   @RelationId((folder: NoteFolder) => folder.parent)
   parent_id: number;
