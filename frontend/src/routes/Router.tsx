@@ -5,6 +5,7 @@ import ProblemSelectPage from "../pages/problemSolving/ProblemSelectPage";
 import EntryPage from "../pages/EntryPage";
 import ReviewNoteDetailPage from "@/pages/reviewNote/ReviewNoteDetailPage";
 import ReviewNoteListPage from "@/pages/reviewNote/ReviewNoteListPage";
+import SelectUnitPage from "@/pages/concept/SelectUnitPage";
 
 const Router = () => {
   return (
@@ -18,6 +19,7 @@ const Router = () => {
       <Route path="/problem-select" element={<ProblemSelectPage />} />
       <Route path="/review" element={<ReviewNoteDetailPage />} />
       <Route path="/review-list" element={<ReviewNoteListPage />} />
+      <Route path="/select-unit" element={<SelectUnitPage />} />
     </Routes>
   );
 };
