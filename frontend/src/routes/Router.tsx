@@ -3,8 +3,8 @@ import ProblemSolvingPage from "../pages/problemSolving/ProblemSolvingPage";
 import SolutionAnalysisPage from "../pages/problemSolving/SolutionAnalysisPage";
 import ProblemSelectPage from "../pages/problemSolving/ProblemSelectPage";
 import EntryPage from "../pages/EntryPage";
-import ReviewNoteDetailPage from "@/pages/ReviewNote/ReviewNoteDetailPage";
-import ReviewNoteListPage from "@/pages/ReviewNote/ReviewNoteListPage";
+import ReviewNoteDetailPage from "@/pages/reviewNote/ReviewNoteDetailPage";
+import ReviewNoteListPage from "@/pages/reviewNote/ReviewNoteListPage";
 
 const Router = () => {
   return (
