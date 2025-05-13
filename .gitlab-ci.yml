@@ -34,18 +34,25 @@ build-fe:
 integration-test:
   stage: test
   tags: [deploy]
+  needs:
+    - build-be
+    - build-fe
+    - build-data
   script:
     - docker-compose -f docker-compose.ci.yml build
     - docker-compose -f docker-compose.ci.yml up -d
     - sleep 10
-    - curl -sSf https://www.souffle.kr/health || exit 1
-    - docker-compose down
+    - curl -sSf http://localhost:4000/health || exit 1
+    - curl -sSf http://localhost:3000/ || exit 1
+    - docker-compose -f docker-compose.ci.yml down
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 deploy:
   stage: deploy
   tags: [deploy]
-  needs: [integration-test]
   script:
     - docker-compose -f docker-compose.yml up -d --build
+    - curl -sSf https://souffle.kr/health || exit 1
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
