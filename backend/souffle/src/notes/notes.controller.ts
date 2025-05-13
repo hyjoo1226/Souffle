@@ -162,7 +162,7 @@ export class NoteController {
   @ApiResponse({ status: 200, description: '폴더 추가 성공' })
   @ApiResponse({ status: 404, description: '폴더/문제 없음' })
   @UseGuards(AuthGuard('jwt'))
-  @Post('add')
+  @Post('problem/add')
   async addToFolder(@Body() dto: AddToFolderDto, @Req() req) {
     const userId = req.user.id;
     return this.noteService.addToNoteFolder(
