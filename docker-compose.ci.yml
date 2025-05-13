@@ -2,8 +2,8 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
-      #    ports:
-      #      - "3000:3000"
+    ports:
+      - "3000:3000"
     restart: always
       #    depends_on:
       #      backend:
@@ -42,10 +42,18 @@ services:
       REDIS_HOST: ${REDIS_HOST}
       REDIS_PORT: ${REDIS_PORT}
 
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET_KEY: ${GOOGLE_CLIENT_SECRET_KEY}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       # env_file:
       #   - ./backend/backend/souffle/.env
           #    healthcheck:
@@ -57,21 +65,26 @@ services:
       - internal
     volumes:
       - ./uploads:/app/uploads
-    data:
-      build:
-        context: ./data
-      container_name: data
-      ports:
-        - "8000:8000"
-      restart: always
-      depends_on:
-        - redis
-        - db
+  data:
+    build:
+      context: ./data
+    container_name: data
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - redis
+      - db
           #    env_file:
           #      - ./analyzer/.env
-      networks:
-        - internal
-        - public
+    environment:
+      OCR_BACKEND: ${OCR_BACKEND}
+      MATHPIX_APP_ID: ${MATHPIX_APP_ID}
+      MATHPIX_APP_KEY: ${MATHPIX_APP_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    networks:
+      - internal
+      - public
 
 
   db:
