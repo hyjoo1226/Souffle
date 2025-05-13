@@ -28,9 +28,6 @@ export class UserAuthentication {
   email: string;
 
   @Column({ nullable: true })
-  accessToken: string;
-
-  @Column({ nullable: true })
   refreshToken: string;
 
   @CreateDateColumn()

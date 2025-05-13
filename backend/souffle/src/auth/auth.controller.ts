@@ -1,4 +1,12 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Req,
+  Res,
+  UseGuards,
+  Post,
+  Body,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
@@ -17,7 +25,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
     // JWT 발급
-    const token = this.authService.login(req.user);
+    const token = await this.authService.login(req.user);
 
     const userInfo = {
       id: req.user.id,
@@ -27,5 +35,10 @@ export class AuthController {
     };
     // 프론트엔드로 리다이렉트 + 토큰 전달
     return res.json({ token: token.access_token, user: userInfo });
+  }
+
+  @Post('refresh')
+  async refresh(@Body('refresh_token') refreshToken: string) {
+    return this.authService.refresh(refreshToken);
   }
 }

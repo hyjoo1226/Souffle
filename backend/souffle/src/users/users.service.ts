@@ -79,4 +79,10 @@ export class UserService {
       understanding: progress.understanding,
     };
   }
+
+  async findOne(id: number): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { id },
+    });
+  }
 }
