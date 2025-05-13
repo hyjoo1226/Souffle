@@ -15,7 +15,11 @@ import { BookModule } from './books/books.module';
 import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
 import { ConfigModule } from '@nestjs/config';
+<<<<<<< HEAD
 import { NoteModule } from './notes/notes.module';
+=======
+import { AuthModule } from './auth/auth.module';
+>>>>>>> 96c7442b9f0cfa248360181edf75b8cb0737835f
 import * as path from 'path';
 
 @Module({
@@ -49,7 +53,11 @@ import * as path from 'path';
       adapter: ExpressAdapter,
     }),
     OcrModule,
+<<<<<<< HEAD
     NoteModule,
+=======
+    AuthModule,
+>>>>>>> 96c7442b9f0cfa248360181edf75b8cb0737835f
   ],
 })
 export class AppModule {}
