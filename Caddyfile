@@ -24,6 +24,7 @@ www.souffle.kr {
         }
 
 	handle /auth/* {
+	    rewrite * /api/v1{uri}
 	    reverse_proxy backend:4000
 	}
 
