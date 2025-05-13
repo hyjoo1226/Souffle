@@ -10,8 +10,8 @@ services:
       #        condition: service_healthy
           #    environment:
           #      - NODE_ENV=production
-    #env_file:
-#      - ./frontend/.env
+    env_file:
+      - ./frontend/.env
     environment:
       VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
@@ -27,8 +27,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    #env_file:
-#      - ./backend/souffle/.env
+    env_file:
+      - ./backend/souffle/.env
     environment:
       PORT: ${BE_PORT}
       NODE_ENV: ${NODE_ENV}
@@ -68,8 +68,8 @@ services:
     depends_on:
       - redis
       - db
-        #    env_file:
-        #      - ./analyzer/.env
+    env_file:
+      - ./data/.env
     environment:
       OCR_BACKEND: ${OCR_BACKEND}
       MATHPIX_APP_ID: ${MATHPIX_APP_ID}
