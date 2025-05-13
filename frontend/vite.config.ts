@@ -11,6 +11,15 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // auth 경로는 캐시 제외
+        navigateFallbackDenylist: [
+          /^\/auth\//,
+	  /^\/swagger/,
+	  /^\/docs/,
+	  /^\/openapi.json/,
+        ],
+      },
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
         name: 'Souffle',
@@ -51,3 +60,4 @@ export default defineConfig({
     }
   }
 });
+

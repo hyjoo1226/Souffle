@@ -29,8 +29,14 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document); // http://localhost:3000/swagger
-  app.enableCors();
+  SwaggerModule.setup('swagger', app, document); // http://localhost:4000/swagger
+  app.enableCors({
+    origin: 'https://www.souffle.kr',
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   await app.listen(process.env.PORT ?? 4000);
 }
 bootstrap();

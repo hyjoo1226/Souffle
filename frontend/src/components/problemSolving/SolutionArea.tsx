@@ -39,6 +39,8 @@ const SolutionArea = forwardRef((_props, ref) => {
   const enterTime = useRef(Date.now());
   const firstStrokeTime = useRef<number | null>(null);
   const lastStrokeEndTime = useRef<number | null>(null);
+  const blockSnapshotsRef = useRef<any[]>([]);
+  const lastSavedBlocksRef = useRef<any[]>([]); // 항상 최신 blocks 상태 백업
 
   const handleEraserClick = () => {
     if (!isEraserActive) {
@@ -82,6 +84,14 @@ const SolutionArea = forwardRef((_props, ref) => {
     window.addEventListener("resize", resizeCanvas);
     return () => window.removeEventListener("resize", resizeCanvas);
   }, []);
+
+  useEffect(() => {
+    // 블록 또는 strokes 변경될 때마다 현재 상태 백업
+    if (blocks.length > 0) {
+      lastSavedBlocksRef.current = JSON.parse(JSON.stringify(blocks));
+    }
+  }, [blocks]);
+
   // 초기 캔버스 이벤트 바인딩
   useEffect(() => {
     // setEnterTime(Date.now());
@@ -156,6 +166,8 @@ const SolutionArea = forwardRef((_props, ref) => {
       lastStrokeTime,
       lastBlockId,
       lastStrokeEndTime,
+      blockSnapshotsRef,
+      lastSavedBlocksRef,
       setStrokes,
       setBlocks,
       setLastPoint,
@@ -190,8 +202,19 @@ const SolutionArea = forwardRef((_props, ref) => {
   useImperativeHandle(ref, () => ({
     getStepData: async () => {
       if (!canvasRef.current) return null;
+      if (!blockSnapshotsRef.current) return null;
+      const latestSnapshot = blockSnapshotsRef.current.at(-1);
+      const currentFinal = JSON.parse(JSON.stringify(blocks));
 
-      const stepsData = await generateStepImages(blocks, canvasRef.current);
+      if (JSON.stringify(latestSnapshot) !== JSON.stringify(currentFinal)) {
+        blockSnapshotsRef.current.push(currentFinal); // ✅ 강제 추가
+      }
+
+      const stepsData = await generateStepImages(
+        blockSnapshotsRef.current,
+        canvasRef.current,
+        blocks
+      );
       const fullStep = await generateFullStepImage(canvasRef.current, blocks);
 
       const stepMeta = stepsData.map(
@@ -231,6 +254,8 @@ const SolutionArea = forwardRef((_props, ref) => {
           solveTime: Math.round(solveTime / 1000),
           reviewTime: Math.round(reviewTime / 1000),
         },
+        blockSnapshots: blockSnapshotsRef.current,
+        lastSavedBlocks: lastSavedBlocksRef.current,
       };
     },
   }));

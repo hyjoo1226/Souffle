@@ -3,11 +3,9 @@ www.souffle.kr {
 
     route {
 	handle /swagger {
-	    header Cache-Control "no-store"
 	    reverse_proxy backend:4000
 	}
 	handle /swagger/* {
-	    header Cache-Control "no-store"
 	    reverse_proxy backend:4000
 	}
 
@@ -25,6 +23,10 @@ www.souffle.kr {
             reverse_proxy data:8000
         }
 
+	handle /auth/* {
+	    reverse_proxy backend:4000
+	}
+
         handle /api/v1/* {
             reverse_proxy backend:4000
         }
@@ -34,7 +36,7 @@ www.souffle.kr {
         }
 
         handle {
-            reverse_proxy frontend:3000
+	    reverse_proxy frontend:3000
         }
     }
 

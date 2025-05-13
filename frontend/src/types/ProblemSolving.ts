@@ -2,10 +2,11 @@ export interface CategoryProps {
   categoryData: CategoryData[];
   selectedLessonId: number | null; // 선택된 소단원 ID
   setSelectedLessonId: (lessonId: number) => void; // 선택된 소단원 ID를 설정하는 함수
+  selectedLessonName: string | null;
   setSelectedLessonName: (lessonName: string) => void; // 선택된 소단원 이름을 설정하는 함수
 }
 
-interface CategoryData {
+export interface CategoryData {
   id: number;
   name: string;
   type: 1; // 대단원
