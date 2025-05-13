@@ -272,4 +272,22 @@ export class NoteController {
       Number(type),
     );
   }
+
+  // 노트의 문제 상세 조회 API
+  @ApiOperation({ summary: '오답노트 문제 상세 조회' })
+  @ApiParam({
+    name: 'user_problem_id',
+    type: Number,
+    description: '사용자 문제 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '문제 상세 정보 조회 성공',
+  })
+  @ApiResponse({ status: 404, description: '문제 정보 없음' })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('detail/:user_problem_id')
+  async getProblemDetail(@Param('user_problem_id') userProblemId: number) {
+    return this.noteService.getProblemDetail(Number(userProblemId));
+  }
 }
