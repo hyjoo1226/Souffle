@@ -56,8 +56,8 @@ deploy:
   stage: deploy
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml down --volumes --remove-orphans || true
-    - docker-compose -f docker-compose.yml up -d
+    - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
+    - docker-compose -f docker-compose.ci.yml up -d
     - |
       curl -sSf https://www.souffle.kr/ || (docker logs data && exit 1)
     - |

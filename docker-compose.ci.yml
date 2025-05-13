@@ -5,13 +5,6 @@ services:
     ports:
       - "3000:3000"
     restart: always
-      #    depends_on:
-      #      backend:
-      #        condition: service_healthy
-          #    environment:
-          #      - NODE_ENV=production
-    # env_file:
-    #   - ./frontend/.env
     environment:
       VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
@@ -54,13 +47,6 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
-      # env_file:
-      #   - ./backend/backend/souffle/.env
-          #    healthcheck:
-          #      test: ["CMD", "curl", "-I", "http://localhost:4000/api/v1/healthcheck"]
-          #      interval: 10s
-          #      timeout: 5s
-          #      retries: 5
     networks:
       - internal
     volumes:
@@ -75,8 +61,6 @@ services:
     depends_on:
       - redis
       - db
-          #    env_file:
-          #      - ./analyzer/.env
     environment:
       OCR_BACKEND: ${OCR_BACKEND}
       MATHPIX_APP_ID: ${MATHPIX_APP_ID}
@@ -136,7 +120,7 @@ services:
       - ./volumes/caddy_config:/config
       - ./uploads:/app/uploads
     depends_on:
-      #      - frontend
+      - frontend
       - backend
       - data
     networks:

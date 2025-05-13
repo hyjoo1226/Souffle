@@ -26,7 +26,9 @@ export class AuthController {
   async googleAuthRedirect(@Req() req, @Res() res) {
     // JWT 발급
     const token = await this.authService.login(req.user);
-
+    //   const redirectUrl = `https://souffle.kr/oauth2/redirect?token=${token.access_token}`;
+    //   return res.redirect(redirectUrl);
+    // }
     const userInfo = {
       id: req.user.id,
       nickname: req.user.nickname,
