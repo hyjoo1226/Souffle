@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
-import { api } from "@/services/api/Api";
 
 const EntryPage = () => {
-  const googleLogin = async () => {
-    api.get("/auth/google");
+  const googleLogin = () => {
+          window.location.href = "https://www.souffle.kr/auth/google";
   };
   return (
     <div>
