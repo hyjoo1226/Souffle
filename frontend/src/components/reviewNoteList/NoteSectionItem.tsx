@@ -5,13 +5,26 @@ import { ReactComponent as Edit } from "@/assets/icons/Edit.svg";
 import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
 
 interface Props {
+  id: number;
   title: string;
   count: number;
+  setIsUpdateFolder: (value: boolean) => void;
+  setSelectedFolderId: (value: number) => void;
+  setNewFolderName: (value: string) => void;
   onClick: () => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
 }
 
-const NoteSectionItem = ({ title, count, onClick, onDropProblem }: Props) => {
+const NoteSectionItem = ({
+  title,
+  count,
+  id,
+  setIsUpdateFolder,
+  setSelectedFolderId,
+  setNewFolderName,
+  onClick,
+  onDropProblem,
+}: Props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -60,11 +73,20 @@ const NoteSectionItem = ({ title, count, onClick, onDropProblem }: Props) => {
           ref={menuRef}
           className="absolute p-3 top-full right-0 mt-2 w-32 bg-white border border-gray-100 figma-shadow rounded-[10px] z-50"
         >
-          <button className="w-full mb-2 flex items-center gap-x-3 text-left caption-medium text-gray-700">
-            <Edit className="w-4 h-4" />폴더명 변경
+          <button
+            className="w-full mb-2 flex items-center gap-x-3 text-left caption-medium text-gray-700"
+            onClick={() => {
+              setIsUpdateFolder(true);
+              setSelectedFolderId(id);
+              setNewFolderName(title);
+            }}
+          >
+            <Edit className="w-4 h-4" />
+            폴더명 변경
           </button>
           <button className="w-full flex items-center gap-x-3 text-left caption-medium text-gray-700">
-            <Trash className="w-4 h-4" />폴더 삭제
+            <Trash className="w-4 h-4" />
+            폴더 삭제
           </button>
         </div>
       )}
