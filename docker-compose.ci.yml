@@ -57,21 +57,21 @@ services:
       - internal
     volumes:
       - ./uploads:/app/uploads
-    data:
-      build:
-        context: ./data
-      container_name: data
-      ports:
-        - "8000:8000"
-      restart: always
-      depends_on:
-        - redis
-        - db
+  data:
+    build:
+      context: ./data
+    container_name: data
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - redis
+      - db
           #    env_file:
           #      - ./analyzer/.env
-      networks:
-        - internal
-        - public
+    networks:
+      - internal
+      - public
 
 
   db:
