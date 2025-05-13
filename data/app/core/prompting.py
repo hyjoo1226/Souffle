@@ -10,6 +10,11 @@ from app.core.config import settings  # settings에서 API 키를 가져오기 �
 # OpenAI API 키는 환경변수 OPENAI_API_KEY에 설정되어 있어야 합니다.
 api_key = settings.OPENAI_API_KEY
 client = AsyncOpenAI(api_key=api_key)
+'''
+배포시 수정해야될 부분
+이미지 path, (현재 고정 path -> request로 받게 변환)
+문제 변환본 path
+'''
 
 
 def get_problem_id_from_filename(filename: str) -> str:
@@ -68,6 +73,7 @@ async def analyze_step(problem: str, index: int, image_path: Path):
     }
 
 # 인자로 맞았는지 or 틀렸는지랑 problem_id 받는다
+## 현재는 상황에 맞는 더미데이터를 인자로 바꿔가며며 테스트중
 def parse_args():
     parser = argparse.ArgumentParser(description="단계별 수학 풀이 이미지 분석기")
     group = parser.add_mutually_exclusive_group(required=True)
@@ -91,7 +97,7 @@ async def main():
         image_dir = "app/core/wrong/"
         image_ext = ".jpg"
 
-
+    # 이미지 step별로 정렬 & 순차적으로 피드백 요청청
     image_paths = sorted(Path(image_dir).glob(f"*{image_ext}"))
     print(list(image_paths))
     print(f"[INFO] 분석할 이미지 {len(image_paths)}장 발견됨.")
@@ -112,5 +118,7 @@ async def main():
         print("-" * 80)
 
 if __name__ == "__main__":
+    # python -m app.core.prompting --correct --problem_id 25475-0001
+    # 1번의 맞는 경우를 피드백받겠따따
     import asyncio
     asyncio.run(main())
