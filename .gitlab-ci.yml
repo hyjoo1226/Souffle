@@ -43,7 +43,7 @@ integration-test:
     - docker-compose -f docker-compose.ci.yml up -d
     - curl -sSf http://localhost:8000/ || exit 1
     - curl -sSf http://localhost:3000/ || exit 1
-    - docker-compose -f docker-compose.ci.yml down
+#    - docker-compose -f docker-compose.ci.yml down
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
 
