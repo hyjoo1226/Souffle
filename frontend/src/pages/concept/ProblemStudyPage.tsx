@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useState } from 'react';
 
 import { ReactComponent as ExpandSlim } from "@/assets/icons/ExpandSlim.svg"
-import { ReactComponent as Cancel } from "@/assets/icons/Cancel.svg"
 import { Button } from "@/components/common/Button"
 import SideBar from "@/components/problemStudy/SideBar"
 import ProblemContent from "@/components/problemStudy/ProblemContent";
