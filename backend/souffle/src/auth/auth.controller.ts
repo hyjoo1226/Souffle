@@ -34,7 +34,11 @@ export class AuthController {
       profileImage: req.user.profileImage,
     };
     // 프론트엔드로 리다이렉트 + 토큰 전달
-    return res.json({ token: token.access_token, user: userInfo });
+    return res.json({
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+      user: userInfo,
+    });
   }
 
   @Post('refresh')
