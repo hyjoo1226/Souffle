@@ -275,4 +275,26 @@ export class NoteService {
       concept_strokes: noteContent.concept_strokes,
     };
   }
+
+  // 필기 스트로크 업데이트 API
+  async updateStrokes(
+    userProblemId: number,
+    dto: NoteStrokesResponseDto,
+  ): Promise<NoteStrokesResponseDto> {
+    const noteContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblemId } },
+    });
+    if (!noteContent) {
+      throw new NotFoundException('필기 내용이 존재하지 않습니다.');
+    }
+
+    noteContent.solution_strokes = dto.solution_strokes;
+    noteContent.concept_strokes = dto.concept_strokes;
+
+    const updated = await this.noteContentRepository.save(noteContent);
+    return {
+      solution_strokes: updated.solution_strokes,
+      concept_strokes: updated.concept_strokes,
+    };
+  }
 }

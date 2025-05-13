@@ -232,4 +232,18 @@ export class NoteController {
   ): Promise<NoteStrokesResponseDto> {
     return this.noteService.getNoteStrokes(Number(userProblemId));
   }
+
+  // 노트 필기 스트로크 업데이트 API
+  @Patch('content/:user_problem_id/stroke')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '필기 스트로크 업데이트' })
+  @ApiParam({ name: 'user_problem_id', type: Number })
+  @ApiResponse({ status: 200, type: NoteStrokesResponseDto })
+  @ApiResponse({ status: 404, description: '필기 내용 없음' })
+  async updateStrokes(
+    @Param('user_problem_id') userProblemId: number,
+    @Body() dto: NoteStrokesResponseDto,
+  ): Promise<NoteStrokesResponseDto> {
+    return this.noteService.updateStrokes(Number(userProblemId), dto);
+  }
 }
