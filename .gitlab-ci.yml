@@ -44,7 +44,7 @@ integration-test:
     - |
       curl -sSf http://localhost:8000/ || (docker logs data && exit 1)
     - |
-      for i in {1..10}; do echo "backend Çï½ºÃ¼Å© ´ë±â Áß... ($i/10)"; curl -sSf http://localhost:4000/health && break || sleep 3; done || (echo "backend Çï½ºÃ¼Å© ½ÇÆÐ" && docker logs backend && exit 1)
+      for i in {1..10}; do echo "backend ¿¿¿¿ ¿¿ ¿... ($i/10)"; curl -sSf http://localhost:4000/health && break || sleep 3; done || (echo "backend ¿¿¿¿ ¿¿" && docker logs backend && exit 1)
 
     - |
       curl -sSf http://localhost:3000/ || (docker logs frontend && exit 1)
@@ -56,12 +56,12 @@ deploy:
   stage: deploy
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml down --volumes --remove-orphans || true
-    - docker-compose -f docker-compose.yml up -d
+    - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
+    - docker-compose -f docker-compose.ci.yml up -d
     - |
       curl -sSf https://www.souffle.kr/ || (docker logs data && exit 1)
     - |
-      for i in {1..10}; do echo "backend Çï½ºÃ¼Å© ´ë±â Áß... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend Çï½ºÃ¼Å© ½ÇÆÐ" && docker logs backend && exit 1)
+      for i in {1..10}; do echo "backend ¿¿¿¿ ¿¿ ¿... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend ¿¿¿¿ ¿¿" && docker logs backend && exit 1)
 
     - |
       curl -sSf https://www.souffle.kr || (docker logs frontend && exit 1)

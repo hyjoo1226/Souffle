@@ -22,8 +22,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # env_file:
-      #   - ./backend/backend/souffle/.env
     environment:
       PORT: ${BE_PORT}
       NODE_ENV: ${NODE_ENV}
@@ -63,8 +61,6 @@ services:
     depends_on:
       - redis
       - db
-          #    env_file:
-          #      - ./analyzer/.env
     environment:
       OCR_BACKEND: ${OCR_BACKEND}
       MATHPIX_APP_ID: ${MATHPIX_APP_ID}
@@ -124,7 +120,7 @@ services:
       - ./volumes/caddy_config:/config
       - ./uploads:/app/uploads
     depends_on:
-      #      - frontend
+      - frontend
       - backend
       - data
     networks:
@@ -135,3 +131,4 @@ services:
 networks:
   public:
   internal:
+

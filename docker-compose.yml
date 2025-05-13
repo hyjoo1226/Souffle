@@ -4,10 +4,8 @@ services:
     container_name: frontend
     ports:
       - "3000:3000"
-    # env_file:
-    # - ./frontend/.env
-    environment:
-      VITE_APP_API_URL: ${VITE_APP_API_URL}
+    env_file:
+    - ./frontend/.env
     networks:
       - public
   backend:
@@ -20,33 +18,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    # env_file:
-    # - ./backend/souffle/.env
-    environment:
-      PORT: ${BE_PORT}
-      NODE_ENV: ${NODE_ENV}
-
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_DATABASE: ${DB_DATABASE}
-
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
-
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${AWS_REGION}
-      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
-
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET_KEY: ${GOOGLE_CLIENT_SECRET_KEY}
-      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
-
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+    env_file:
+    - ./backend/souffle/.env
     networks:
       - internal
     volumes:
@@ -61,13 +34,8 @@ services:
     depends_on:
       - redis
       - db
-    # env_file:
-    #   - ./data/.env
-    environment:
-      OCR_BACKEND: ${OCR_BACKEND}
-      MATHPIX_APP_ID: ${MATHPIX_APP_ID}
-      MATHPIX_APP_KEY: ${MATHPIX_APP_KEY}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    env_file:
+      - ./data/.env
     networks:
       - internal
       - public
@@ -128,3 +96,4 @@ services:
 networks:
   public:
   internal:
+

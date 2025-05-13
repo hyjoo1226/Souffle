@@ -30,12 +30,23 @@ export class NoteService {
     const folders = await this.noteFolderRepository.find({
       where: { user: { id: userId }, ...(type && { type }) },
     });
+
+    const folderIds = folders.map((f) => f.id);
+
+    // 폴더별 문제 개수 조회
+    const problemCounts = await this.getProblemCountsByFolders(
+      userId,
+      folderIds,
+      type || 2,
+    );
+
     const folderMap = new Map<number, any>();
     folders.forEach((f) =>
       folderMap.set(f.id, {
         id: f.id,
         name: f.name,
         type: f.type,
+        problem_count: problemCounts[f.id] || 0,
         children: [],
         parent_id: f.parent_id,
       }),
@@ -48,6 +59,29 @@ export class NoteService {
     });
 
     return folders.filter((f) => !f.parent_id).map((f) => folderMap.get(f.id));
+  }
+
+  // 폴더별 문제 개수 조회 메서드
+  private async getProblemCountsByFolders(
+    userId: number,
+    folderIds: number[],
+    type: number,
+  ): Promise<Record<number, number>> {
+    const folderField =
+      type === 2 ? 'wrong_note_folder_id' : 'favorite_folder_id';
+
+    const counts = await this.userProblemRepository
+      .createQueryBuilder('up')
+      .select([`up.${folderField} AS folder_id`, 'COUNT(*) as count'])
+      .where('up.user_id = :userId', { userId })
+      .andWhere(`up.${folderField} IN (:...folderIds)`, { folderIds })
+      .groupBy(`up.${folderField}`)
+      .getRawMany();
+
+    return counts.reduce((acc, curr) => {
+      acc[curr.folder_id] = parseInt(curr.count, 10);
+      return acc;
+    }, {});
   }
 
   // 오답노트 폴더 생성 API
