@@ -27,6 +27,7 @@ import {
 } from './dto/update-note-folder.dto';
 import { AddToFolderDto } from './dto/add-note.dto';
 import { MoveProblemFolderDto } from './dto/update-note.dto';
+import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -213,5 +214,22 @@ export class NoteController {
       dto.type,
       dto.folderId,
     );
+  }
+
+  // 노트 필기 스트로크 조회 API
+  @ApiOperation({ summary: '오답노트 필기 스트로크 조회' })
+  @ApiParam({ name: 'user_problem_id', type: Number })
+  @ApiResponse({
+    status: 200,
+    type: NoteStrokesResponseDto,
+    description: '스트로크 데이터 반환',
+  })
+  @ApiResponse({ status: 404, description: '필기 내용 없음' })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('content/:user_problem_id/stroke')
+  async getNoteStrokes(
+    @Param('user_problem_id') userProblemId: number,
+  ): Promise<NoteStrokesResponseDto> {
+    return this.noteService.getNoteStrokes(Number(userProblemId));
   }
 }

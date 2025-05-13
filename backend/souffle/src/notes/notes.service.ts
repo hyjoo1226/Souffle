@@ -5,6 +5,8 @@ import { NoteFolder } from './entities/note-folder.entity';
 import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
+import { NoteContent } from './entities/note-content.entity';
+import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
 
 @Injectable()
 export class NoteService {
@@ -13,6 +15,8 @@ export class NoteService {
     private noteFolderRepository: Repository<NoteFolder>,
     @InjectRepository(UserProblem)
     private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(NoteContent)
+    private noteContentRepository: Repository<NoteContent>,
   ) {}
 
   // 오답노트 폴더 조회 API
@@ -190,7 +194,22 @@ export class NoteService {
     } else {
       throw new BadRequestException('유효하지 않은 폴더 유형입니다.');
     }
-    return this.userProblemRepository.save(userProblem);
+
+    // note_content 생성 (없는 경우)
+    const savedUserProblem = await this.userProblemRepository.save(userProblem);
+    const existingContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: savedUserProblem.id } },
+    });
+    if (!existingContent) {
+      const newContent = this.noteContentRepository.create({
+        user_problem: savedUserProblem,
+        solution_strokes: [],
+        concept_strokes: [],
+      });
+      await this.noteContentRepository.save(newContent);
+    }
+
+    return savedUserProblem;
   }
 
   // 문제 오답노트에서 제거 API
@@ -239,5 +258,21 @@ export class NoteService {
     }
 
     return this.userProblemRepository.save(userProblem);
+  }
+
+  // 필기 스트로크 조회 API
+  async getNoteStrokes(userProblemId: number): Promise<NoteStrokesResponseDto> {
+    const noteContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblemId } },
+    });
+
+    if (!noteContent) {
+      throw new NotFoundException('필기 내용이 존재하지 않습니다.');
+    }
+
+    return {
+      solution_strokes: noteContent.solution_strokes,
+      concept_strokes: noteContent.concept_strokes,
+    };
   }
 }

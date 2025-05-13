@@ -20,11 +20,11 @@ export class NoteContent {
   @JoinColumn({ name: 'user_problem_id' })
   user_problem: UserProblem;
 
-  @Column({ type: 'json', nullable: false })
-  solution_strokes: any; // JSON 타입
+  @Column('jsonb')
+  solution_strokes: Array<Array<{ x: number; y: number }>>;
 
-  @Column({ type: 'json', nullable: false })
-  concept_strokes: any; // JSON 타입
+  @Column('jsonb')
+  concept_strokes: Array<Array<{ x: number; y: number }>>;
 
   @CreateDateColumn()
   created_at: Date;
