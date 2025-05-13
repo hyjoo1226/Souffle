@@ -26,6 +26,7 @@ import {
   UpdateNoteFolderOrderDto,
 } from './dto/update-note-folder.dto';
 import { AddToFolderDto } from './dto/add-note.dto';
+import { MoveProblemFolderDto } from './dto/update-note.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -189,6 +190,28 @@ export class NoteController {
       userId,
       Number(problemId),
       Number(type),
+    );
+  }
+
+  // 문제 다른 폴더로 이동 API
+  @ApiOperation({ summary: '문제 다른 폴더 이동' })
+  @ApiParam({ name: 'problem_id', type: Number, description: '문제 번호' })
+  @ApiBody({ type: MoveProblemFolderDto })
+  @ApiResponse({ status: 200, description: '문제 폴더 이동 성공' })
+  @ApiResponse({ status: 404, description: '폴더/문제 없음' })
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('problem/:problem_id')
+  async moveProblemFolder(
+    @Param('problem_id') problemId: number,
+    @Body() dto: MoveProblemFolderDto,
+    @Req() req,
+  ) {
+    const userId = req.user.id;
+    return this.noteService.moveProblemToFolder(
+      userId,
+      Number(problemId),
+      dto.type,
+      dto.folderId,
     );
   }
 }

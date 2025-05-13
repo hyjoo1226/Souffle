@@ -210,4 +210,34 @@ export class NoteService {
 
     return this.userProblemRepository.save(userProblem);
   }
+
+  // 문제 다른 폴더로 이동 API
+  async moveProblemToFolder(
+    userId: number,
+    problemId: number,
+    type: number,
+    folderId: number,
+  ) {
+    const folder = await this.noteFolderRepository.findOne({
+      where: { id: folderId },
+    });
+    if (!folder) throw new NotFoundException('존재하지 않는 폴더입니다.');
+    if ([1, 2, 3].includes(folderId))
+      throw new BadRequestException('시스템 폴더로 이동 불가');
+
+    const userProblem = await this.userProblemRepository.findOne({
+      where: { user: { id: userId }, problem: { id: problemId } },
+    });
+    if (!userProblem) throw new NotFoundException('문제 기록이 없습니다.');
+
+    if (type === 1) {
+      userProblem.favorite_folder_id = folderId;
+    } else if (type === 2) {
+      userProblem.wrong_note_folder_id = folderId;
+    } else {
+      throw new BadRequestException('유효하지 않은 폴더 유형입니다.');
+    }
+
+    return this.userProblemRepository.save(userProblem);
+  }
 }
