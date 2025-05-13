@@ -3,15 +3,17 @@ interface UnitCardProps {
   description: string[];
   numberLabel: string;
   background: string;
+  onClick?: () => void;
 }
 
-const UnitCard = ( { title, description, numberLabel, background }: UnitCardProps ) => {
+const UnitCard = ( { title, description, numberLabel, background, onClick }: UnitCardProps ) => {
   return (
     <div 
       className={`relative text-white rounded-2xl p-9.5 grid grid-rows-2 shadow-medium cursor-pointer hover:shadow-large transition-shadow`}
       style={{
         backgroundImage: background 
       }}
+      onClick={onClick}
     >
       <div className="flex flex-col gap-y-1 pb-6 border-b-1 border-white/30">
         <p className="headline-medium">{numberLabel}</p>

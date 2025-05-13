@@ -1,6 +1,7 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom";
 
-import UnitCard from "@/components/SelectUnit/UnitCard";
+import UnitCard from "@/components/selectUnit/UnitCard";
 
 const gradients = [
     "linear-gradient(135deg, #1E3C72 0%, #4FACFE 100%)",
@@ -80,6 +81,7 @@ const units: Record<string, {
 const SelectUnitPage = () => {
     const [selected, setSelected] = useState('공통 수학1');
     const tabs = ['공통 수학1', '공통 수학2'];
+    const navigate = useNavigate();
 
     return (
         <div className="bg-white w-full max-h-screen px-12.5">
@@ -114,6 +116,7 @@ const SelectUnitPage = () => {
                         {...unit}
                         numberLabel={numberLabel}
                         background={background}
+                        onClick={() => navigate("/study")}
                     />
                     );
                 })}
