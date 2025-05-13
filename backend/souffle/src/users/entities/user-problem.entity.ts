@@ -25,11 +25,11 @@ export class UserProblem {
   @JoinColumn({ name: 'problem_id' })
   problem: Problem;
 
-  @Column({ nullable: true })
-  wrong_note_folder_id: number;
+  @Column({ type: 'integer', nullable: true })
+  wrong_note_folder_id: number | null;
 
-  @Column({ nullable: true })
-  favorite_folder_id: number;
+  @Column({ type: 'integer', nullable: true })
+  favorite_folder_id: number | null;
 
   @Column({ default: 0 })
   try_count: number;

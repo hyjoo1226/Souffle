@@ -192,4 +192,22 @@ export class NoteService {
     }
     return this.userProblemRepository.save(userProblem);
   }
+
+  // 문제 오답노트에서 제거 API
+  async removeFromNoteFolder(userId: number, problemId: number, type: number) {
+    const userProblem = await this.userProblemRepository.findOne({
+      where: { user: { id: userId }, problem: { id: problemId } },
+    });
+    if (!userProblem) throw new NotFoundException('문제 기록이 없습니다.');
+
+    if (type === 1) {
+      userProblem.favorite_folder_id = null;
+    } else if (type === 2) {
+      userProblem.wrong_note_folder_id = null;
+    } else {
+      throw new BadRequestException('유효하지 않은 타입입니다.');
+    }
+
+    return this.userProblemRepository.save(userProblem);
+  }
 }

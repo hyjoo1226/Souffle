@@ -172,4 +172,20 @@ export class NoteController {
       dto.type,
     );
   }
+
+  // 문제 오답노트에서 제거 API
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('problem/:problem_id')
+  async removeFromFolder(
+    @Param('problem_id') problemId: number,
+    @Query('type') type: number,
+    @Req() req,
+  ) {
+    const userId = req.user.id;
+    return this.noteService.removeFromNoteFolder(
+      userId,
+      Number(problemId),
+      Number(type),
+    );
+  }
 }
