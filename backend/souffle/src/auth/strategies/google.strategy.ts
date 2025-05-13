@@ -27,16 +27,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   }
 
   async validate(
-    req: Request,
     accessToken: string,
     refreshToken: string,
     profile: any,
     done: VerifyCallback,
   ) {
-    if (!profile) {
-    console.error('[GoogleStrategy] No profile returned');
-    return done(new Error('No profile returned from Google'), undefined);
-    }
     const { emails, name, photos } = profile;
     // DB에서 유저 찾기
     const userAuth = await this.userAuthRepository.findOne({

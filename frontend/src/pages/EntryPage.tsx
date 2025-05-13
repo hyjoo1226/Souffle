@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const EntryPage = () => {
   const googleLogin = () => {
-	  window.location.href = "https://www.souffle.kr/auth/google";
+          window.location.href = "https://www.souffle.kr/auth/google";
   };
   return (
     <div>
@@ -17,6 +17,8 @@ const EntryPage = () => {
 
         {/* 임시로 submissionId 1번으로 넣어놨어요 */}
         <Link to="/review">오답노트</Link>
+        <Link to="/landing">랜딩</Link>
+        <Link to="/my-report">마이페이지</Link>
       </nav>
 
       <button onClick={googleLogin} className="text-gray-700 display-large">

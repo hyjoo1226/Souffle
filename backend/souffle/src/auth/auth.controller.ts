@@ -10,7 +10,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -25,11 +25,8 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
     // JWT 발급
-    console.log('OAuth callback] req.user:', req.user);
     const token = await this.authService.login(req.user);
-    if (!req.user) {
-    	return res.status(401).json({ message: 'No user from Google' });
-	}
+
     const userInfo = {
       id: req.user.id,
       nickname: req.user.nickname,
@@ -37,8 +34,13 @@ export class AuthController {
       profileImage: req.user.profileImage,
     };
     // 프론트엔드로 리다이렉트 + 토큰 전달
-    return res.json({ access_token: token.access_token, refresh_token: token.refresh_token, user: userInfo });
+    return res.json({
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+      user: userInfo,
+    });
   }
+
   @Post('refresh')
   async refresh(@Body('refresh_token') refreshToken: string) {
     return this.authService.refresh(refreshToken);
