@@ -1,7 +1,4 @@
-import {
-  Controller,
-  Get,
-} from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import {
   HealthCheckService,
   HealthCheck,
@@ -31,7 +28,7 @@ export class HealthController {
       () =>
         this.microservice.pingCheck('redis', {
           transport: Transport.TCP,
-          options: { host: 'localhost', port: 6379 },
+          options: { host: 'redis', port: 6379 },
         }),
     ]);
   }
