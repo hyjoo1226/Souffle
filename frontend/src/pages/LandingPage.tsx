@@ -51,7 +51,7 @@ const LandingPage = () => {
     {
       label: "내 학습 현황",
       color: "#57B563",
-      path: "/status",
+      path: "/my-report",
       lines: [
         "문제 풀이 기록을 바탕으로",
         <>
