@@ -11,6 +11,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        navigateFallbackDenylist: [
+          /^\/auth\//,
+          /^\/swagger/,
+          /^\/docs/,
+          /^\/openapi.json/,
+        ],
+      },
       includeAssets: ['favicon.svg', 'robots.txt'],
       manifest: {
         name: 'Souffle',

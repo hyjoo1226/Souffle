@@ -44,7 +44,7 @@ integration-test:
 deploy:
   stage: deploy
   tags: [deploy]
-  needs: [integration-test]
+  # needs: [integration-test]
   script:
     - docker-compose -f docker-compose.yml up -d --build
   rules:

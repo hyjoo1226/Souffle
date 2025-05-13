@@ -1,0 +1,136 @@
+services:
+  frontend:
+    build: ./frontend
+    container_name: frontend
+      #    ports:
+      #      - "3000:3000"
+    restart: always
+      #    depends_on:
+      #      backend:
+      #        condition: service_healthy
+          #    environment:
+          #      - NODE_ENV=production
+    # env_file:
+    #   - ./frontend/.env
+    environment:
+      VITE_APP_API_URL: ${VITE_APP_API_URL}
+    networks:
+      - public
+
+
+  backend:
+    build: ./backend/souffle
+    container_name: backend
+    ports:
+      - "4000:4000"
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: ${BE_PORT}
+      NODE_ENV: ${NODE_ENV}
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+      # env_file:
+      #   - ./backend/backend/souffle/.env
+          #    healthcheck:
+          #      test: ["CMD", "curl", "-I", "http://localhost:4000/api/v1/healthcheck"]
+          #      interval: 10s
+          #      timeout: 5s
+          #      retries: 5
+    networks:
+      - internal
+    volumes:
+      - ./uploads:/app/uploads
+  data:
+    build:
+      context: ./data
+    container_name: data
+    ports:
+      - "8000:8000"
+    restart: always
+    depends_on:
+      - redis
+      - db
+        #    env_file:
+        #      - ./analyzer/.env
+    networks:
+      - internal
+      - public
+
+
+  db:
+    image: postgres:14
+    container_name: db
+    restart: always
+    environment:
+      POSTGRES_USER: ssafy
+      POSTGRES_PASSWORD: ssafy1234
+      POSTGRES_DB: app
+    volumes:
+      - ./volumes/db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ssafy"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./volumes/caddy_data:/data
+      - ./volumes/caddy_config:/config
+      - ./uploads:/app/uploads
+    depends_on:
+      #      - frontend
+      - backend
+      - data
+    networks:
+      - public
+      - internal
+
+
+networks:
+  public:
+  internal:
