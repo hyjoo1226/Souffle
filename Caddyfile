@@ -27,6 +27,10 @@ www.souffle.kr {
 	    reverse_proxy backend:4000
 	}
 
+	handle /health {
+	    reverse_proxy backend:8000
+	}
+
         handle /api/v1/* {
             reverse_proxy backend:4000
         }
