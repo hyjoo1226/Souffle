@@ -50,12 +50,20 @@ integration-test:
       curl -sSf http://localhost:3000/ || (docker logs frontend && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
 
 deploy:
   stage: deploy
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.yml up -d --build
-    - curl -sSf https://souffle.kr/health || exit 1
+    - docker-compose -f docker-compose.yml down --volumes --remove-orphans || true
+    - docker-compose -f docker-compose.yml up -d
+    - |
+      curl -sSf https://www.souffle.kr/ || (docker logs data && exit 1)
+    - |
+      for i in {1..10}; do echo "backend 헬스체크 대기 중... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend 헬스체크 실패" && docker logs backend && exit 1)
+
+    - |
+      curl -sSf https://www.souffle.kr || (docker logs frontend && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
