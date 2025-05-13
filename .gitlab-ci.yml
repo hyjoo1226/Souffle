@@ -50,13 +50,14 @@ integration-test:
       curl -sSf http://localhost:3000/ || (docker logs frontend && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
 
 deploy:
   stage: deploy
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
-    - docker-compose -f docker-compose.ci.yml up -d
+    - docker-compose -f docker-compose.yml down --volumes --remove-orphans || true
+    - docker-compose -f docker-compose.yml up -d
     - |
       curl -sSf https://www.souffle.kr/ || (docker logs data && exit 1)
     - |
@@ -65,5 +66,4 @@ deploy:
     - |
       curl -sSf https://www.souffle.kr || (docker logs frontend && exit 1)
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "master"'
