@@ -28,6 +28,7 @@ import {
 import { AddToFolderDto } from './dto/add-note.dto';
 import { MoveProblemFolderDto } from './dto/update-note.dto';
 import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
+import { FolderProblemDto } from './dto/folder-problem.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -245,5 +246,30 @@ export class NoteController {
     @Body() dto: NoteStrokesResponseDto,
   ): Promise<NoteStrokesResponseDto> {
     return this.noteService.updateStrokes(Number(userProblemId), dto);
+  }
+
+  // 폴더의 문제 목록 조회 API
+  @ApiOperation({ summary: '폴더 내 문제 목록 조회' })
+  @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
+  @ApiQuery({
+    name: 'type',
+    enum: [1, 2],
+    required: true,
+    description: '1: 즐겨찾기, 2: 오답노트',
+  })
+  @ApiResponse({ status: 200, type: [FolderProblemDto] })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('folder/:folder_id/problem')
+  async getFolderProblems(
+    @Param('folder_id') folderId: number,
+    @Query('type') type: number,
+    @Req() req,
+  ): Promise<FolderProblemDto[]> {
+    const userId = req.user.id;
+    return this.noteService.getFolderProblems(
+      userId,
+      Number(folderId),
+      Number(type),
+    );
   }
 }

@@ -297,4 +297,42 @@ export class NoteService {
       concept_strokes: updated.concept_strokes,
     };
   }
+
+  // 폴더의 문제 목록 조회 API
+  async getFolderProblems(userId: number, folderId: number, type: number) {
+    const folderField =
+      type === 1 ? 'favorite_folder_id' : 'wrong_note_folder_id';
+
+    const query = this.userProblemRepository
+      .createQueryBuilder('up')
+      .select([
+        'p.id AS problem_id',
+        'up.id AS user_problem_id',
+        'c.name AS category_name',
+        'p."innerNo" AS inner_no',
+        'p.type AS problem_type',
+        'up.try_count AS try_count',
+        'up.correct_count AS correct_count',
+        'up.last_submission_id AS last_submission_id',
+      ])
+      .innerJoin('up.problem', 'p')
+      .innerJoin('p.category', 'c')
+      .where(`up.user_id = :userId`, { userId })
+      .andWhere(`up.${folderField} = :folderId`, { folderId });
+
+    const rawResults = await query.getRawMany();
+
+    return rawResults.map((result) => ({
+      problem_id: result.problem_id,
+      user_problem_id: result.user_problem_id,
+      category_name: result.category_name,
+      inner_no: result.inner_no,
+      problem_type: result.problem_type,
+      user: {
+        try_count: result.try_count,
+        correct_count: result.correct_count,
+        last_submission_id: result.last_submission_id,
+      },
+    }));
+  }
 }
