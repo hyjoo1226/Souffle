@@ -10,6 +10,7 @@ import MyStudyReportPage from "@/pages/MyStudyReportPage";
 import SelectUnitPage from "@/pages/concept/SelectUnitPage";
 import ConceptStudyPage from "@/pages/concept/ConceptStudyPage";
 import ProblemStudyPage from "@/pages/concept/ProblemStudyPage";
+import OAuth2RedirectHandler from "@/pages/OAuth2RedirectHandler";
 
 const Router = () => {
   return (
@@ -28,6 +29,7 @@ const Router = () => {
       <Route path="/select-unit" element={<SelectUnitPage />} />
       <Route path="/study" element={<ConceptStudyPage />} />
       <Route path="/problem-study" element={<ProblemStudyPage />}/>
+      <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
     </Routes>
   );
 };
