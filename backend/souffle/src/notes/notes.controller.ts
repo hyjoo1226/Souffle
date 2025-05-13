@@ -25,6 +25,7 @@ import {
   UpdateNoteFolderDto,
   UpdateNoteFolderOrderDto,
 } from './dto/update-note-folder.dto';
+import { AddToFolderDto } from './dto/add-note.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -65,14 +66,10 @@ export class NoteController {
       },
     },
   })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('folder')
-  async getFolders(
-    // @Req() req,
-    @Query('type') type?: number,
-  ) {
-    const userId = 1;
-    // const userId = req.user.id;
+  async getFolders(@Req() req, @Query('type') type?: number) {
+    const userId = req.user.id;
     return this.noteService.getNoteFolderTree(userId, type);
   }
 
@@ -101,14 +98,13 @@ export class NoteController {
     },
   })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Post('folder')
   async createNoteFolder(
     @Body() createFolderDto: CreateNoteFolderDto,
-    // @Req() req,
+    @Req() req,
   ) {
-    const userId = 1;
-    // const userId = req.user.id;
+    const userId = req.user.id;
     return this.noteService.createNoteFolder(userId, createFolderDto);
   }
 
@@ -120,7 +116,7 @@ export class NoteController {
     description: '변경할 폴더 이름',
   })
   @ApiResponse({ status: 200, description: '변경된 폴더 정보 반환' })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Patch('folder/:folder_id')
   async updateFolderName(
     @Param('folder_id') folderId: number,
@@ -137,7 +133,7 @@ export class NoteController {
     description: '변경할 sort_order 값',
   })
   @ApiResponse({ status: 200, description: '변경된 폴더 정보 반환' })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Patch('folder/:folder_id/order')
   async updateFolderOrder(
     @Param('folder_id') folderId: number,
@@ -154,9 +150,26 @@ export class NoteController {
   @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
   @ApiResponse({ status: 200, description: '폴더 삭제 성공' })
   @ApiResponse({ status: 404, description: '폴더를 찾을 수 없음' })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Delete('folder/:folder_id')
   async deleteNoteFolder(@Param('folder_id') folderId: number) {
     return this.noteService.deleteNoteFolder(folderId);
+  }
+
+  // 문제 오답노트에 추가 API
+  @ApiOperation({ summary: '문제를 오답노트 폴더에 추가' })
+  @ApiBody({ type: AddToFolderDto })
+  @ApiResponse({ status: 200, description: '폴더 추가 성공' })
+  @ApiResponse({ status: 404, description: '폴더/문제 없음' })
+  @UseGuards(AuthGuard('jwt'))
+  @Post('add')
+  async addToFolder(@Body() dto: AddToFolderDto, @Req() req) {
+    const userId = req.user.id;
+    return this.noteService.addToNoteFolder(
+      userId,
+      dto.problemId,
+      dto.folderId,
+      dto.type,
+    );
   }
 }

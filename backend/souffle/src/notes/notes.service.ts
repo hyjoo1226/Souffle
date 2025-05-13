@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { NoteFolder } from './entities/note-folder.entity';
 import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { UserProblem } from 'src/users/entities/user-problem.entity';
 
 @Injectable()
 export class NoteService {
   constructor(
     @InjectRepository(NoteFolder)
     private noteFolderRepository: Repository<NoteFolder>,
+    @InjectRepository(UserProblem)
+    private userProblemRepository: Repository<UserProblem>,
   ) {}
 
   // 오답노트 폴더 조회 API
@@ -151,5 +154,42 @@ export class NoteService {
 
     await this.noteFolderRepository.delete(folderId);
     return { message: '폴더가 삭제되었습니다.' };
+  }
+
+  // 문제 오답노트에 추가 API
+  async addToNoteFolder(
+    userId: number,
+    problemId: number,
+    folderId: number,
+    type: number,
+  ) {
+    const folder = await this.noteFolderRepository.findOne({
+      where: { id: folderId },
+    });
+    if (!folder) {
+      throw new NotFoundException('존재하지 않는 폴더입니다.');
+    }
+    if ([1, 2, 3].includes(folderId)) {
+      throw new BadRequestException('최상위 폴더에는 추가할 수 없습니다.');
+    }
+
+    const userProblem = await this.userProblemRepository.findOne({
+      where: {
+        user: { id: userId },
+        problem: { id: problemId },
+      },
+    });
+    if (!userProblem) {
+      throw new NotFoundException('문제 기록이 존재하지 않습니다.');
+    }
+
+    if (type === 1) {
+      userProblem.favorite_folder_id = folderId;
+    } else if (type === 2) {
+      userProblem.wrong_note_folder_id = folderId;
+    } else {
+      throw new BadRequestException('유효하지 않은 폴더 유형입니다.');
+    }
+    return this.userProblemRepository.save(userProblem);
   }
 }
