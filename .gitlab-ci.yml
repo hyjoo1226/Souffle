@@ -59,11 +59,10 @@ deploy:
     - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
     - docker-compose -f docker-compose.ci.yml up -d
     - |
-      curl -sSf https://www.souffle.kr/ || (docker logs data && exit 1)
+      for i in {1..10}; do echo "data ¿¿¿¿ ¿¿ ¿... ($i/10)"; curl -sSf https://www.souffle.kr/ && break || sleep 3; done || (echo "data ¿¿¿¿ ¿¿" && docker logs data && exit 1)
     - |
       for i in {1..10}; do echo "backend ¿¿¿¿ ¿¿ ¿... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend ¿¿¿¿ ¿¿" && docker logs backend && exit 1)
-
     - |
-      curl -sSf https://www.souffle.kr || (docker logs frontend && exit 1)
+      for i in {1..10}; do echo "frontend ¿¿¿¿ ¿¿ ¿... ($i/10)"; curl -sSf https://www.souffle.kr && break || sleep 3; done || (echo "frontend ¿¿¿¿ ¿¿" && docker logs frontend && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
