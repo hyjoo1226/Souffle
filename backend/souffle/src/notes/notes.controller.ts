@@ -174,6 +174,9 @@ export class NoteController {
   }
 
   // 문제 오답노트에서 제거 API
+  @ApiOperation({ summary: '문제를 오답노트 폴더에서 제거' })
+  @ApiResponse({ status: 200, description: '문제 제거거 성공' })
+  @ApiResponse({ status: 404, description: 'user_problem 없음' })
   @UseGuards(AuthGuard('jwt'))
   @Delete('problem/:problem_id')
   async removeFromFolder(
