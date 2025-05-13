@@ -40,10 +40,7 @@ integration-test:
     - build-data
   script:
     - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
-    - docker system prune -af || true
-    - docker-compose -f docker-compose.ci.yml build --no-cache
     - docker-compose -f docker-compose.ci.yml up -d
-    - sleep 10
     - for i in {1..10}; do curl -sSf http://localhost:8000/health && break || sleep 5; done
     - curl -sSf http://localhost:3000/ || exit 1
     - docker-compose -f docker-compose.ci.yml down

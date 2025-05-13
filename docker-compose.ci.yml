@@ -2,8 +2,8 @@ services:
   frontend:
     build: ./frontend
     container_name: frontend
-      #    ports:
-      #      - "3000:3000"
+    ports:
+      - "3000:3000"
     restart: always
       #    depends_on:
       #      backend:
@@ -77,6 +77,11 @@ services:
       - db
           #    env_file:
           #      - ./analyzer/.env
+    environment:
+      OCR_BACKEND: ${OCR_BACKEND}
+      MATHPIX_APP_ID: ${MATHPIX_APP_ID}
+      MATHPIX_APP_KEY: ${MATHPIX_APP_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
     networks:
       - internal
       - public
