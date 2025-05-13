@@ -32,7 +32,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     profile: any,
     done: VerifyCallback,
   ) {
-    const { emails, name } = profile;
+    const { emails, name, photos } = profile;
     // DB에서 유저 찾기
     const userAuth = await this.userAuthRepository.findOne({
       where: {
@@ -50,6 +50,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     // 없으면 새 유저 + UserAuthentication 생성
     const newUser = await this.userService.create({
       nickname: name.givenName + name.familyName,
+      profileImage: photos[0].value,
     });
 
     await this.userAuthRepository.save({

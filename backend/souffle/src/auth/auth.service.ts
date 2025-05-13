@@ -8,9 +8,18 @@ export class AuthService {
 
   // JWT 발급
   login(user: User) {
-    const payload = { sub: user.id, nickname: user.nickname };
+    const payload = {
+      sub: user.id,
+      nickname: user.nickname,
+      profileImage: user.profileImage,
+    };
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        id: user.id,
+        nickname: user.nickname,
+        profileImage: user.profileImage,
+      },
     };
   }
 }
