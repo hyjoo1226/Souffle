@@ -7,6 +7,8 @@ import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteContent } from './entities/note-content.entity';
 import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
+import { Submission } from 'src/submissions/entities/submission.entity';
+import { SubmissionStep } from 'src/submissions/entities/submission-step.entity';
 
 @Injectable()
 export class NoteService {
@@ -17,6 +19,10 @@ export class NoteService {
     private userProblemRepository: Repository<UserProblem>,
     @InjectRepository(NoteContent)
     private noteContentRepository: Repository<NoteContent>,
+    @InjectRepository(Submission)
+    private submissionRepository: Repository<Submission>,
+    @InjectRepository(SubmissionStep)
+    private submissionStepRepository: Repository<SubmissionStep>,
   ) {}
 
   // 오답노트 폴더 조회 API
@@ -274,5 +280,183 @@ export class NoteService {
       solution_strokes: noteContent.solution_strokes,
       concept_strokes: noteContent.concept_strokes,
     };
+  }
+
+  // 필기 스트로크 업데이트 API
+  async updateStrokes(
+    userProblemId: number,
+    dto: NoteStrokesResponseDto,
+  ): Promise<NoteStrokesResponseDto> {
+    const noteContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblemId } },
+    });
+    if (!noteContent) {
+      throw new NotFoundException('필기 내용이 존재하지 않습니다.');
+    }
+
+    noteContent.solution_strokes = dto.solution_strokes;
+    noteContent.concept_strokes = dto.concept_strokes;
+
+    const updated = await this.noteContentRepository.save(noteContent);
+    return {
+      solution_strokes: updated.solution_strokes,
+      concept_strokes: updated.concept_strokes,
+    };
+  }
+
+  // 폴더의 문제 목록 조회 API
+  async getFolderProblems(userId: number, folderId: number, type: number) {
+    const folderField =
+      type === 1 ? 'favorite_folder_id' : 'wrong_note_folder_id';
+
+    const query = this.userProblemRepository
+      .createQueryBuilder('up')
+      .select([
+        'p.id AS problem_id',
+        'up.id AS user_problem_id',
+        'c.name AS category_name',
+        'p."innerNo" AS inner_no',
+        'p.type AS problem_type',
+        'up.try_count AS try_count',
+        'up.correct_count AS correct_count',
+        'up.last_submission_id AS last_submission_id',
+      ])
+      .innerJoin('up.problem', 'p')
+      .innerJoin('p.category', 'c')
+      .where(`up.user_id = :userId`, { userId })
+      .andWhere(`up.${folderField} = :folderId`, { folderId });
+
+    const rawResults = await query.getRawMany();
+
+    return rawResults.map((result) => ({
+      problem_id: result.problem_id,
+      user_problem_id: result.user_problem_id,
+      category_name: result.category_name,
+      inner_no: result.inner_no,
+      problem_type: result.problem_type,
+      user: {
+        try_count: result.try_count,
+        correct_count: result.correct_count,
+        last_submission_id: result.last_submission_id,
+      },
+    }));
+  }
+
+  // 노트의 문제 상세 조회 API
+  async getProblemDetail(userProblemId: number) {
+    // user_problem
+    const userProblem = await this.userProblemRepository.findOne({
+      where: { id: userProblemId },
+      relations: ['problem', 'problem.book', 'problem.category'],
+    });
+
+    if (!userProblem) {
+      throw new NotFoundException('문제 정보를 찾을 수 없습니다.');
+    }
+
+    // note_content
+    const noteContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblemId } },
+    });
+
+    // 가장 최근 submission
+    const lastSubmission = await this.submissionRepository.findOne({
+      where: { id: userProblem.last_submission_id },
+    });
+
+    // submission_steps
+    const submissionSteps = lastSubmission
+      ? await this.submissionStepRepository.find({
+          where: { submission: { id: lastSubmission.id } },
+          order: { stepNumber: 'ASC' },
+        })
+      : [];
+
+    // 카테고리 계층 구조 조회 (재귀 쿼리)
+    const categoryWithHierarchy = await this.getCategoryHierarchy(
+      userProblem.problem.category.id,
+    );
+
+    return {
+      // 문제 정보
+      problem_id: userProblem.problem.id,
+      content: userProblem.problem.content,
+      choice: userProblem.problem.choice,
+      problem_image_url: userProblem.problem.problemImageUrl,
+      answer: userProblem.problem.answer,
+      explanation: userProblem.problem.explanation,
+      explanation_image_url: userProblem.problem.explanationImageUrl,
+      inner_no: userProblem.problem.innerNo,
+
+      // 필기 정보
+      solution_strokes: noteContent?.solution_strokes || [],
+      concept_strokes: noteContent?.concept_strokes || [],
+
+      // 책 정보
+      book_name: userProblem.problem.book.name,
+      publisher: userProblem.problem.book.publisher,
+      year: userProblem.problem.book.year,
+
+      // 카테고리 정보
+      category: categoryWithHierarchy,
+
+      // 제출 정보
+      total_solve_time: lastSubmission?.totalSolveTime,
+      understand_time: lastSubmission?.understandTime,
+      solve_time: lastSubmission?.solveTime,
+      review_time: lastSubmission?.reviewTime,
+      answer_convert: lastSubmission?.answerConvert,
+      full_step_image_url: lastSubmission?.fullStepImageUrl,
+      is_correct: lastSubmission?.isCorrect,
+      ai_analysis: lastSubmission?.aiAnalysis,
+
+      // 제출 단계 정보
+      submission_steps: submissionSteps.map((step) => ({
+        step_number: step.stepNumber,
+        step_valid: step.isValid,
+        step_feedback: step.stepFeedback,
+      })),
+    };
+  }
+
+  // 카테고리 계층 구조 조회
+  private async getCategoryHierarchy(categoryId: number) {
+    const query = `
+      WITH RECURSIVE category_tree AS (
+        SELECT id, name, "parentId"
+        FROM categories
+        WHERE id = $1
+        UNION ALL
+        SELECT c.id, c.name, c."parentId"
+        FROM categories c
+        JOIN category_tree ct ON c.id = ct."parentId"
+      )
+      SELECT * FROM category_tree
+    `;
+
+    const categories = await this.userProblemRepository.query(query, [
+      categoryId,
+    ]);
+
+    // 계층 구조로 변환
+    const categoryMap = new Map();
+    categories.forEach((c) =>
+      categoryMap.set(c.id, {
+        id: c.id,
+        name: c.name,
+        parent: null,
+      }),
+    );
+
+    // 부모-자식 관계 설정
+    categories.forEach((c) => {
+      if (c.parent_id && categoryMap.has(c.parent_id)) {
+        const category = categoryMap.get(c.id);
+        category.parent = categoryMap.get(c.parent_id);
+      }
+    });
+
+    // 루트 카테고리 반환
+    return categoryMap.get(categoryId);
   }
 }

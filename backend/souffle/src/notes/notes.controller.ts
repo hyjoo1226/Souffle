@@ -28,6 +28,7 @@ import {
 import { AddToFolderDto } from './dto/add-note.dto';
 import { MoveProblemFolderDto } from './dto/update-note.dto';
 import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
+import { FolderProblemDto } from './dto/folder-problem.dto';
 
 @Controller('api/v1/notes')
 export class NoteController {
@@ -231,5 +232,62 @@ export class NoteController {
     @Param('user_problem_id') userProblemId: number,
   ): Promise<NoteStrokesResponseDto> {
     return this.noteService.getNoteStrokes(Number(userProblemId));
+  }
+
+  // 노트 필기 스트로크 업데이트 API
+  @Patch('content/:user_problem_id/stroke')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiOperation({ summary: '필기 스트로크 업데이트' })
+  @ApiParam({ name: 'user_problem_id', type: Number })
+  @ApiResponse({ status: 200, type: NoteStrokesResponseDto })
+  @ApiResponse({ status: 404, description: '필기 내용 없음' })
+  async updateStrokes(
+    @Param('user_problem_id') userProblemId: number,
+    @Body() dto: NoteStrokesResponseDto,
+  ): Promise<NoteStrokesResponseDto> {
+    return this.noteService.updateStrokes(Number(userProblemId), dto);
+  }
+
+  // 폴더의 문제 목록 조회 API
+  @ApiOperation({ summary: '폴더 내 문제 목록 조회' })
+  @ApiParam({ name: 'folder_id', type: Number, description: '폴더 ID' })
+  @ApiQuery({
+    name: 'type',
+    enum: [1, 2],
+    required: true,
+    description: '1: 즐겨찾기, 2: 오답노트',
+  })
+  @ApiResponse({ status: 200, type: [FolderProblemDto] })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('folder/:folder_id/problem')
+  async getFolderProblems(
+    @Param('folder_id') folderId: number,
+    @Query('type') type: number,
+    @Req() req,
+  ): Promise<FolderProblemDto[]> {
+    const userId = req.user.id;
+    return this.noteService.getFolderProblems(
+      userId,
+      Number(folderId),
+      Number(type),
+    );
+  }
+
+  // 노트의 문제 상세 조회 API
+  @ApiOperation({ summary: '오답노트 문제 상세 조회' })
+  @ApiParam({
+    name: 'user_problem_id',
+    type: Number,
+    description: '사용자 문제 ID',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '문제 상세 정보 조회 성공',
+  })
+  @ApiResponse({ status: 404, description: '문제 정보 없음' })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('detail/:user_problem_id')
+  async getProblemDetail(@Param('user_problem_id') userProblemId: number) {
+    return this.noteService.getProblemDetail(Number(userProblemId));
   }
 }
