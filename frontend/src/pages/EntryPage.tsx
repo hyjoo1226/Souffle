@@ -19,6 +19,7 @@ const EntryPage = () => {
         <Link to="/review">오답노트</Link>
         <Link to="/landing">랜딩</Link>
         <Link to="/my-report">마이페이지</Link>
+        <Link to="/select-unit">개념학습</Link>
       </nav>
 
       <button onClick={googleLogin} className="text-gray-700 display-large">
