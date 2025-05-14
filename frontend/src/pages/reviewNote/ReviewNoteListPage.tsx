@@ -1,13 +1,21 @@
 // ReviewNoteListPage.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import NoteFolder from "@/components/reviewNoteList/NoteFolder";
 import ReviewNoteItem from "@/components/reviewNoteList/ReviewNoteItem";
 import { ReactComponent as UploadLight } from "@/assets/icons/UploadLight.svg";
 import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
-import { getFavoriteFoldersApi, Folder } from "@/services/api/ReviewNoteList";
+import {
+  getFavoriteFoldersApi,
+  getReviewNoteFolderApi,
+  getProblemListApi,
+  Folder,
+  ReviewNoteList,
+} from "@/services/api/ReviewNoteList";
 import {
   mockFavoriteFolderData,
   mockReviewNoteFolderData,
+  mockType1ListData,
+  mockType2ListData,
 } from "@/mocks/dummyReviewData";
 
 const ReviewNoteListPage = () => {
@@ -34,38 +42,6 @@ const ReviewNoteListPage = () => {
     },
   };
 
-  const reviewNoteList = [
-    {
-      chapter: "즐겨찾기",
-      sections: [
-        { title: "이승주의 오답 컬렉션", count: 3 },
-        { title: "3월 모의고사", count: 9 },
-        { title: "6월 모의고사", count: 11 },
-        { title: "9월 모의고사", count: 2 },
-      ],
-    },
-    {
-      chapter: "공통 수학1",
-      sections: [
-        { title: "부등식", count: 9 },
-        { title: "도형의 방정식", count: 11 },
-        { title: "지수함수와 로그함수", count: 2 },
-        { title: "삼각함수", count: 3 },
-        { title: "2차 방정식", count: 7 },
-      ],
-    },
-    {
-      chapter: "공통 수학2",
-      sections: [
-        { title: "부등식", count: 9 },
-        { title: "도형의 방정식", count: 11 },
-        { title: "지수함수와 로그함수", count: 2 },
-        { title: "삼각함수", count: 3 },
-        { title: "2차 방정식", count: 7 },
-      ],
-    },
-  ];
-
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
@@ -73,9 +49,27 @@ const ReviewNoteListPage = () => {
   const tabs = ["정답률↑", "정답률↓", "미해결"];
   const [selected, setSelected] = useState("정답률↑");
 
-  const handleSelectSection = (chapter: string, section: string) => {
+  const handleSelectSection = async (
+    chapter: string,
+    section: string,
+    type: number,
+    id: number
+  ) => {
     setSelectedChapter(chapter);
     setSelectedSection(section);
+    setSelectedType(type);
+    console.log("chapter", chapter);
+    console.log("section", section);
+    console.log("type", type);
+    console.log("");
+    // const res = await getProblemListApi(type, id);
+    if (type == 1) {
+      const res = mockType1ListData;
+      setReviewNoteList(res);
+    } else {
+      const res = mockType2ListData;
+      setReviewNoteList(res);
+    }
   };
 
   const handleCheckboxToggle = (problemId: number) => {
@@ -117,9 +111,16 @@ const ReviewNoteListPage = () => {
   //////////////////////////////////////////////////////////////////
 
   const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
+  const [selectedType, setSelectedType] = useState<number | null>(null);
+  const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
+    null
+  );
 
-  const fetchFavoriteFolderList = async () => {
-    // const res = await getFavoriteFoldersApi();
+  const fetchFolderList = async () => {
+    // const favRes = await getFavoriteFoldersApi();
+    // const ReviewRes = await getReviewNoteFolderApi();
+    // const favoriteRes = favRes[0];
+    // const reviewNoteRes = ReviewRes[0];
     const favoriteRes = mockFavoriteFolderData[0];
     const reviewNoteRes = mockReviewNoteFolderData[0];
 
@@ -129,7 +130,7 @@ const ReviewNoteListPage = () => {
   };
 
   useEffect(() => {
-    fetchFavoriteFolderList();
+    fetchFolderList();
   }, []);
 
   return (
@@ -189,12 +190,12 @@ const ReviewNoteListPage = () => {
                 <p>문항</p>
                 <p>정답 수/시도 수</p>
               </div>
-              {getFilteredAndSortedProblems().map((problem) => (
+              {reviewNoteList?.map((problem) => (
                 <ReviewNoteItem
-                  key={problem.id}
+                  key={problem.problem_id}
                   problem={problem}
-                  isSelected={selectedProblemIds.includes(problem.id)}
-                  onToggle={() => handleCheckboxToggle(problem.id)}
+                  isSelected={selectedProblemIds.includes(problem.problem_id)}
+                  onToggle={() => handleCheckboxToggle(problem.problem_id)}
                   selectedProblemIds={selectedProblemIds}
                 />
               ))}

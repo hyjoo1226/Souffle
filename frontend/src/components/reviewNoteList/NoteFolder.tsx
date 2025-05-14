@@ -16,7 +16,12 @@ interface Props {
   type: number;
   noteFolders: Folder[];
   setNoteFolders: (folders: Folder[]) => void;
-  onSelectSection: (chapter: string, section: string) => void;
+  onSelectSection: (
+    chapter: string,
+    section: string,
+    type: number,
+    id: number
+  ) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
 }
 
@@ -130,7 +135,14 @@ const NoteFolder = ({
                 setIsUpdateFolder={setIsUpdateFolder}
                 setSelectedFolderId={setSelectedFolderId}
                 setNewFolderName={setNewFolderName}
-                onClick={() => onSelectSection(chapter, section.name)}
+                onClick={() =>
+                  onSelectSection(
+                    chapter,
+                    section.name,
+                    section.type,
+                    section.id
+                  )
+                }
                 onDropProblem={(targetSection, problemIds) =>
                   onDropProblem?.(targetSection, problemIds)
                 }
