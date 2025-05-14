@@ -7,24 +7,27 @@ import {
   Folder,
   createFolderApi,
   updateFolderApi,
+  deleteFolderApi,
 } from "@/services/api/ReviewNoteList";
 
 interface Props {
   chapter: string;
   sections: Folder[];
   type: number;
+  noteFolders: Folder[];
+  setNoteFolders: (folders: Folder[]) => void;
   onSelectSection: (chapter: string, section: string) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
-  onUpdateFolderName: (sectionId: number, newFolderName: string) => void;
 }
 
 const NoteFolder = ({
   chapter,
   sections,
   type,
+  noteFolders,
+  setNoteFolders,
   onSelectSection,
   onDropProblem,
-  onUpdateFolderName,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const handleToggle = () => {
@@ -51,16 +54,28 @@ const NoteFolder = ({
       name: newFolderName,
     };
     // updateFolderApi(sectionId, data);
-    onUpdateFolderName(sectionId, newFolderName);
-    sections.map((folder) =>
-      folder.id === sectionId ? { ...folder, name: newFolderName } : folder
-    );
 
-    console.log("sectionId", sectionId);
-    console.log("data", data);
+    const updated = noteFolders.map((folder) => {
+      const updatedChildren = folder.children.map((child) =>
+        child.id === sectionId ? { ...child, name: newFolderName } : child
+      );
+      return { ...folder, children: updatedChildren };
+    });
+    setNoteFolders(updated);
+    // console.log("sectionId", sectionId);
+    // console.log("data", data);
     setSelectedFolderId(null);
     setNewFolderName("");
     setIsUpdateFolder(false);
+  };
+
+  const handleDeleteFolder = (folderId: number) => {
+    // deleteFolderApi(folderId);
+    const updated = noteFolders.map((folder) => ({
+      ...folder,
+      children: folder.children.filter((child) => child.id !== folderId),
+    }));
+    setNoteFolders(updated);
   };
   return (
     <div className="w-full flex flex-col gap-y-2.5">
@@ -119,10 +134,7 @@ const NoteFolder = ({
                 onDropProblem={(targetSection, problemIds) =>
                   onDropProblem?.(targetSection, problemIds)
                 }
-                onStartEdit={() => {
-                  setFolderBeingUpdated(section);
-                  setNewFolderName(section.name);
-                }}
+                onDeleteFolder={handleDeleteFolder}
               />
             )
           )}

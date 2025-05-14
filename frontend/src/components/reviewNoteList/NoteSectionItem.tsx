@@ -13,6 +13,7 @@ interface Props {
   setNewFolderName: (value: string) => void;
   onClick: () => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
+  onDeleteFolder: (folderId: number) => void;
 }
 
 const NoteSectionItem = ({
@@ -24,6 +25,7 @@ const NoteSectionItem = ({
   setNewFolderName,
   onClick,
   onDropProblem,
+  onDeleteFolder,
 }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -84,7 +86,16 @@ const NoteSectionItem = ({
             <Edit className="w-4 h-4" />
             폴더명 변경
           </button>
-          <button className="w-full flex items-center gap-x-3 text-left caption-medium text-gray-700">
+          <button
+            className="w-full flex items-center gap-x-3 text-left caption-medium text-gray-700"
+            onClick={() => {
+              const confirmDelete = window.confirm("폴더를 삭제하시겠습니까?");
+              setSelectedFolderId(id);
+              if (confirmDelete) {
+                onDeleteFolder(id);
+              }
+            }}
+          >
             <Trash className="w-4 h-4" />
             폴더 삭제
           </button>

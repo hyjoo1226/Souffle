@@ -128,19 +128,6 @@ const ReviewNoteListPage = () => {
     console.log(merged);
   };
 
-  const handleUpdateFolderName = (sectionId: number, newFolderName: string) => {
-    if (!noteFolders) return;
-
-    const updated = noteFolders.map((folder) => {
-      const updatedChildren = folder.children.map((child) =>
-        child.id === sectionId ? { ...child, name: newFolderName } : child
-      );
-      return { ...folder, children: updatedChildren };
-    });
-
-    setNoteFolders(updated);
-  };
-
   useEffect(() => {
     fetchFavoriteFolderList();
   }, []);
@@ -155,9 +142,10 @@ const ReviewNoteListPage = () => {
             chapter={item.name}
             sections={item.children}
             type={item.type}
+            noteFolders={noteFolders}
+            setNoteFolders={setNoteFolders}
             onSelectSection={handleSelectSection}
             onDropProblem={handleDropProblemToSection}
-            onUpdateFolderName={handleUpdateFolderName}
           />
         ))}
       </div>

@@ -69,3 +69,13 @@ export const updateFolderApi = async (
     },
   });
 };
+
+export const deleteFolderApi = async (folderId: number) => {
+  const token = localStorage.getItem("accessToken"); // 또는 쿠키 등
+
+  await api.delete(`/notes/folder/${folderId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+};
