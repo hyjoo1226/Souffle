@@ -4,6 +4,8 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Problem } from 'src/problems/entities/problem.entity';
 
@@ -20,6 +22,12 @@ export class Book extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   year: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => Problem, (problem) => problem.book)
   problems: Problem[];

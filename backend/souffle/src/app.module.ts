@@ -15,6 +15,10 @@ import { BookModule } from './books/books.module';
 import { FileModule } from './files/files.module';
 import { OcrModule } from './ocr/ocr.module';
 import { ConfigModule } from '@nestjs/config';
+import { NoteModule } from './notes/notes.module';
+import { AuthModule } from './auth/auth.module';
+import { HealthModule } from './health/health.module';
+import { ConceptModule } from './concepts/concepts.module';
 import * as path from 'path';
 
 @Module({
@@ -48,6 +52,10 @@ import * as path from 'path';
       adapter: ExpressAdapter,
     }),
     OcrModule,
+    NoteModule,
+    AuthModule,
+    HealthModule,
+    ConceptModule,
   ],
 })
 export class AppModule {}
