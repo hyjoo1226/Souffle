@@ -24,23 +24,21 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req, @Res() res) {
-    // JWT 발급
     const token = await this.authService.login(req.user);
-    //   const redirectUrl = `https://souffle.kr/oauth2/redirect?token=${token.access_token}`;
-    //   return res.redirect(redirectUrl);
-    // }
-    const userInfo = {
-      id: req.user.id,
-      nickname: req.user.nickname,
-      email: req.user.email,
-      profileImage: req.user.profileImage,
-    };
-    // 프론트엔드로 리다이렉트 + 토큰 전달
-    return res.json({
-      access_token: token.access_token,
-      refresh_token: token.refresh_token,
-      user: userInfo,
-    });
+
+    const user = req.user;
+    const frontendRedirectUrl = new URL(
+      'https://www.souffle.kr/popup-login.html',
+    );
+
+    frontendRedirectUrl.searchParams.set('access_token', token.access_token);
+    frontendRedirectUrl.searchParams.set('refresh_token', token.refresh_token);
+    frontendRedirectUrl.searchParams.set('id', user.id);
+    frontendRedirectUrl.searchParams.set('nickname', user.nickname);
+    frontendRedirectUrl.searchParams.set('email', user.email);
+    frontendRedirectUrl.searchParams.set('profileImage', user.profileImage);
+
+    return res.redirect(frontendRedirectUrl.toString());
   }
 
   @Post('refresh')
