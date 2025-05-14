@@ -6,6 +6,8 @@ import {
   OneToMany,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { Category } from 'src/categories/entities/category.entity';
@@ -68,6 +70,12 @@ export class Problem extends BaseEntity {
 
   @Column({ type: 'int', nullable: true })
   avgReviewTime: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => Submission, (submission) => submission.problem)
   submissions: Submission[];

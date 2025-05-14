@@ -10,10 +10,17 @@ import { FileModule } from 'src/files/files.module';
 import { OcrModule } from 'src/ocr/ocr.module';
 import { AnalysisModule } from 'src/analyses/analyses.module';
 import { UserModule } from 'src/users/users.module';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Submission, User, Problem, SubmissionStep]),
+    TypeOrmModule.forFeature([
+      Submission,
+      User,
+      Problem,
+      SubmissionStep,
+      NoteFolder,
+    ]),
     FileModule,
     OcrModule,
     AnalysisModule,
