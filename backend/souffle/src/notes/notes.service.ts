@@ -351,6 +351,8 @@ export class NoteService {
         'c.name AS category_name',
         'p."innerNo" AS inner_no',
         'p.type AS problem_type',
+        'p.content AS content',
+        'p.choice AS choice',
         'up.try_count AS try_count',
         'up.correct_count AS correct_count',
         'up.last_submission_id AS last_submission_id',
@@ -368,6 +370,8 @@ export class NoteService {
       category_name: result.category_name,
       inner_no: result.inner_no,
       problem_type: result.problem_type,
+      content: result.content,
+      choice: result.choice,
       user: {
         try_count: result.try_count,
         correct_count: result.correct_count,
