@@ -66,6 +66,15 @@ services:
       MATHPIX_APP_ID: ${MATHPIX_APP_ID}
       MATHPIX_APP_KEY: ${MATHPIX_APP_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
     networks:
       - internal
       - public

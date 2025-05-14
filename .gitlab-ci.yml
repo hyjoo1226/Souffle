@@ -42,10 +42,9 @@ integration-test:
     - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
     - docker-compose -f docker-compose.ci.yml up -d
     - |
-      curl -sSf http://localhost:8000/ || (docker logs data && exit 1)
+      for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf http://localhost:8000/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
     - |
       for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf http://localhost:4000/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
-
     - |
       curl -sSf http://localhost:3000/ || (docker logs frontend && exit 1)
   rules:
@@ -59,7 +58,7 @@ deploy:
     - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
     - docker-compose -f docker-compose.ci.yml up -d
     - |
-      for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/ && break || sleep 3; done || (echo "data healthcheck failed" && docker logs data && exit 1)
+      for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/data/api/v1/health && break || sleep 3; done || (echo "data healthcheck failed" && docker logs data && exit 1)
     - |
       for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
     - |

@@ -1,7 +1,7 @@
 # app/main.py
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import ocr_router
+from app.routers import ocr_router, health_router
 from app.core.logging import setup_logging
 from app.core.exceptions import error_to_http_exception
 import logging
@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # API 라우터 설정
 api_router = APIRouter(prefix="/data/api/v1")
 api_router.include_router(ocr_router.router)
+api_router.include_router(health_router.router)
 
 # FastAPI 앱 생성
 app = FastAPI(
