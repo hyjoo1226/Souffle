@@ -10,6 +10,7 @@ import {
   RelationId,
 } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Entity({ name: 'note_folder' })
 export class NoteFolder {
@@ -47,4 +48,8 @@ export class NoteFolder {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @ManyToOne(() => Category, (category) => category.noteFolders)
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 }

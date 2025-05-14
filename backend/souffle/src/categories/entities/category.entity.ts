@@ -12,6 +12,7 @@ import {
 import { Problem } from 'src/problems/entities/problem.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
 import { Concept } from 'src/concepts/entities/concept.entity';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 
 @Entity({ name: 'categories' })
 export class Category extends BaseEntity {
@@ -44,6 +45,9 @@ export class Category extends BaseEntity {
 
   @OneToMany(() => Problem, (problem) => problem.category)
   problems: Problem[];
+
+  @OneToMany(() => NoteFolder, (noteFolder) => noteFolder.category)
+  noteFolders: NoteFolder[];
 
   @OneToMany(() => UserCategoryProgress, (progress) => progress.category)
   userProgresses: UserCategoryProgress[];
