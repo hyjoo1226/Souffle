@@ -65,23 +65,23 @@ export const createStroke = (
 export const shouldCreateNewBlock = (
   first: { x: number; y: number; time: number },
   lastPoint: { x: number; y: number } | null,
-  lastStrokeTime: number | null
+  // lastStrokeTime: number | null
 ) => {
   const distance = lastPoint
     ? Math.hypot(first.x - lastPoint.x, first.y - lastPoint.y)
     : 0;
-  const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
+  // const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
   const movedLeft = lastPoint && first.x + 70 < lastPoint.x;
   const movedDown = lastPoint && first.y > lastPoint.y + 10;
 
-  return distance > 100 || timeGap > 3000 || (movedLeft && movedDown);
+  return distance > 100 || (movedLeft && movedDown);
 };
 
 export const updateBlocksWithStroke = ({
   stroke,
   blocks,
   lastPoint,
-  lastStrokeTime,
+  // lastStrokeTime,
   lastBlockId,
 }: {
   stroke: {
@@ -104,7 +104,7 @@ export const updateBlocksWithStroke = ({
     shouldCreateNewBlock(
       { ...stroke.start, time: stroke.timestamp },
       lastPoint,
-      lastStrokeTime
+      // lastStrokeTime
     ) ||
     !newBlocks.find((b) => b.block_id === lastBlockId);
 
@@ -195,7 +195,7 @@ export function getPointerUpHandler(
       shouldCreateNewBlock(
         { ...stroke.start, time: stroke.timestamp },
         lastPoint,
-        lastStrokeTime
+        // lastStrokeTime
       ) ||
       !blocks.find((b) => b.block_id === lastBlockId);
 
