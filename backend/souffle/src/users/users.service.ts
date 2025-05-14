@@ -75,8 +75,6 @@ export class UserService {
       accuracy: progress.testAccuracy,
       progress_rate: progress.progressRate,
       solve_time: progress.solveTime,
-      concept_rate: progress.conceptRate,
-      understanding: progress.understanding,
     };
   }
 

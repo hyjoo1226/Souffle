@@ -82,8 +82,6 @@ export class CategoryController {
           accuracy: 90.5,
           progress_rate: 0.8,
           solve_time: 1200,
-          concept_rate: 0.7,
-          understanding: 4,
         },
         problem: [
           {

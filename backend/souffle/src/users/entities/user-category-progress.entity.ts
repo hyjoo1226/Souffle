@@ -5,6 +5,8 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Category } from 'src/categories/entities/category.entity';
@@ -39,9 +41,9 @@ export class UserCategoryProgress extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   testAccuracy: number;
 
-  @Column({ type: 'int', nullable: true })
-  understanding: number;
+  @CreateDateColumn()
+  createdAt: Date;
 
-  @Column({ type: 'float', nullable: true })
-  conceptRate: number;
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
