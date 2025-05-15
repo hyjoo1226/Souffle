@@ -7,6 +7,11 @@ import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Between } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
+import { UserProblem } from './entities/user-problem.entity';
+import { Category } from 'src/categories/entities/category.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -21,6 +26,12 @@ export class UserService {
     private userReportRepository: Repository<UserReport>,
     @InjectRepository(UserScoreStat)
     private userScoreStatRepository: Repository<UserScoreStat>,
+    @InjectRepository(UserProblem)
+    private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(Submission)
+    private submissionRepository: Repository<Submission>,
   ) {}
 
   // 이메일로 유저 찾기
@@ -128,9 +139,191 @@ export class UserService {
       order: { createdAt: 'DESC' },
     });
 
+    // 일주일 전 점수
+    const weekAgoStart = new Date();
+    weekAgoStart.setDate(weekAgoStart.getDate() - 7);
+    weekAgoStart.setHours(0, 0, 0, 0);
+
+    const weekAgoEnd = new Date();
+    weekAgoEnd.setDate(weekAgoEnd.getDate() - 7);
+    weekAgoEnd.setHours(23, 59, 59, 999);
+
+    const weekAgoStat = await this.userScoreStatRepository.findOne({
+      where: {
+        userId,
+        createdAt: Between(weekAgoStart, weekAgoEnd),
+      },
+      order: { createdAt: 'DESC' },
+    });
+
     return {
       score_stats: todayStat ?? {},
       previous_stats: yesterdayStat ?? {},
+      week_ago_stats: weekAgoStat ?? {},
     };
+  }
+
+  // 유저 정보 조회 API
+  async getProfile(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['authentications'],
+      select: ['id', 'nickname', 'profileImage', 'createdAt'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+    const email = user.authentications?.[0]?.email ?? null;
+
+    return {
+      id: user.id,
+      nickname: user.nickname,
+      profile_image: user.profileImage,
+      created_at: user.createdAt,
+      email,
+    };
+  }
+
+  // 유저 정보 수정 API
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    user.nickname = dto.nickname;
+    await this.userRepository.save(user);
+    return { nickname: user.nickname };
+  }
+
+  // 단원 별 분석 조회 API
+  async getCategoryAnalysis(userId: number) {
+    const categories = await this.categoryRepository.find();
+
+    const results = await Promise.all(
+      categories.map(async (category) => {
+        const userProblems = await this.userProblemRepository
+          .createQueryBuilder('up')
+          .innerJoin('up.problem', 'p')
+          .where('up.user_id = :userId', { userId })
+          .andWhere('p.categoryId = :categoryId', { categoryId: category.id })
+          .getMany();
+
+        const total = userProblems.length;
+        const correct = userProblems.filter(
+          (up) => up.correct_count > 0,
+        ).length;
+        const solved = userProblems.filter((up) => up.try_count > 0).length;
+
+        return {
+          id: category.id,
+          name: category.name,
+          type: category.type,
+          accuracy_rate: total ? Math.round((correct / total) * 1000) / 10 : 0,
+          progress_rate: total ? Math.round((solved / total) * 1000) / 10 : 0,
+        };
+      }),
+    );
+
+    return { categories: results };
+  }
+
+  // 주간 학습 시간 조회 API
+  async getWeeklyStudy(
+    userId: number,
+    startDateTime: Date,
+    endDateTime: Date,
+    startDateStr: string,
+    endDateStr: string,
+  ) {
+    const submissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        createdAt: Between(startDateTime, endDateTime),
+      },
+    });
+
+    const dateMap = new Map<string, number>();
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const currentDate = this.addDays(startDateStr, i);
+      dates.push(currentDate);
+      dateMap.set(currentDate, 0);
+    }
+
+    for (const submission of submissions) {
+      const submissionDate = submission.createdAt.toISOString().split('T')[0];
+      if (dateMap.has(submissionDate)) {
+        dateMap.set(
+          submissionDate,
+          dateMap.get(submissionDate)! + (submission.totalSolveTime || 0),
+        );
+      }
+    }
+
+    const daily_records = dates.map((date) => ({
+      date,
+      weekday: this.getWeekday(date),
+      total_solve_time: dateMap.get(date) || 0,
+    }));
+
+    return {
+      week_start: startDateStr,
+      week_end: endDateStr,
+      daily_records,
+    };
+  }
+  private addDays(dateStr: string, days: number): string {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  }
+  // 요일 (월요일: 0, 일요일: 6)
+  private getWeekday(dateStr: string): number {
+    const date = new Date(dateStr);
+    return (date.getDay() + 6) % 7;
+  }
+
+  // 문제 풀이 현황 조회 API
+  async getProblemSolvingHistory(
+    userId: number,
+    startDateTime: Date,
+    endDateTime: Date,
+    year: number,
+  ) {
+    const submissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        createdAt: Between(startDateTime, endDateTime),
+      },
+    });
+
+    const dateMap = new Map<string, number>();
+    const dates: string[] = [];
+    const daysInYear = this.isLeapYear(year) ? 366 : 365;
+    for (let i = 0; i < daysInYear; i++) {
+      const currentDate = this.addDays(`${year}-01-01`, i);
+      dates.push(currentDate);
+      dateMap.set(currentDate, 0);
+    }
+
+    for (const submission of submissions) {
+      const submissionDate = submission.createdAt.toISOString().split('T')[0];
+      if (dateMap.has(submissionDate)) {
+        dateMap.set(submissionDate, dateMap.get(submissionDate)! + 1);
+      }
+    }
+
+    const daily_records = dates.map((date) => ({
+      date,
+      problem_count: dateMap.get(date) || 0,
+    }));
+
+    return {
+      year,
+      daily_records,
+    };
+  }
+  // 윤년 확인
+  private isLeapYear(year: number): boolean {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
   }
 }
