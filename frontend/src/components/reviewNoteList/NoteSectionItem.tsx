@@ -12,7 +12,7 @@ import { ReactComponent as ExpandSlim } from "@/assets/icons/ExpandSlim.svg";
 interface Props {
   id: number;
   sectionTitle: string;
-  title: string;
+  chapter: string;
   count: number;
   type: number;
   subUnit: FolderType[];
@@ -20,13 +20,15 @@ interface Props {
   setSelectedFolderId: (value: number) => void;
   setNewFolderName: (value: string) => void;
   onSelectUnit: (child?: UnitSelectPayload) => void;
+
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
   onDeleteFolder: (folderId: number) => void;
 }
 
 const NoteSectionItem = ({
   id,
-  title,
+  chapter,
+  sectionTitle,
   count,
   type,
   subUnit,
@@ -34,6 +36,7 @@ const NoteSectionItem = ({
   setSelectedFolderId,
   setNewFolderName,
   onSelectUnit,
+
   onDropProblem,
   onDeleteFolder,
 }: Props) => {
@@ -65,7 +68,7 @@ const NoteSectionItem = ({
         const data = e.dataTransfer.getData("application/json");
         try {
           const problemIds: number[] = JSON.parse(data);
-          onDropProblem?.(title, problemIds); // title은 중단원명
+          onDropProblem?.(sectionTitle, problemIds); // title은 중단원명
         } catch (err) {
           console.error("문제 ID 파싱 오류:", err);
         }
@@ -76,14 +79,13 @@ const NoteSectionItem = ({
         <div
           className="flex items-center gap-x-2"
           onClick={() => {
-            if (type === 1 && onSelectUnit) {
+            if (type === 1) {
               onSelectUnit({
-                chapter: title,
+                chapter: chapter,
                 section: sectionTitle,
-                unit: null,
                 type, // ✅ 올바른 type
+                unit: null,
                 id,
-                name: title,
               });
             } else {
               setIsOpen((prev) => !prev);
@@ -98,7 +100,7 @@ const NoteSectionItem = ({
             />
           )}
           <Folder className="text-gray-700" />
-          <p className="body-medium text-gray-700">{title}</p>
+          <p className="body-medium text-gray-700">{sectionTitle}</p>
           <p className="caption-medium text-primary-700">{count}</p>
         </div>
 
@@ -120,7 +122,7 @@ const NoteSectionItem = ({
             onClick={() => {
               setIsUpdateFolder(true);
               setSelectedFolderId(id);
-              setNewFolderName(title);
+              setNewFolderName(sectionTitle);
               setIsMenuOpen(false);
             }}
           >
@@ -153,12 +155,11 @@ const NoteSectionItem = ({
               className="flex items-center gap-x-2 pl-4 py-1 cursor-pointer hover:bg-gray-50 rounded"
               onClick={() =>
                 onSelectUnit({
-                  chapter: title,
-                  section: title,
-                  unit: title,
-                  type,
-                  id,
-                  name: title,
+                  chapter: chapter,
+                  section: sectionTitle,
+                  type: child.type,
+                  unit: child.name,
+                  id: child.id,
                 })
               }
             >

@@ -36,7 +36,6 @@ export type UnitSelectPayload = {
   type: number;
   unit: string | null;
   id: number;
-  name: string;
 };
 
 // 즐겨찾기 폴더 조회

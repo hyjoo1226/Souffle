@@ -10,6 +10,7 @@ import {
   deleteFolderApi,
   UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
+import type { Folder as FolderType } from "@/services/api/ReviewNoteList";
 
 interface Props {
   chapter: string;
@@ -128,7 +129,8 @@ const NoteFolder = ({
             ) : (
               <NoteSectionItem
                 key={section.id}
-                title={section.name}
+                chapter={chapter}
+                sectionTitle={section.name}
                 count={section.problem_count ?? 0}
                 id={section.id}
                 type={section.type}
@@ -136,16 +138,9 @@ const NoteFolder = ({
                 setIsUpdateFolder={setIsUpdateFolder}
                 setSelectedFolderId={setSelectedFolderId}
                 setNewFolderName={setNewFolderName}
-                onSelectUnit={(child) => {
+                onSelectUnit={(child?: UnitSelectPayload) => {
                   if (!child) return;
-                  onSelectUnit({
-                    chapter: chapter,
-                    section: section.name,
-                    type: section.type,
-                    unit: child.name,
-                    id: child.id,
-                    name: child.name, // Ensure 'name' is included as required by UnitSelectPayload
-                  });
+                  onSelectUnit(child);
                 }}
                 onDropProblem={(targetSection, problemIds) =>
                   onDropProblem?.(targetSection, problemIds)

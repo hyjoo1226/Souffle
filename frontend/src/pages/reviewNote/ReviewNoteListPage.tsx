@@ -55,6 +55,7 @@ const ReviewNoteListPage = () => {
     console.log("type", type);
     console.log("unit", unit);
     console.log("id", id);
+
     // const res = await getProblemListApi(type, id);
     if (type == 1) {
       const res = mockType1ListData;
@@ -163,11 +164,12 @@ const ReviewNoteListPage = () => {
       </div>
 
       <div className="col-span-8 h-full flex flex-col gap-y-5">
-        {selectedSection && selectedUnit ? (
+        {selectedChapter && selectedSection ? (
           <>
             <div className="flex items-center justify-between">
               <p className="headline-medium text-gray-700">
-                {selectedChapter} &gt; {selectedSection} &gt; {selectedUnit}
+                {selectedChapter} &gt; {selectedSection}
+                {selectedUnit && ` > ${selectedUnit}`}
               </p>
               <div className="flex items-center gap-x-1">
                 <UploadLight />
