@@ -39,7 +39,7 @@ export class UserController {
   @ApiOperation({ summary: '유저 점수 지표 조회' })
   @ApiResponse({
     status: 200,
-    description: '유저 점수 지표 및 어제 데이터',
+    description: '유저 점수 지표(오늘, 어제, 일주일 전)',
     schema: {
       example: {
         score_stats: {
@@ -58,14 +58,21 @@ export class UserController {
           sincerity_score: 85.0,
           reflection_score: 70.0,
         },
+        week_ago_stats: {
+          correct_score: 80.0,
+          participation_score: 65.0,
+          speed_score: 55.0,
+          review_score: 75.0,
+          sincerity_score: 85.0,
+          reflection_score: 70.0,
+        },
       },
     },
   })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('statistic/score-stats')
   async getUserScoreStats(@Req() req) {
-    // const userId = req.user.id
-    const userId = 1;
+    const userId = req.user.id;
     return this.usersService.getUserScoreStats(userId);
   }
 }

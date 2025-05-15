@@ -128,9 +128,27 @@ export class UserService {
       order: { createdAt: 'DESC' },
     });
 
+    // 일주일 전 점수
+    const weekAgoStart = new Date();
+    weekAgoStart.setDate(weekAgoStart.getDate() - 7);
+    weekAgoStart.setHours(0, 0, 0, 0);
+
+    const weekAgoEnd = new Date();
+    weekAgoEnd.setDate(weekAgoEnd.getDate() - 7);
+    weekAgoEnd.setHours(23, 59, 59, 999);
+
+    const weekAgoStat = await this.userScoreStatRepository.findOne({
+      where: {
+        userId,
+        createdAt: Between(weekAgoStart, weekAgoEnd),
+      },
+      order: { createdAt: 'DESC' },
+    });
+
     return {
       score_stats: todayStat ?? {},
       previous_stats: yesterdayStat ?? {},
+      week_ago_stats: weekAgoStat ?? {},
     };
   }
 }
