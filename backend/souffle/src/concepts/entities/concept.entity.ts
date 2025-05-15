@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Category } from 'src/categories/entities/category.entity';
 import { ConceptImage } from './concept-image.entity';
+import { ConceptQuiz } from './concept-quiz.entity';
 
 @Entity()
 export class Concept {
@@ -26,7 +27,7 @@ export class Concept {
   @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ type: 'text' })
   description: string;
 
   @Column({ default: 0 })
@@ -40,4 +41,7 @@ export class Concept {
 
   @OneToMany(() => ConceptImage, (image) => image.concept)
   images: ConceptImage[];
+
+  @OneToMany(() => ConceptQuiz, (quiz) => quiz.concept)
+  quizzes: ConceptQuiz[];
 }
