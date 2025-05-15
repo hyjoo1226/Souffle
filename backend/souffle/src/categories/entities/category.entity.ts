@@ -6,9 +6,13 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Problem } from 'src/problems/entities/problem.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
+import { Concept } from 'src/concepts/entities/concept.entity';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 
 @Entity({ name: 'categories' })
 export class Category extends BaseEntity {
@@ -33,15 +37,21 @@ export class Category extends BaseEntity {
   @Column({ type: 'float', nullable: true })
   avgAccuracy: number;
 
-  @Column({ type: 'text', nullable: true })
-  learningContent: string;
+  @CreateDateColumn()
+  createdAt: Date;
 
-  @Column({ type: 'text', nullable: true })
-  conceptExplanation: string;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => Problem, (problem) => problem.category)
   problems: Problem[];
 
+  @OneToMany(() => NoteFolder, (noteFolder) => noteFolder.category)
+  noteFolders: NoteFolder[];
+
   @OneToMany(() => UserCategoryProgress, (progress) => progress.category)
   userProgresses: UserCategoryProgress[];
+
+  @OneToMany(() => Concept, (concept) => concept.category)
+  concepts: Concept[];
 }

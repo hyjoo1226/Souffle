@@ -13,7 +13,7 @@ build-be:
   script:
     - docker-compose -f docker-compose.backend.yml build backend
   rules:
-    - if: '$CI_COMMIT_BRANCH =~ /^(be-mvp|main|master)$/'
+    - if: '$CI_COMMIT_BRANCH =~ /^(be-dev|main|master)$/'
 
 build-data:
   stage: build

@@ -10,6 +10,7 @@ import { OcrService } from 'src/ocr/ocr.service';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AnalysisService } from 'src/analyses/analyses.service';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -24,6 +25,8 @@ export class SubmissionService {
     private submissionStepRepository: Repository<SubmissionStep>,
     @InjectRepository(UserProblem)
     private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(NoteFolder)
+    private noteFolderRepository: Repository<NoteFolder>,
     private fileService: FileService,
     private ocrService: OcrService,
     private analysisService: AnalysisService,
@@ -119,23 +122,40 @@ export class SubmissionService {
       console.error('풀이분석 큐 등록 실패:', error.message);
     }
 
+    // 오답노트에 추가
+    const noteFolder = await this.noteFolderRepository.findOne({
+      where: {
+        category: { id: problem.category.id },
+        type: 2,
+      },
+      relations: ['category'],
+    });
+    if (!noteFolder) {
+      throw new NotFoundException(
+        '해당 카테고리의 오답노트 폴더를 찾을 수 없습니다.',
+      );
+    }
+
     // user_problem 테이블 생성/갱신
     await this.userProblemRepository.query(
       `
-    INSERT INTO user_problem (user_id, problem_id, try_count, correct_count, last_submission_id)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (user_id, problem_id) 
-    DO UPDATE SET
-      try_count = user_problem.try_count + 1,
-      correct_count = user_problem.correct_count + $4,
-      last_submission_id = $5
-    `,
+  INSERT INTO user_problem 
+    (user_id, problem_id, try_count, correct_count, last_submission_id, wrong_note_folder_id)
+  VALUES ($1, $2, $3, $4, $5, $6)
+  ON CONFLICT (user_id, problem_id) 
+  DO UPDATE SET
+    try_count = user_problem.try_count + 1,
+    correct_count = user_problem.correct_count + $4,
+    last_submission_id = $5,
+    wrong_note_folder_id = CASE WHEN $4 = 0 THEN $6 ELSE user_problem.wrong_note_folder_id END
+  `,
       [
         submissionDto.user_id,
         submissionDto.problem_id,
         1,
         submission.isCorrect ? 1 : 0,
         savedSubmission.id,
+        noteFolder.id,
       ],
     );
 
@@ -237,6 +257,7 @@ export class SubmissionService {
         step_time: step.stepTime,
         step_valid: step.isValid,
         step_feedback: step.stepFeedback,
+        step_latex: step.latex,
       })),
       time: {
         total_solve_time: submission.totalSolveTime,
