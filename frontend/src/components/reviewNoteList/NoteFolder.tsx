@@ -16,10 +16,11 @@ interface Props {
   type: number;
   noteFolders: Folder[];
   setNoteFolders: (folders: Folder[]) => void;
-  onSelectSection: (
+  onSelectUnit: (
     chapter: string,
     section: string,
     type: number,
+    unit: string,
     id: number
   ) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
@@ -31,7 +32,7 @@ const NoteFolder = ({
   type,
   noteFolders,
   setNoteFolders,
-  onSelectSection,
+  onSelectUnit,
   onDropProblem,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -97,10 +98,12 @@ const NoteFolder = ({
           />
           <p className="headline-small text-gray-700">{chapter}</p>
         </div>
-        <FolderAdd
-          className="text-gray-700"
-          onClick={() => setIsCreatingFolder(!isCreatingFolder)}
-        />
+        {type === 1 ? (
+          <FolderAdd
+            className="text-gray-700"
+            onClick={() => setIsCreatingFolder(!isCreatingFolder)}
+          />
+        ) : null}
       </div>
 
       {/* 소단원 리스트 */}
@@ -132,15 +135,18 @@ const NoteFolder = ({
                 title={section.name}
                 count={section.problem_count ?? 0}
                 id={section.id}
+                type={section.type}
+                subUnit={section.children}
                 setIsUpdateFolder={setIsUpdateFolder}
                 setSelectedFolderId={setSelectedFolderId}
                 setNewFolderName={setNewFolderName}
-                onClick={() =>
-                  onSelectSection(
+                onClick={(child) =>
+                  onSelectUnit(
                     chapter,
                     section.name,
                     section.type,
-                    section.id
+                    child?.name ?? "",
+                    child?.id ?? 0
                   )
                 }
                 onDropProblem={(targetSection, problemIds) =>

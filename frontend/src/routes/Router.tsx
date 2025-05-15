@@ -11,6 +11,7 @@ import SelectUnitPage from "@/pages/concept/SelectUnitPage";
 import ConceptStudyPage from "@/pages/concept/ConceptStudyPage";
 import ProblemStudyPage from "@/pages/concept/ProblemStudyPage";
 import OAuth2RedirectHandler from "@/pages/OAuth2RedirectHandler";
+import FolderSelectModal from "@/components/reviewNoteList/FolderSelectModal";
 
 const Router = () => {
   return (
@@ -28,8 +29,9 @@ const Router = () => {
       <Route path="/my-report" element={<MyStudyReportPage />} />
       <Route path="/select-unit" element={<SelectUnitPage />} />
       <Route path="/study" element={<ConceptStudyPage />} />
-      <Route path="/problem-study" element={<ProblemStudyPage />}/>
+      <Route path="/problem-study" element={<ProblemStudyPage />} />
       <Route path="/oauth2/redirect" element={<OAuth2RedirectHandler />} />
+      <Route path="/modal" element={<FolderSelectModal />} />
     </Routes>
   );
 };

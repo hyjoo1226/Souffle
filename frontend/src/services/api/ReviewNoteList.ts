@@ -110,3 +110,16 @@ export const getProblemListApi = async (type: number, id: number) => {
   });
   return response.data;
 };
+
+export const deleteProblemApi = async (
+  problemId: number,
+  selectedType: number
+) => {
+  // const token = localStorage.getItem("accessToken");
+  const response = await api.delete(`/notes/problem/${problemId}`, {
+    params: {
+      type: selectedType,
+    },
+  });
+  return response.data;
+};

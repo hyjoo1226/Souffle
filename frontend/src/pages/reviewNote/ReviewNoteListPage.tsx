@@ -10,6 +10,7 @@ import {
   getProblemListApi,
   Folder,
   ReviewNoteList,
+  deleteProblemApi,
 } from "@/services/api/ReviewNoteList";
 import {
   mockFavoriteFolderData,
@@ -19,49 +20,39 @@ import {
 } from "@/mocks/dummyReviewData";
 
 const ReviewNoteListPage = () => {
-  const mockProblemData: Record<
-    string,
-    Record<
-      string,
-      { id: number; title: string; correctCount: number; totalCount: number }[]
-    >
-  > = {
-    "공통 수학1": {
-      부등식: [
-        { id: 1, title: "부등식 문제 1", correctCount: 0, totalCount: 2 },
-        { id: 2, title: "부등식 문제 2", correctCount: 1, totalCount: 2 },
-      ],
-      "도형의 방정식": [
-        { id: 3, title: "도형 문제 1", correctCount: 2, totalCount: 2 },
-      ],
-    },
-    "공통 수학2": {
-      부등식: [
-        { id: 4, title: "수학2 부등식 문제", correctCount: 0, totalCount: 2 },
-      ],
-    },
-  };
-
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
 
   const tabs = ["정답률↑", "정답률↓", "미해결"];
   const [selected, setSelected] = useState("정답률↑");
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
-  const handleSelectSection = async (
+  const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
+  const [selectedType, setSelectedType] = useState<number | null>(null);
+  const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
+    null
+  );
+
+  // const [checkedProblemList, setCheckedProblemList] = useState<number[]>([]);
+
+  const handleSelectUnit = async (
     chapter: string,
     section: string,
     type: number,
+    unit: string,
     id: number
   ) => {
     setSelectedChapter(chapter);
     setSelectedSection(section);
     setSelectedType(type);
+    setSelectedUnit(unit);
+
     console.log("chapter", chapter);
     console.log("section", section);
     console.log("type", type);
-    console.log("");
+    console.log("unit", unit);
+    console.log("id", id);
     // const res = await getProblemListApi(type, id);
     if (type == 1) {
       const res = mockType1ListData;
@@ -71,13 +62,34 @@ const ReviewNoteListPage = () => {
       setReviewNoteList(res);
     }
   };
-
   const handleCheckboxToggle = (problemId: number) => {
     setSelectedProblemIds((prev) =>
       prev.includes(problemId)
         ? prev.filter((id) => id !== problemId)
         : [...prev, problemId]
     );
+  };
+
+  const handleClickDelete = () => {
+    const confirmed = window.confirm("선택한 문제를 삭제하시겠습니까?");
+    if (confirmed) {
+      console.log("selectedProblemIds", selectedProblemIds);
+      console.log("selectedType", selectedType);
+
+      if (!reviewNoteList) return;
+      if (selectedType !== null) {
+        selectedProblemIds.map((selectedProblemId) => {
+          deleteProblemApi(selectedProblemId, selectedType);
+        });
+      }
+
+      const updatedList = reviewNoteList.filter(
+        (item) => !selectedProblemIds.includes(item.problem_id)
+      );
+
+      setReviewNoteList(updatedList);
+      setSelectedProblemIds([]); // 선택 초기화
+    }
   };
 
   const handleDropProblemToSection = (targetSection: string) => {
@@ -90,41 +102,15 @@ const ReviewNoteListPage = () => {
     // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
   };
 
-  const getFilteredAndSortedProblems = () => {
-    const problems =
-      selectedChapter && selectedSection
-        ? mockProblemData[selectedChapter]?.[selectedSection] ?? []
-        : [];
-
-    if (selected === "미해결") {
-      return problems.filter((p) => p.correctCount === 0);
-    }
-
-    return [...problems].sort((a, b) => {
-      const rateA = a.totalCount === 0 ? 0 : a.correctCount / a.totalCount;
-      const rateB = b.totalCount === 0 ? 0 : b.correctCount / b.totalCount;
-
-      return selected === "정답률↑" ? rateA - rateB : rateB - rateA;
-    });
-  };
-
-  //////////////////////////////////////////////////////////////////
-
-  const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
-  const [selectedType, setSelectedType] = useState<number | null>(null);
-  const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
-    null
-  );
-
   const fetchFolderList = async () => {
     // const favRes = await getFavoriteFoldersApi();
     // const ReviewRes = await getReviewNoteFolderApi();
     // const favoriteRes = favRes[0];
     // const reviewNoteRes = ReviewRes[0];
     const favoriteRes = mockFavoriteFolderData[0];
-    const reviewNoteRes = mockReviewNoteFolderData[0];
+    const reviewNoteRes = mockReviewNoteFolderData;
 
-    const merged = [favoriteRes, reviewNoteRes]; // 하나의 배열로 합치기
+    const merged = [favoriteRes, ...reviewNoteRes]; // 하나의 배열로 합치기
     setNoteFolders(merged);
     console.log(merged);
   };
@@ -145,18 +131,18 @@ const ReviewNoteListPage = () => {
             type={item.type}
             noteFolders={noteFolders}
             setNoteFolders={setNoteFolders}
-            onSelectSection={handleSelectSection}
+            onSelectUnit={handleSelectUnit}
             onDropProblem={handleDropProblemToSection}
           />
         ))}
       </div>
 
       <div className="col-span-8 h-full flex flex-col gap-y-5">
-        {selectedChapter && selectedSection ? (
+        {selectedChapter && selectedSection && selectedUnit ? (
           <>
             <div className="flex items-center justify-between">
               <p className="headline-medium text-gray-700">
-                {selectedChapter} &gt; {selectedSection}
+                {selectedChapter} &gt; {selectedSection} &gt; {selectedUnit}
               </p>
               <div className="flex items-center gap-x-1">
                 <UploadLight />
@@ -164,7 +150,10 @@ const ReviewNoteListPage = () => {
               </div>
             </div>
             <div className="w-full flex justify-between">
-              <div className="flex items-center text-gray-700 gap-x-1">
+              <div
+                className="flex items-center text-gray-700 gap-x-1"
+                onClick={handleClickDelete}
+              >
                 <Trash />
                 <p className="caption-medium">삭제하기</p>
               </div>
