@@ -1,12 +1,22 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  Param,
+  UseGuards,
+  Post,
+  Req,
+} from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiParam,
   ApiOkResponse,
+  ApiBody,
 } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 import { ConceptService } from './concepts.service';
+import { ConceptQuizSubmissionDto } from './dto/concept-quiz-submission.dto';
 
 @ApiTags('Concepts')
 @Controller('api/v1/concepts')
@@ -55,5 +65,30 @@ export class ConceptController {
   @Get(':category_id/quiz')
   async getCategoryQuizzes(@Param('category_id') categoryId: number) {
     return this.conceptService.getCategoryQuizzes(categoryId);
+  }
+
+  // 개념 문제 제출 API
+  @ApiOperation({ summary: '개념 문제 답안 제출' })
+  @ApiParam({ name: 'quiz_id', description: '퀴즈 ID', type: Number })
+  @ApiBody({ type: ConceptQuizSubmissionDto })
+  @ApiOkResponse({
+    description: '정답 여부 및 제출 ID 반환',
+    schema: {
+      example: {
+        is_correct: true,
+        quiz_submission_id: 123,
+      },
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Post('quiz/:quiz_id/submission')
+  async submitQuizAnswer(
+    @Req() req,
+    @Param('quiz_id') quizId: number,
+    @Body() dto: ConceptQuizSubmissionDto,
+  ) {
+    const userId = req.user.id;
+
+    return this.conceptService.submitQuizAnswer(userId, quizId, dto.answers);
   }
 }
