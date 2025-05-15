@@ -19,10 +19,12 @@ const LoginPage = () => {
   const left = window.screenX + (window.innerWidth - width) / 2;
   const top = window.screenY + (window.innerHeight - height) / 2;
 
+  const BACKEND_URL = import.meta.env.VITE_APP_API_URL;
+
   const handleGoogleLogin = () => {
     // 1) 팝업 띄우기
     const popup = window.open(
-      "http://localhost:4000/api/v1/auth/google",
+      `${BACKEND_URL}/auth/google`,
       'googleLogin',
       `width=${width},height=${height},top=${top},left=${left},toolbar=no,menubar=no,location=no,status=no`
     );
@@ -38,7 +40,7 @@ const LoginPage = () => {
       localStorage.setItem("user", JSON.stringify(user));
 
       window.removeEventListener("message", receiveMessage);
-      // 4) 팝업 닫고, 로그인 후 행동 (리다이렉트 등)
+      // 4) 팝업 닫고, 랜딩 페이지로 이동
       if (popup) {
         popup.close();
       }
