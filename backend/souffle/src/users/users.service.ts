@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserAuthentication } from './entities/user-authentication.entity';
+import { UserReport } from './entities/user-report.entity';
 
 @Injectable()
 export class UserService {
@@ -14,6 +15,8 @@ export class UserService {
     private userAuthenticationRepository: Repository<UserAuthentication>,
     @InjectRepository(UserCategoryProgress)
     private userCategoryRepository: Repository<UserCategoryProgress>,
+    @InjectRepository(UserReport)
+    private userReportRepository: Repository<UserReport>,
   ) {}
 
   // 이메일로 유저 찾기
@@ -82,5 +85,19 @@ export class UserService {
     return this.userRepository.findOne({
       where: { id },
     });
+  }
+
+  // 리포트 조회 API
+  async getLatestUserReport(userId: number) {
+    const latest = await this.userReportRepository.findOne({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+    if (!latest) return null;
+    return {
+      ai_diagnosis: latest.aiDiagnosis,
+      study_plan: latest.studyPlan,
+      date: latest.createdAt.toISOString().slice(0, 10),
+    };
   }
 }
