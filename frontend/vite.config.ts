@@ -10,16 +10,19 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      injectRegister: null,
       registerType: 'autoUpdate',
       workbox: {
+	navigateFallback: '/index.html',
         navigateFallbackDenylist: [
-          /^\/auth\//,
+          /^\/api\/v1\/auth\//,
           /^\/swagger/,
           /^\/docs/,
           /^\/openapi.json/,
+	  /^\/popup-login\.html$/,
         ],
       },
-      includeAssets: ['favicon.svg', 'robots.txt'],
+      includeAssets: ['favicon.svg', 'robots.txt', 'popup-login.html'],
       manifest: {
         name: 'Souffle',
         short_name: 'Souffle',

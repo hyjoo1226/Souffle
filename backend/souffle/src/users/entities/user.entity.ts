@@ -14,6 +14,7 @@ import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserAuthentication } from './user-authentication.entity';
 import { UserScoreStat } from './user-score-stat.entity';
 import { UserReport } from './user-report.entity';
+import { ConceptQuizSubmission } from 'src/concepts/entities/concept-quiz-submission.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -52,4 +53,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => UserReport, (report) => report.user)
   reports: UserReport[];
+
+  @OneToMany(() => ConceptQuizSubmission, (submission) => submission.user)
+  conceptQuizSubmissions: ConceptQuizSubmission[];
 }

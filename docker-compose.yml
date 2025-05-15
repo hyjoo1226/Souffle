@@ -1,6 +1,7 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     container_name: frontend
     ports:
       - "3000:3000"
@@ -8,6 +9,9 @@ services:
     - ./frontend/.env
     networks:
       - public
+    volumes:
+      - ./frontend/dist:/app/dist
+    
   backend:
     build: ./backend/souffle
     container_name: backend
@@ -53,8 +57,8 @@ services:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ssafy"]
-      interval: 10s
-      timeout: 5s
+      interval: 3s
+      timeout: 1s
       retries: 5
     networks:
       - internal
@@ -67,8 +71,8 @@ services:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      interval: 3s
+      timeout: 1s
       retries: 5
     networks:
       - internal
@@ -85,6 +89,7 @@ services:
       - ./volumes/caddy_data:/data
       - ./volumes/caddy_config:/config
       - ./uploads:/app/uploads
+      - ./frontend/dist:/srv
     depends_on:
       - frontend
       - backend

@@ -28,6 +28,10 @@ build-fe:
   tags: [deploy]
   script:
     - docker-compose -f docker-compose.frontend.yml build frontend
+    - docker create --name frontend-builder frontend
+    - docker cp frontend-builder:/app/dist ./frontend/dist
+    - docker rm frontend-builder
+
   rules:
     - if: '$CI_COMMIT_BRANCH =~ /^(fe-dev|main|master)$/'
 
@@ -42,11 +46,11 @@ integration-test:
     - docker-compose -f docker-compose.ci.yml down --volumes --remove-orphans || true
     - docker-compose -f docker-compose.ci.yml up -d
     - |
-      for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf http://localhost:8000/data/api/v1/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
+      for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf http://localhost:8000/data/api/v1/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
     - |
       for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf http://localhost:4000/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
     - |
-      curl -sSf http://localhost:3000/ || (docker logs frontend && exit 1)
+      for i in {1..10}; do echo "frontend healthcheck... ($i/10)"; curl -sSf http://localhost || (docker logs caddy && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$CI_COMMIT_BRANCH == "master"'
@@ -62,6 +66,6 @@ deploy:
     - |
       for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
     - |
-      for i in {1..10}; do echo "frontend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr && break || sleep 3; done || (echo "frontend healthcheck failed" && docker logs frontend && exit 1)
+      for i in {1..10}; do echo "frontend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr && break || sleep 3; done || (echo "frontend healthcheck failed" && docker logs caddy && exit 1)
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
