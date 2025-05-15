@@ -286,7 +286,7 @@ export class NoteController {
   })
   @ApiResponse({ status: 404, description: '문제 정보 없음' })
   @UseGuards(AuthGuard('jwt'))
-  @Get('detail/:user_problem_id')
+  @Get('content/:user_problem_id')
   async getProblemDetail(@Param('user_problem_id') userProblemId: number) {
     return this.noteService.getProblemDetail(Number(userProblemId));
   }
