@@ -38,7 +38,7 @@ export class AuthController {
     frontendRedirectUrl.searchParams.set('email', user.email);
     frontendRedirectUrl.searchParams.set('profileImage', user.profileImage);
 
-    return res.redirect(frontendRedirectUrl.toString());
+    res.redirect(frontendRedirectUrl.toString());
   }
 
   @Post('refresh')
