@@ -23,6 +23,9 @@ export default defineConfig({
         ],
       },
       includeAssets: ['favicon.svg', 'robots.txt', 'popup-login.html'],
+      define: {
+   	 'import.meta.env.VITE_APP_API_URL': JSON.stringify(process.env.VITE_APP_API_URL),
+ 	 },
       manifest: {
         name: 'Souffle',
         short_name: 'Souffle',
