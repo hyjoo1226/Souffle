@@ -20,4 +20,7 @@ services:
 networks:
   public:
   internal:
+<<<<<<< HEAD
 
+=======
+>>>>>>> fe-feature/222-googleOauth
