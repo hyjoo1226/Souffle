@@ -7,6 +7,9 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig({
+  define: {
+    'import.meta.env.VITE_APP_API_URL': JSON.stringify(process.env.VITE_APP_API_URL)
+  },
   plugins: [
     react(),
     VitePWA({
@@ -23,10 +26,7 @@ export default defineConfig({
         ],
       },
       includeAssets: ['favicon.svg', 'robots.txt', 'popup-login.html'],
-      define: {
-   	 'import.meta.env.VITE_APP_API_URL': JSON.stringify(process.env.VITE_APP_API_URL),
- 	 },
-      manifest: {
+        manifest: {
         name: 'Souffle',
         short_name: 'Souffle',
         description: 'AI 기반 수학 풀이 학습 서비스',
