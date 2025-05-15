@@ -27,8 +27,9 @@ build-fe:
   stage: build
   tags: [deploy]
   script:
-    - docker-compose -f docker-compose.frontend.yml build frontend
-    - docker create --name frontend-builder frontend
+#    - docker-compose -f docker-compose.frontend.yml build frontend
+    - docker build -t frontend:ci -f frontend/Dockerfile ./frontend
+    - docker create --name frontend-builder frontend:ci
     - docker cp frontend-builder:/app/dist ./frontend/dist
     - docker rm frontend-builder
 
