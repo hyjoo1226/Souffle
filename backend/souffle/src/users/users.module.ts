@@ -9,6 +9,7 @@ import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { Category } from 'src/categories/entities/category.entity';
       UserReport,
       UserScoreStat,
       Category,
+      Submission,
     ]),
   ],
   controllers: [UserController],

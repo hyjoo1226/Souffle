@@ -10,6 +10,7 @@ import { Between } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { UserProblem } from './entities/user-problem.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { Submission } from 'src/submissions/entities/submission.entity';
 
 @Injectable()
 export class UserService {
@@ -28,6 +29,8 @@ export class UserService {
     private userProblemRepository: Repository<UserProblem>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
+    @InjectRepository(Submission)
+    private submissionRepository: Repository<Submission>,
   ) {}
 
   // 이메일로 유저 찾기
@@ -211,5 +214,61 @@ export class UserService {
     );
 
     return { categories: results };
+  }
+
+  // 주간 학습 시간 조회 API
+  async getWeeklyStudy(
+    userId: number,
+    startDateTime: Date,
+    endDateTime: Date,
+    startDateStr: string,
+    endDateStr: string,
+  ) {
+    const submissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        createdAt: Between(startDateTime, endDateTime),
+      },
+    });
+
+    const dateMap = new Map<string, number>();
+    const dates: string[] = [];
+    for (let i = 0; i < 7; i++) {
+      const currentDate = this.addDays(startDateStr, i);
+      dates.push(currentDate);
+      dateMap.set(currentDate, 0);
+    }
+
+    for (const submission of submissions) {
+      const submissionDate = submission.createdAt.toISOString().split('T')[0];
+      if (dateMap.has(submissionDate)) {
+        dateMap.set(
+          submissionDate,
+          dateMap.get(submissionDate)! + (submission.totalSolveTime || 0),
+        );
+      }
+    }
+
+    const daily_records = dates.map((date) => ({
+      date,
+      weekday: this.getWeekday(date),
+      total_solve_time: dateMap.get(date) || 0,
+    }));
+
+    return {
+      week_start: startDateStr,
+      week_end: endDateStr,
+      daily_records,
+    };
+  }
+  private addDays(dateStr: string, days: number): string {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() + days);
+    return date.toISOString().split('T')[0];
+  }
+  // 요일 (월요일: 0, 일요일: 6)
+  private getWeekday(dateStr: string): number {
+    const date = new Date(dateStr);
+    return (date.getDay() + 6) % 7;
   }
 }

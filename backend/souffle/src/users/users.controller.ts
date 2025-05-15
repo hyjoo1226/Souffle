@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Get, Req } from '@nestjs/common';
+import { Get, Req, Query } from '@nestjs/common';
 import { UserService } from './users.service';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
@@ -53,6 +53,7 @@ export class UserController {
   @Get('report/latest')
   async getLatestReport(@Req() req) {
     const userId = req.user.id;
+
     return this.usersService.getLatestUserReport(userId);
   }
 
@@ -94,6 +95,7 @@ export class UserController {
   @Get('statistic/score-stats')
   async getUserScoreStats(@Req() req) {
     const userId = req.user.id;
+
     return this.usersService.getUserScoreStats(userId);
   }
 
@@ -121,6 +123,51 @@ export class UserController {
   @Get('statistic/category-analysis')
   async getCategoryAnalysis(@Req() req) {
     const userId = req.user.id;
+
     return this.usersService.getCategoryAnalysis(userId);
+  }
+
+  // 주간 학습 시간 조회 API
+  @ApiOperation({ summary: '주간 학습 시간 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '주간 학습 시간 데이터',
+    schema: {
+      example: {
+        week_start: '2025-05-09',
+        week_end: '2025-05-15',
+        daily_records: [
+          {
+            date: '2025-05-09',
+            weekday: 4,
+            total_solve_time: 0,
+          },
+          // ...
+        ],
+      },
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('statistic/weekly-study')
+  async getWeeklyStudy(@Req() req, @Query('date') date: string) {
+    const endDateStr = date;
+    const startDateStr = this.subtractDays(endDateStr, 6);
+    const startDateTime = new Date(`${startDateStr}T00:00:00.000Z`);
+    const endDateTime = new Date(`${endDateStr}T23:59:59.999Z`);
+
+    const userId = req.user.id;
+
+    return this.usersService.getWeeklyStudy(
+      userId,
+      startDateTime,
+      endDateTime,
+      startDateStr,
+      endDateStr,
+    );
+  }
+  private subtractDays(dateStr: string, days: number): string {
+    const date = new Date(dateStr);
+    date.setDate(date.getDate() - days);
+    return date.toISOString().split('T')[0];
   }
 }
