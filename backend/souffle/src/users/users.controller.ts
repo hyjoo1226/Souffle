@@ -1,9 +1,10 @@
 import { Controller } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Get, Req, Query } from '@nestjs/common';
+import { Get, Req, Query, Body, Patch } from '@nestjs/common';
 import { UserService } from './users.service';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Controller('api/v1/users')
 export class UserController {
@@ -35,6 +36,22 @@ export class UserController {
   // async getMyProfile(@Req() req) {
   //   return req.user;
   // }
+
+  // 유저 정보 수정 API
+  @ApiOperation({ summary: '유저 정보 갱신' })
+  @ApiBody({ type: UpdateProfileDto })
+  @ApiResponse({
+    status: 200,
+    description: '변경된 닉네임 반환',
+    schema: { example: { nickname: '변경할 닉네임' } },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('my-profile')
+  async updateMyProfile(@Req() req, @Body() dto: UpdateProfileDto) {
+    const userId = req.user.id;
+
+    return this.usersService.updateProfile(userId, dto);
+  }
 
   // 최신 리포트 조회 API
   @ApiOperation({ summary: '리포트 최신 조회' })

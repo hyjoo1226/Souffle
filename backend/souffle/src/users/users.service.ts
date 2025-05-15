@@ -11,6 +11,7 @@ import { NotFoundException } from '@nestjs/common';
 import { UserProblem } from './entities/user-problem.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class UserService {
@@ -182,6 +183,15 @@ export class UserService {
       created_at: user.createdAt,
       email,
     };
+  }
+
+  // 유저 정보 수정 API
+  async updateProfile(userId: number, dto: UpdateProfileDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    user.nickname = dto.nickname;
+    await this.userRepository.save(user);
+    return { nickname: user.nickname };
   }
 
   // 단원 별 분석 조회 API
