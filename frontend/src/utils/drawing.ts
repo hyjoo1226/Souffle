@@ -65,39 +65,23 @@ export const createStroke = (
 export const shouldCreateNewBlock = (
   first: { x: number; y: number; time: number },
   lastPoint: { x: number; y: number } | null,
-<<<<<<< HEAD
-  lastStrokeTime: number | null
-=======
   // lastStrokeTime: number | null
->>>>>>> fe-feature/222-googleOauth
 ) => {
   const distance = lastPoint
     ? Math.hypot(first.x - lastPoint.x, first.y - lastPoint.y)
     : 0;
-<<<<<<< HEAD
-  const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
-  const movedLeft = lastPoint && first.x + 70 < lastPoint.x;
-  const movedDown = lastPoint && first.y > lastPoint.y + 10;
-
-  return distance > 100 || timeGap > 3000 || (movedLeft && movedDown);
-=======
   // const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
   const movedLeft = lastPoint && first.x + 70 < lastPoint.x;
   const movedDown = lastPoint && first.y > lastPoint.y + 10;
 
   return distance > 100 || (movedLeft && movedDown);
->>>>>>> fe-feature/222-googleOauth
 };
 
 export const updateBlocksWithStroke = ({
   stroke,
   blocks,
   lastPoint,
-<<<<<<< HEAD
-  lastStrokeTime,
-=======
   // lastStrokeTime,
->>>>>>> fe-feature/222-googleOauth
   lastBlockId,
 }: {
   stroke: {
@@ -120,11 +104,7 @@ export const updateBlocksWithStroke = ({
     shouldCreateNewBlock(
       { ...stroke.start, time: stroke.timestamp },
       lastPoint,
-<<<<<<< HEAD
-      lastStrokeTime
-=======
       // lastStrokeTime
->>>>>>> fe-feature/222-googleOauth
     ) ||
     !newBlocks.find((b) => b.block_id === lastBlockId);
 
@@ -215,11 +195,7 @@ export function getPointerUpHandler(
       shouldCreateNewBlock(
         { ...stroke.start, time: stroke.timestamp },
         lastPoint,
-<<<<<<< HEAD
-        lastStrokeTime
-=======
         // lastStrokeTime
->>>>>>> fe-feature/222-googleOauth
       ) ||
       !blocks.find((b) => b.block_id === lastBlockId);
 
