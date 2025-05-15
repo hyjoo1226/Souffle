@@ -10,13 +10,12 @@ import {
   deleteFolderApi,
   UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
-import type { Folder as FolderType } from "@/services/api/ReviewNoteList";
 
 interface Props {
   chapter: string;
   sections: Folder[];
   type: number;
-  favoriteFolders: Folder[] | null;
+  folders: Folder[] | null;
   setFavoriteFolders: (folders: Folder[]) => void;
   onSelectUnit: ({ section, type, unit, id }: UnitSelectPayload) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
@@ -26,7 +25,7 @@ const NoteFolder = ({
   chapter,
   sections,
   type,
-  favoriteFolders,
+  folders,
   setFavoriteFolders,
   onSelectUnit,
   onDropProblem,
@@ -42,13 +41,30 @@ const NoteFolder = ({
   const [newFolderName, setNewFolderName] = useState("");
 
   const handleCreateFolder = () => {
-    const data = {
+    if (!folders) return;
+
+    const newFolder: Folder = {
+      id: Date.now(), // or 서버 응답으로 받은 ID
       name: newFolderName,
-      type: type,
+      type,
       parent_id: type,
+      problem_count: 0,
+      children: [],
     };
-    console.log(data);
-    // createFolderApi(data);
+
+    const updated = folders.map((folder) => {
+      if (folder.name === chapter) {
+        return {
+          ...folder,
+          children: [...folder.children, newFolder],
+        };
+      }
+      return folder;
+    });
+
+    setFavoriteFolders(updated); // 또는 setFolders(updated);
+    setNewFolderName("");
+    setIsCreatingFolder(false);
   };
 
   const handleUpdateFolder = (sectionId: number, newFolderName: string) => {
@@ -57,7 +73,7 @@ const NoteFolder = ({
     };
     // updateFolderApi(sectionId, data);
 
-    const updated = favoriteFolders?.map((folder) => {
+    const updated = folders?.map((folder) => {
       const updatedChildren = folder.children.map((child) =>
         child.id === sectionId ? { ...child, name: newFolderName } : child
       );
@@ -74,7 +90,7 @@ const NoteFolder = ({
   const handleDeleteFolder = (folderId: number) => {
     // deleteFolderApi(folderId);
     const updated =
-      favoriteFolders?.map((folder) => ({
+      folders?.map((folder) => ({
         ...folder,
         children: folder.children.filter((child) => child.id !== folderId),
       })) ?? [];

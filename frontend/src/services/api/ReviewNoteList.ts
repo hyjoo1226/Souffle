@@ -71,15 +71,16 @@ export const getReviewNoteFolderApi = async () => {
 export const createFolderApi = async (data: {
   name: string;
   type: number;
-  parent_id: number;
+  parent_id: number | null;
 }) => {
   // const token = localStorage.getItem("accessToken"); // 또는 쿠키 등
 
-  await api.post("/notes/folder", data, {
+  const response = await api.post("/notes/folder", data, {
     // headers: {
     //   Authorization: `Bearer ${token}`,
     // },
   });
+  return response.data;
 };
 
 export const updateFolderApi = async (
@@ -128,6 +129,18 @@ export const deleteProblemApi = async (
     params: {
       type: selectedType,
     },
+  });
+  return response.data;
+};
+
+export const moveToFavFolderApi = async (
+  problemId: number,
+  folderId: number,
+  type: number
+) => {
+  const response = await api.patch(`/notes/problem/${problemId}`, {
+    folderId,
+    type,
   });
   return response.data;
 };

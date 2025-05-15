@@ -19,6 +19,8 @@ import {
   mockType1ListData,
   mockType2ListData,
 } from "@/mocks/dummyReviewData";
+import FolderSelectModal from "@/components/reviewNoteList/FolderSelectModal";
+import ProblemPreview from "@/components/reviewNoteList/ProblemPreview";
 
 const ReviewNoteListPage = () => {
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
@@ -33,6 +35,7 @@ const ReviewNoteListPage = () => {
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
+  const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
 
   // const [checkedProblemList, setCheckedProblemList] = useState<number[]>([]);
 
@@ -95,6 +98,9 @@ const ReviewNoteListPage = () => {
     }
   };
 
+  const handleClickFolderChange = () => {
+    setIsFavoriteModalOpen(!isFavoriteModalOpen);
+  };
   // const handleClickFolderChange = () => {
   //   selectedProblemIds.map((selectedProblemId)=> {
 
@@ -134,105 +140,132 @@ const ReviewNoteListPage = () => {
   }, []);
 
   return (
-    <div className="grid grid-cols-12 gap-x-4 py-[clamp(16px,2.33vh,28px)] h-screen">
-      <div className="col-span-4 h-full border border-gray-200 rounded-[10px] py-4 px-3 flex flex-col gap-y-4 overflow-y-auto">
-        {/* 동적으로 렌더링되는 단원들 */}
-        {favoriteFolders?.map((item) => (
-          <NoteFolder
-            key={item.id}
-            chapter={item.name}
-            sections={item.children}
-            type={item.type}
-            favoriteFolders={favoriteFolders}
-            setFavoriteFolders={setFavoriteFolders}
-            onSelectUnit={handleSelectUnit}
-            onDropProblem={handleDropProblemToSection}
-          />
-        ))}
-        {noteFolders?.map((item) => (
-          <NoteFolder
-            key={item.id}
-            chapter={item.name}
-            sections={item.children}
-            type={item.type}
-            favoriteFolders={favoriteFolders}
-            setFavoriteFolders={setFavoriteFolders}
-            onSelectUnit={handleSelectUnit}
-            onDropProblem={handleDropProblemToSection}
-          />
-        ))}
-      </div>
+    <>
+      <div className="grid grid-cols-12 gap-x-4 py-[clamp(16px,2.33vh,28px)] h-screen">
+        <div className="col-span-4 h-full border border-gray-200 rounded-[10px] py-4 px-3 flex flex-col gap-y-4 overflow-y-auto">
+          {/* 동적으로 렌더링되는 단원들 */}
+          {favoriteFolders?.map((item) => (
+            <NoteFolder
+              key={item.id}
+              chapter={item.name}
+              sections={item.children}
+              type={item.type}
+              folders={favoriteFolders}
+              setFavoriteFolders={setFavoriteFolders}
+              onSelectUnit={handleSelectUnit}
+              onDropProblem={handleDropProblemToSection}
+            />
+          ))}
+          {noteFolders?.map((item) => (
+            <NoteFolder
+              key={item.id}
+              chapter={item.name}
+              sections={item.children}
+              type={item.type}
+              folders={noteFolders}
+              setFavoriteFolders={setNoteFolders}
+              onSelectUnit={handleSelectUnit}
+              onDropProblem={handleDropProblemToSection}
+            />
+          ))}
+        </div>
 
-      <div className="col-span-8 h-full flex flex-col gap-y-5">
-        {selectedChapter && selectedSection ? (
-          <>
-            <div className="flex items-center justify-between">
-              <p className="headline-medium text-gray-700">
-                {selectedChapter} &gt; {selectedSection}
-                {selectedUnit && ` > ${selectedUnit}`}
+        <div className="col-span-8 h-full flex flex-col gap-y-5">
+          {selectedChapter && selectedSection ? (
+            <>
+              <div className="flex items-center justify-between">
+                <p className="headline-medium text-gray-700">
+                  {selectedChapter} &gt; {selectedSection}
+                  {selectedUnit && ` > ${selectedUnit}`}
+                </p>
+                <div className="flex items-center gap-x-1">
+                  <UploadLight />
+                  <p className="caption-medium text-gray-700">문제 등록</p>
+                </div>
+              </div>
+              <div className="w-full flex justify-between">
+                <div
+                  className="flex items-center text-gray-700 gap-x-1"
+                  onClick={handleClickDelete}
+                >
+                  <Trash />
+                  <p className="caption-medium">삭제하기</p>
+                </div>
+                <div className="relative " onClick={handleClickFolderChange}>
+                  <div className="flex items-center text-gray-700 gap-x-1">
+                    <Trash />
+                    <p className="caption-medium">즐겨찾기 추가</p>
+                  </div>
+                  {isFavoriteModalOpen && (
+                    <div className="absolute left-3 mt-2 w-fit  z-50">
+                      <FolderSelectModal
+                        favoriteFolders={favoriteFolders || []}
+                        selectedProblemIds={selectedProblemIds}
+                        setFavoriteFolders={setFavoriteFolders}
+                        setIsFavoriteModalOpen={setIsFavoriteModalOpen}
+                        reviewNoteList={reviewNoteList}
+                        setReviewNoteList={setReviewNoteList}
+                        handleSelectUnit={handleSelectUnit}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex overflow-hidden w-fit">
+                  {/* 오답 리스트 정렬 버튼 */}
+                  {tabs.map((tab, i) => (
+                    <button
+                      key={tab}
+                      onClick={() => setSelected(tab)}
+                      className={`px-9 py-2.5 body-small ${
+                        selected === tab
+                          ? "text-primary-500 border border-primary-500 bg-white z-10"
+                          : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
+                      } ${i !== 0 ? "-ml-px" : ""}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex flex-col gap-y-5">
+                <div className="flex items-center justify-between text-gray-700 body-medium pl-18 border-b-1 border-gray-300 pb-3">
+                  <p>문항</p>
+                  <p>정답 수/시도 수</p>
+                  <p>문제 미리 보기</p>
+                </div>
+                <div className="grid grid-cols-8 gap-x-4">
+                  <div className="col-span-4 flex-col">
+                    {reviewNoteList?.map((problem) => (
+                      <ReviewNoteItem
+                        key={problem.problem_id}
+                        problem={problem}
+                        isSelected={selectedProblemIds.includes(
+                          problem.problem_id
+                        )}
+                        onToggle={() =>
+                          handleCheckboxToggle(problem.problem_id)
+                        }
+                        selectedProblemIds={selectedProblemIds}
+                      />
+                    ))}
+                  </div>
+                  <div className="col-span-4">
+                    <ProblemPreview />
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full w-full">
+              <p className="text-gray-400 caption-medium">
+                소단원을 선택해주세요.
               </p>
-              <div className="flex items-center gap-x-1">
-                <UploadLight />
-                <p className="caption-medium text-gray-700">문제 등록</p>
-              </div>
             </div>
-            <div className="w-full flex justify-between">
-              <div
-                className="flex items-center text-gray-700 gap-x-1"
-                onClick={handleClickDelete}
-              >
-                <Trash />
-                <p className="caption-medium">삭제하기</p>
-              </div>
-              <div
-                className="flex items-center text-gray-700 gap-x-1"
-                // onClick={handleClickFolderChange}
-              >
-                <Trash />
-                <p className="caption-medium">즐겨찾기 추가</p>
-              </div>
-              <div className="flex overflow-hidden w-fit">
-                {/* 오답 리스트 정렬 버튼 */}
-                {tabs.map((tab, i) => (
-                  <button
-                    key={tab}
-                    onClick={() => setSelected(tab)}
-                    className={`px-9 py-2.5 body-small ${
-                      selected === tab
-                        ? "text-primary-500 border border-primary-500 bg-white z-10"
-                        : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
-                    } ${i !== 0 ? "-ml-px" : ""}`}
-                  >
-                    {tab}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex flex-col gap-y-5">
-              <div className="flex items-center justify-between text-gray-700 body-medium pl-18 border-b-1 border-gray-300 pb-3">
-                <p>문항</p>
-                <p>정답 수/시도 수</p>
-              </div>
-              {reviewNoteList?.map((problem) => (
-                <ReviewNoteItem
-                  key={problem.problem_id}
-                  problem={problem}
-                  isSelected={selectedProblemIds.includes(problem.problem_id)}
-                  onToggle={() => handleCheckboxToggle(problem.problem_id)}
-                  selectedProblemIds={selectedProblemIds}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center h-full w-full">
-            <p className="text-gray-400 caption-medium">
-              소단원을 선택해주세요.
-            </p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
