@@ -8,6 +8,8 @@ import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Between } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
+import { UserProblem } from './entities/user-problem.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Injectable()
 export class UserService {
@@ -22,6 +24,10 @@ export class UserService {
     private userReportRepository: Repository<UserReport>,
     @InjectRepository(UserScoreStat)
     private userScoreStatRepository: Repository<UserScoreStat>,
+    @InjectRepository(UserProblem)
+    private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
   ) {}
 
   // 이메일로 유저 찾기
@@ -173,5 +179,37 @@ export class UserService {
       created_at: user.createdAt,
       email,
     };
+  }
+
+  // 단원 별 분석 조회 API
+  async getCategoryAnalysis(userId: number) {
+    const categories = await this.categoryRepository.find();
+
+    const results = await Promise.all(
+      categories.map(async (category) => {
+        const userProblems = await this.userProblemRepository
+          .createQueryBuilder('up')
+          .innerJoin('up.problem', 'p')
+          .where('up.user_id = :userId', { userId })
+          .andWhere('p.categoryId = :categoryId', { categoryId: category.id })
+          .getMany();
+
+        const total = userProblems.length;
+        const correct = userProblems.filter(
+          (up) => up.correct_count > 0,
+        ).length;
+        const solved = userProblems.filter((up) => up.try_count > 0).length;
+
+        return {
+          id: category.id,
+          name: category.name,
+          type: category.type,
+          accuracy_rate: total ? Math.round((correct / total) * 1000) / 10 : 0,
+          progress_rate: total ? Math.round((solved / total) * 1000) / 10 : 0,
+        };
+      }),
+    );
+
+    return { categories: results };
   }
 }

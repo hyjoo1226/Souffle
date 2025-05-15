@@ -96,4 +96,31 @@ export class UserController {
     const userId = req.user.id;
     return this.usersService.getUserScoreStats(userId);
   }
+
+  // 단원 별 분석 조회 API
+  @ApiOperation({ summary: '단원 별 분석 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '단원 별 분석 데이터',
+    schema: {
+      example: {
+        categories: [
+          {
+            id: 1,
+            name: '지수와 로그',
+            type: 2,
+            accuracy_rate: 85.5,
+            progress_rate: 70.0,
+          },
+          // ...다른 단원 데이터
+        ],
+      },
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('statistic/category-analysis')
+  async getCategoryAnalysis(@Req() req) {
+    const userId = req.user.id;
+    return this.usersService.getCategoryAnalysis(userId);
+  }
 }
