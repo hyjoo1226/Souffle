@@ -24,8 +24,10 @@ export class UserReport {
   @Column({ type: 'text' })
   aiDiagnosis: string;
 
-  @Column({ type: 'text' })
-  studyPlan: string;
+  @Column({ type: 'jsonb' })
+  studyPlan: {
+    methods: Array<{ step: number; content: string }>;
+  };
 
   @CreateDateColumn()
   createdAt: Date;

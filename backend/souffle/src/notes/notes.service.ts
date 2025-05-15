@@ -447,6 +447,7 @@ export class NoteService {
       full_step_image_url: lastSubmission?.fullStepImageUrl,
       is_correct: lastSubmission?.isCorrect,
       ai_analysis: lastSubmission?.aiAnalysis,
+      weakness: lastSubmission?.weakness,
 
       // 제출 단계 정보
       submission_steps: submissionSteps.map((step) => ({
