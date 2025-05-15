@@ -3,11 +3,15 @@ import { ReactComponent as Folder } from "@/assets/icons/Folder.svg";
 import { ReactComponent as MenuButton } from "@/assets/icons/MenuButton.svg";
 import { ReactComponent as Edit } from "@/assets/icons/Edit.svg";
 import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
-import { Folder as FolderType } from "@/services/api/ReviewNoteList";
+import {
+  Folder as FolderType,
+  UnitSelectPayload,
+} from "@/services/api/ReviewNoteList";
 import { ReactComponent as ExpandSlim } from "@/assets/icons/ExpandSlim.svg";
 
 interface Props {
   id: number;
+  sectionTitle: string;
   title: string;
   count: number;
   type: number;
@@ -15,21 +19,21 @@ interface Props {
   setIsUpdateFolder: (value: boolean) => void;
   setSelectedFolderId: (value: number) => void;
   setNewFolderName: (value: string) => void;
-  onClick: (child?: FolderType) => void;
+  onSelectUnit: (child?: UnitSelectPayload) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
   onDeleteFolder: (folderId: number) => void;
 }
 
 const NoteSectionItem = ({
+  id,
   title,
   count,
-  id,
   type,
   subUnit,
   setIsUpdateFolder,
   setSelectedFolderId,
   setNewFolderName,
-  onClick,
+  onSelectUnit,
   onDropProblem,
   onDeleteFolder,
 }: Props) => {
@@ -71,13 +75,28 @@ const NoteSectionItem = ({
       <div className="flex items-center justify-between w-full pl-8 pr-4 cursor-pointer">
         <div
           className="flex items-center gap-x-2"
-          onClick={() => setIsOpen((prev) => !prev)}
+          onClick={() => {
+            if (type === 1 && onSelectUnit) {
+              onSelectUnit({
+                chapter: title,
+                section: sectionTitle,
+                unit: null,
+                type, // ✅ 올바른 type
+                id,
+                name: title,
+              });
+            } else {
+              setIsOpen((prev) => !prev);
+            }
+          }}
         >
-          <ExpandSlim
-            className={`text-gray-700 w-4 h-4 transform transition-transform duration-200 ${
-              isOpen ? "rotate-270" : "rotate-180"
-            }`}
-          />
+          {type !== 1 && (
+            <ExpandSlim
+              className={`text-gray-700 w-4 h-4 transform transition-transform duration-200 ${
+                isOpen ? "rotate-270" : "rotate-180"
+              }`}
+            />
+          )}
           <Folder className="text-gray-700" />
           <p className="body-medium text-gray-700">{title}</p>
           <p className="caption-medium text-primary-700">{count}</p>
@@ -132,7 +151,16 @@ const NoteSectionItem = ({
             <div
               key={child.id}
               className="flex items-center gap-x-2 pl-4 py-1 cursor-pointer hover:bg-gray-50 rounded"
-              onClick={() => onClick(child)}
+              onClick={() =>
+                onSelectUnit({
+                  chapter: title,
+                  section: title,
+                  unit: title,
+                  type,
+                  id,
+                  name: title,
+                })
+              }
             >
               <p className="body-medium text-gray-600">{child.name}</p>
               <p className="body-medium text-primary-700">

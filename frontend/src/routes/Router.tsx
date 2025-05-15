@@ -51,14 +51,7 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/review-list"
-        element={
-          <ProtectedRoute>
-            <ReviewNoteListPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/review-list" element={<ReviewNoteListPage />} />
       <Route
         path="/landing"
         element={
@@ -99,6 +92,7 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
+      <Route path="/modal" element={<FolderSelectModal />} />
       <Route path="/" element={<LoginPage />} />
     </Routes>
   );

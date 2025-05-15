@@ -8,21 +8,16 @@ import {
   createFolderApi,
   updateFolderApi,
   deleteFolderApi,
+  UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
 
 interface Props {
   chapter: string;
   sections: Folder[];
   type: number;
-  noteFolders: Folder[];
-  setNoteFolders: (folders: Folder[]) => void;
-  onSelectUnit: (
-    chapter: string,
-    section: string,
-    type: number,
-    unit: string,
-    id: number
-  ) => void;
+  favoriteFolders: Folder[] | null;
+  setFavoriteFolders: (folders: Folder[]) => void;
+  onSelectUnit: ({ section, type, unit, id }: UnitSelectPayload) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
 }
 
@@ -30,8 +25,8 @@ const NoteFolder = ({
   chapter,
   sections,
   type,
-  noteFolders,
-  setNoteFolders,
+  favoriteFolders,
+  setFavoriteFolders,
   onSelectUnit,
   onDropProblem,
 }: Props) => {
@@ -61,13 +56,13 @@ const NoteFolder = ({
     };
     // updateFolderApi(sectionId, data);
 
-    const updated = noteFolders.map((folder) => {
+    const updated = favoriteFolders?.map((folder) => {
       const updatedChildren = folder.children.map((child) =>
         child.id === sectionId ? { ...child, name: newFolderName } : child
       );
       return { ...folder, children: updatedChildren };
     });
-    setNoteFolders(updated);
+    setFavoriteFolders(updated ?? []);
     // console.log("sectionId", sectionId);
     // console.log("data", data);
     setSelectedFolderId(null);
@@ -77,11 +72,12 @@ const NoteFolder = ({
 
   const handleDeleteFolder = (folderId: number) => {
     // deleteFolderApi(folderId);
-    const updated = noteFolders.map((folder) => ({
-      ...folder,
-      children: folder.children.filter((child) => child.id !== folderId),
-    }));
-    setNoteFolders(updated);
+    const updated =
+      favoriteFolders?.map((folder) => ({
+        ...folder,
+        children: folder.children.filter((child) => child.id !== folderId),
+      })) ?? [];
+    setFavoriteFolders(updated);
   };
   return (
     <div className="w-full flex flex-col gap-y-2.5">
@@ -140,15 +136,17 @@ const NoteFolder = ({
                 setIsUpdateFolder={setIsUpdateFolder}
                 setSelectedFolderId={setSelectedFolderId}
                 setNewFolderName={setNewFolderName}
-                onClick={(child) =>
-                  onSelectUnit(
-                    chapter,
-                    section.name,
-                    section.type,
-                    child?.name ?? "",
-                    child?.id ?? 0
-                  )
-                }
+                onSelectUnit={(child) => {
+                  if (!child) return;
+                  onSelectUnit({
+                    chapter: chapter,
+                    section: section.name,
+                    type: section.type,
+                    unit: child.name,
+                    id: child.id,
+                    name: child.name, // Ensure 'name' is included as required by UnitSelectPayload
+                  });
+                }}
                 onDropProblem={(targetSection, problemIds) =>
                   onDropProblem?.(targetSection, problemIds)
                 }

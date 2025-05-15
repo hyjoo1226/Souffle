@@ -11,6 +11,7 @@ import {
   Folder,
   ReviewNoteList,
   deleteProblemApi,
+  UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
 import {
   mockFavoriteFolderData,
@@ -28,7 +29,6 @@ const ReviewNoteListPage = () => {
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
-  const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
   const [selectedType, setSelectedType] = useState<number | null>(null);
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
@@ -36,19 +36,21 @@ const ReviewNoteListPage = () => {
 
   // const [checkedProblemList, setCheckedProblemList] = useState<number[]>([]);
 
-  const handleSelectUnit = async (
-    chapter: string,
-    section: string,
-    type: number,
-    unit: string,
-    id: number
-  ) => {
+  const handleSelectUnit = async ({
+    chapter,
+    section,
+    type,
+    unit,
+    id,
+  }: UnitSelectPayload) => {
+    // console.log("chapter", chapter);
+
     setSelectedChapter(chapter);
     setSelectedSection(section);
     setSelectedType(type);
     setSelectedUnit(unit);
 
-    console.log("chapter", chapter);
+    console.log("chapter", selectedChapter);
     console.log("section", section);
     console.log("type", type);
     console.log("unit", unit);
@@ -79,7 +81,7 @@ const ReviewNoteListPage = () => {
       if (!reviewNoteList) return;
       if (selectedType !== null) {
         selectedProblemIds.map((selectedProblemId) => {
-          deleteProblemApi(selectedProblemId, selectedType);
+          // deleteProblemApi(selectedProblemId, selectedType);
         });
       }
 
@@ -92,6 +94,12 @@ const ReviewNoteListPage = () => {
     }
   };
 
+  // const handleClickFolderChange = () => {
+  //   selectedProblemIds.map((selectedProblemId)=> {
+
+  //   })
+  // }
+
   const handleDropProblemToSection = (targetSection: string) => {
     console.log("이동할 문제들:", selectedProblemIds);
     console.log("타겟 소단원:", targetSection);
@@ -101,18 +109,23 @@ const ReviewNoteListPage = () => {
     // TODO: 여기에 백엔드 요청 붙이면 됨
     // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
   };
-
+  const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
+  const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
   const fetchFolderList = async () => {
     // const favRes = await getFavoriteFoldersApi();
     // const ReviewRes = await getReviewNoteFolderApi();
     // const favoriteRes = favRes[0];
     // const reviewNoteRes = ReviewRes[0];
+
     const favoriteRes = mockFavoriteFolderData[0];
     const reviewNoteRes = mockReviewNoteFolderData;
 
-    const merged = [favoriteRes, ...reviewNoteRes]; // 하나의 배열로 합치기
-    setNoteFolders(merged);
-    console.log(merged);
+    setFavoriteFolders([favoriteRes]);
+    setNoteFolders(reviewNoteRes);
+    // const merged = [favoriteRes, ...reviewNoteRes]; // 하나의 배열로 합치기
+    // setNoteFolders(merged);
+    console.log("favoriteFolders", favoriteFolders);
+    console.log("noteFolders", noteFolders);
   };
 
   useEffect(() => {
@@ -123,14 +136,26 @@ const ReviewNoteListPage = () => {
     <div className="grid grid-cols-12 gap-x-4 py-[clamp(16px,2.33vh,28px)] h-screen">
       <div className="col-span-4 h-full border border-gray-200 rounded-[10px] py-4 px-3 flex flex-col gap-y-4 overflow-y-auto">
         {/* 동적으로 렌더링되는 단원들 */}
+        {favoriteFolders?.map((item) => (
+          <NoteFolder
+            key={item.id}
+            chapter={item.name}
+            sections={item.children}
+            type={item.type}
+            favoriteFolders={favoriteFolders}
+            setFavoriteFolders={setFavoriteFolders}
+            onSelectUnit={handleSelectUnit}
+            onDropProblem={handleDropProblemToSection}
+          />
+        ))}
         {noteFolders?.map((item) => (
           <NoteFolder
             key={item.id}
             chapter={item.name}
             sections={item.children}
             type={item.type}
-            noteFolders={noteFolders}
-            setNoteFolders={setNoteFolders}
+            favoriteFolders={favoriteFolders}
+            setFavoriteFolders={setFavoriteFolders}
             onSelectUnit={handleSelectUnit}
             onDropProblem={handleDropProblemToSection}
           />
@@ -138,7 +163,7 @@ const ReviewNoteListPage = () => {
       </div>
 
       <div className="col-span-8 h-full flex flex-col gap-y-5">
-        {selectedChapter && selectedSection && selectedUnit ? (
+        {selectedSection && selectedUnit ? (
           <>
             <div className="flex items-center justify-between">
               <p className="headline-medium text-gray-700">
@@ -156,6 +181,13 @@ const ReviewNoteListPage = () => {
               >
                 <Trash />
                 <p className="caption-medium">삭제하기</p>
+              </div>
+              <div
+                className="flex items-center text-gray-700 gap-x-1"
+                // onClick={handleClickFolderChange}
+              >
+                <Trash />
+                <p className="caption-medium">즐겨찾기 추가</p>
               </div>
               <div className="flex overflow-hidden w-fit">
                 {/* 오답 리스트 정렬 버튼 */}
