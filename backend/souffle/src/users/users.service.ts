@@ -7,6 +7,7 @@ import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Between } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
 
 @Injectable()
 export class UserService {
@@ -149,6 +150,28 @@ export class UserService {
       score_stats: todayStat ?? {},
       previous_stats: yesterdayStat ?? {},
       week_ago_stats: weekAgoStat ?? {},
+    };
+  }
+
+  // 유저 정보 조회 API
+  async getProfile(userId: number) {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['authentications'],
+      select: ['id', 'nickname', 'profileImage', 'createdAt'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+    const email = user.authentications?.[0]?.email ?? null;
+
+    return {
+      id: user.id,
+      nickname: user.nickname,
+      profile_image: user.profileImage,
+      created_at: user.createdAt,
+      email,
     };
   }
 }

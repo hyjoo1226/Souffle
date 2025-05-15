@@ -8,12 +8,33 @@ import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 @Controller('api/v1/users')
 export class UserController {
   constructor(private readonly usersService: UserService) {}
+
   // 유저 정보 조회 API
+  @ApiOperation({ summary: '유저 정보 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '유저 정보',
+    schema: {
+      example: {
+        id: 1,
+        nickname: '테스트유저',
+        profile_image: null,
+        created_at: '2025-05-14T06:28:04.496Z',
+        email: null,
+      },
+    },
+  })
   @UseGuards(AuthGuard('jwt'))
   @Get('my-profile')
   async getMyProfile(@Req() req) {
-    return req.user;
+    const userId = req.user.id;
+    return this.usersService.getProfile(userId);
   }
+  // @UseGuards(AuthGuard('jwt'))
+  // @Get('my-profile')
+  // async getMyProfile(@Req() req) {
+  //   return req.user;
+  // }
 
   // 최신 리포트 조회 API
   @ApiOperation({ summary: '리포트 최신 조회' })
