@@ -69,11 +69,10 @@ export class NoteController {
       },
     },
   })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('folder')
   async getFolders(@Req() req, @Query('type') type?: number) {
-    // const userId = req.user.id;
-    const userId = 1;
+    const userId = req.user.id;
     return this.noteService.getNoteFolderTree(userId, type);
   }
 

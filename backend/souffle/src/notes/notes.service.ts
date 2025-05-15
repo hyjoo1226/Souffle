@@ -451,8 +451,11 @@ export class NoteService {
       // 제출 단계 정보
       submission_steps: submissionSteps.map((step) => ({
         step_number: step.stepNumber,
+        step_image_url: step.stepImageUrl,
+        step_time: step.stepTime,
         step_valid: step.isValid,
         step_feedback: step.stepFeedback,
+        step_latex: step.latex,
       })),
     };
   }
