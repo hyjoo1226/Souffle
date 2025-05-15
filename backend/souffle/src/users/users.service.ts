@@ -271,4 +271,49 @@ export class UserService {
     const date = new Date(dateStr);
     return (date.getDay() + 6) % 7;
   }
+
+  // 문제 풀이 현황 조회 API
+  async getProblemSolvingHistory(
+    userId: number,
+    startDateTime: Date,
+    endDateTime: Date,
+    year: number,
+  ) {
+    const submissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        createdAt: Between(startDateTime, endDateTime),
+      },
+    });
+
+    const dateMap = new Map<string, number>();
+    const dates: string[] = [];
+    const daysInYear = this.isLeapYear(year) ? 366 : 365;
+    for (let i = 0; i < daysInYear; i++) {
+      const currentDate = this.addDays(`${year}-01-01`, i);
+      dates.push(currentDate);
+      dateMap.set(currentDate, 0);
+    }
+
+    for (const submission of submissions) {
+      const submissionDate = submission.createdAt.toISOString().split('T')[0];
+      if (dateMap.has(submissionDate)) {
+        dateMap.set(submissionDate, dateMap.get(submissionDate)! + 1);
+      }
+    }
+
+    const daily_records = dates.map((date) => ({
+      date,
+      problem_count: dateMap.get(date) || 0,
+    }));
+
+    return {
+      year,
+      daily_records,
+    };
+  }
+  // 윤년 확인
+  private isLeapYear(year: number): boolean {
+    return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  }
 }

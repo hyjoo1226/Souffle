@@ -170,4 +170,38 @@ export class UserController {
     date.setDate(date.getDate() - days);
     return date.toISOString().split('T')[0];
   }
+
+  // 문제 풀이 현황 조회 API
+  @ApiOperation({ summary: '문제 풀이 현황 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '연도별 문제 풀이 현황',
+    schema: {
+      example: {
+        year: 2025,
+        daily_records: [
+          { date: '2025-01-01', problem_count: 5 },
+          { date: '2025-01-02', problem_count: 3 },
+          // ... 365일 데이터
+        ],
+      },
+    },
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @Get('statistic/heatmap')
+  async getProblemSolvingHistory(@Req() req, @Query('year') year: string) {
+    const startDateStr = `${year}-01-01`;
+    const endDateStr = `${year}-12-31`;
+    const startDateTime = new Date(`${startDateStr}T00:00:00.000Z`);
+    const endDateTime = new Date(`${endDateStr}T23:59:59.999Z`);
+
+    const userId = req.user.id;
+
+    return this.usersService.getProblemSolvingHistory(
+      userId,
+      startDateTime,
+      endDateTime,
+      parseInt(year),
+    );
+  }
 }
