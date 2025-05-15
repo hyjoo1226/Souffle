@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
+import { UserScoreStat } from './entities/user-score-stat.entity';
+import { Between } from 'typeorm';
 
 @Injectable()
 export class UserService {
@@ -17,6 +19,8 @@ export class UserService {
     private userCategoryRepository: Repository<UserCategoryProgress>,
     @InjectRepository(UserReport)
     private userReportRepository: Repository<UserReport>,
+    @InjectRepository(UserScoreStat)
+    private userScoreStatRepository: Repository<UserScoreStat>,
   ) {}
 
   // 이메일로 유저 찾기
@@ -87,7 +91,7 @@ export class UserService {
     });
   }
 
-  // 리포트 조회 API
+  // 최신 리포트 조회 API
   async getLatestUserReport(userId: number) {
     const latest = await this.userReportRepository.findOne({
       where: { userId },
@@ -98,6 +102,35 @@ export class UserService {
       ai_diagnosis: latest.aiDiagnosis,
       study_plan: latest.studyPlan,
       date: latest.createdAt.toISOString().slice(0, 10),
+    };
+  }
+
+  // 유저 점수 지표 조회 API
+  async getUserScoreStats(userId: number) {
+    // 오늘 점수
+    const todayStat = await this.userScoreStatRepository.findOne({
+      where: { userId },
+      order: { createdAt: 'DESC' },
+    });
+
+    // 어제 점수
+    const yesterdayStart = new Date();
+    yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+    yesterdayStart.setHours(0, 0, 0, 0);
+    const yesterdayEnd = new Date();
+    yesterdayEnd.setDate(yesterdayEnd.getDate() - 1);
+    yesterdayEnd.setHours(23, 59, 59, 999);
+    const yesterdayStat = await this.userScoreStatRepository.findOne({
+      where: {
+        userId,
+        createdAt: Between(yesterdayStart, yesterdayEnd),
+      },
+      order: { createdAt: 'DESC' },
+    });
+
+    return {
+      score_stats: todayStat ?? {},
+      previous_stats: yesterdayStat ?? {},
     };
   }
 }

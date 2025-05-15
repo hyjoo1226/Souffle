@@ -7,6 +7,7 @@ import { UserProblem } from './entities/user-problem.entity';
 import { User } from './entities/user.entity';
 import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
+import { UserScoreStat } from './entities/user-score-stat.entity';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserReport } from './entities/user-report.entity';
       UserCategoryProgress,
       UserProblem,
       UserReport,
+      UserScoreStat,
     ]),
   ],
   controllers: [UserController],

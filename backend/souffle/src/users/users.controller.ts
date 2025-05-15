@@ -15,7 +15,7 @@ export class UserController {
     return req.user;
   }
 
-  // 리포트 조회 API
+  // 최신 리포트 조회 API
   @ApiOperation({ summary: '리포트 최신 조회' })
   @ApiResponse({
     status: 200,
@@ -33,5 +33,39 @@ export class UserController {
   async getLatestReport(@Req() req) {
     const userId = req.user.id;
     return this.usersService.getLatestUserReport(userId);
+  }
+
+  // 유저 점수 지표 조회 API
+  @ApiOperation({ summary: '유저 점수 지표 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '유저 점수 지표 및 어제 데이터',
+    schema: {
+      example: {
+        score_stats: {
+          correct_score: 85.5,
+          participation_score: 70.0,
+          speed_score: 60.0,
+          review_score: 80.0,
+          sincerity_score: 90.0,
+          reflection_score: 75.0,
+        },
+        previous_stats: {
+          correct_score: 80.0,
+          participation_score: 65.0,
+          speed_score: 55.0,
+          review_score: 75.0,
+          sincerity_score: 85.0,
+          reflection_score: 70.0,
+        },
+      },
+    },
+  })
+  // @UseGuards(AuthGuard('jwt'))
+  @Get('statistic/score-stats')
+  async getUserScoreStats(@Req() req) {
+    // const userId = req.user.id
+    const userId = 1;
+    return this.usersService.getUserScoreStats(userId);
   }
 }
