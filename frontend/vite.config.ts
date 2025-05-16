@@ -16,7 +16,6 @@ export default defineConfig({
       registerType: 'autoUpdate',
       workbox: {
         navigateFallback: '/index.html',
-        navigateFallback: '/index.html',
         navigateFallbackDenylist: [
           /^\/api\/v1\/auth\//,
           /^\/api\/v1\/auth\//,
