@@ -2,7 +2,7 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import ocr_router, health_router, report_router
-from app.core.logging import setup_logging
+from app.core.logger import setup_logging
 from app.core.exceptions import error_to_http_exception
 import logging
 
