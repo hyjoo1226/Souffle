@@ -21,4 +21,3 @@ async def get_health():
         "timestamp": datetime.now().isoformat(),
         "components": components
     }
-

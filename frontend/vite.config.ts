@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      injectRegister: null,
+      injectRegister: 'auto',
       registerType: 'autoUpdate',
       workbox: {
 	navigateFallback: '/index.html',
@@ -21,10 +21,10 @@ export default defineConfig({
           /^\/swagger/,
           /^\/docs/,
           /^\/openapi.json/,
-	  /^\/popup-login\.html$/,
+	  /^\/popup-login\.html(?:\?.*)?$/,
         ],
       },
-      includeAssets: ['favicon.svg', 'robots.txt', 'popup-login.html'],
+      includeAssets: ['favicon.svg', 'robots.txt'],
         manifest: {
         name: 'Souffle',
         short_name: 'Souffle',

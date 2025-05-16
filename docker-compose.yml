@@ -90,6 +90,7 @@ services:
       - ./volumes/caddy_config:/config
       - ./uploads:/app/uploads
       - ./frontend/dist:/srv
+      - ./static/popup-login.html:/srv/popup-login.html
     depends_on:
       - frontend
       - backend

@@ -1,8 +1,8 @@
 # app/main.py
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from app.routers import ocr_router, health_router
-from app.core.logging import setup_logging
+from app.routers import ocr_router
+from app.core.logger import setup_logging
 from app.core.exceptions import error_to_http_exception
 import logging
 
@@ -20,7 +20,7 @@ app = FastAPI(
     title="수플래 분석 서버",
     debug=True,
     description="수식 이미지 OCR 및 풀이 분석 API",
-    version="1.0.0",
+    version="1.0.1",
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json"
@@ -52,15 +52,15 @@ async def global_exception_handler(request: Request, exc: Exception):
 async def root():
     """서버 상태 확인용 루트 엔드포인트"""
     logger.info("루트 엔드포인트 호출")
-    return {"message": "수플래 분석 서버가 실행 중입니다.", "version": "1.0.0"}
+    return {"message": "수플래 분석 서버가 실행 중입니다.", "version": "1.0.1"}
 
 # POST 헬스 체크 (요청 그대로 응답)
-#@app.post("/health")
-#async def health_check(request: Request):
-#    """상세 헬스 체크 엔드포인트 (요청을 그대로 응답)"""
-#    body = await request.json()
-#    logger.info(f"헬스 체크 호출: {body}")
-#    return body
+# @app.post("/health")
+# async def health_check(request: Request):
+#     """상세 헬스 체크 엔드포인트 (요청을 그대로 응답)"""
+#     body = await request.json()
+#     logger.info(f"헬스 체크 호출: {body}")
+#     return body
 
 # 시작 로그
 logger.info("수플래 분석 서버 시작")
