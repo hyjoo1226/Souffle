@@ -27,7 +27,7 @@ export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   // 풀이 데이터 전송 API(FE-BE)
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: '풀이 데이터 전송' })
   @ApiConsumes('multipart/form-data')
