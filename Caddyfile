@@ -28,7 +28,8 @@ www.souffle.kr {
 	    reverse_proxy backend:4000
 	}
 
-	handle /popup-login.html {
+	handle /popup-login.html* {
+	    rewrite * /popup-login.html
 	    root * /srv
 	    file_server
 	}
