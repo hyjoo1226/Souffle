@@ -18,11 +18,11 @@ export class ReportService {
       { scores },
       { headers: { 'Content-Type': 'application/json' } },
     );
-    const { aiDiagnosis, studyPlan } = data;
+    const { ai_diagnosis, study_plan } = data;
     const report = this.userReportRepository.create({
       user: { id: userId },
-      aiDiagnosis,
-      studyPlan,
+      aiDiagnosis: ai_diagnosis,
+      studyPlan: study_plan,
     });
     const saved = await this.userReportRepository.save(report);
 

@@ -108,6 +108,7 @@ export class UserService {
       where: { userId },
       order: { createdAt: 'DESC' },
     });
+
     if (!latest) return null;
     return {
       ai_diagnosis: latest.aiDiagnosis,
