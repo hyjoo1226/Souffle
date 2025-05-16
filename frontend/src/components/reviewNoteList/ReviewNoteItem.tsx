@@ -6,6 +6,7 @@ interface Props {
   isSelected: boolean;
   onToggle: (id: number) => void;
   selectedProblemIds: number[];
+  handleClickProblem: (id: number) => void;
 }
 
 const ReviewNoteItem = ({
@@ -13,10 +14,11 @@ const ReviewNoteItem = ({
   isSelected,
   onToggle,
   selectedProblemIds,
+  handleClickProblem,
 }: Props) => {
   return (
     <div
-      className="grid grid-cols-3 gap-x-4 items-center border-b px-4 py-3"
+      className="grid grid-cols-6 gap-x-4 items-start border-b px-4 py-3"
       draggable
       onDragStart={(e) => {
         const data = JSON.stringify(
@@ -27,8 +29,7 @@ const ReviewNoteItem = ({
         e.dataTransfer.setData("application/json", data);
       }}
     >
-      {/* ✅ 문제 내용 (체크박스 + 제목 + 해결 뱃지) */}
-      <div className="col-span-2 flex items-center">
+      <div className="col-span-4 flex items-center">
         <label className="inline-flex items-center mr-4">
           <input
             type="checkbox"
@@ -39,7 +40,10 @@ const ReviewNoteItem = ({
           <div className="w-4 h-4 border border-primary-500 rounded-sm peer-checked:bg-primary-500 peer-checked:after:content-['✓'] peer-checked:after:text-white peer-checked:after:absolute peer-checked:after:text-xs peer-checked:after:ml-[2px] peer-checked:after:mt-[-1.5px] relative" />
         </label>
 
-        <div className="flex items-center gap-x-1">
+        <div
+          className="flex items-center gap-x-1"
+          onClick={() => handleClickProblem(problem.problem_id)}
+        >
           <p className="body-medium text-gray-800">
             {problem.category_name} {problem.problem_id}번 문제
           </p>
@@ -52,8 +56,7 @@ const ReviewNoteItem = ({
         </div>
       </div>
 
-      {/* ✅ 정답 수/시도 수 */}
-      <div className="col-span-1 text-center">
+      <div className="col-span-2 text-center">
         <p className="text-primary-500 body-medium">
           {problem.user.correct_count}/{problem.user.try_count}
         </p>

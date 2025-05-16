@@ -44,7 +44,7 @@ const Router = () => {
         }
       />
       <Route
-        path="/review"
+        path="/review/:user_problem_id"
         element={
           <ProtectedRoute>
             <ReviewNoteDetailPage />
@@ -92,7 +92,7 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/modal" element={<FolderSelectModal />} />
+
       <Route path="/" element={<LoginPage />} />
     </Routes>
   );
