@@ -12,6 +12,7 @@ import { AnalysisService } from 'src/analyses/analyses.service';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -28,6 +29,8 @@ export class SubmissionService {
     private userProblemRepository: Repository<UserProblem>,
     @InjectRepository(NoteFolder)
     private noteFolderRepository: Repository<NoteFolder>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
     @InjectRepository(UserCategoryProgress)
     private userCategoryProgressRepository: Repository<UserCategoryProgress>,
     private fileService: FileService,
@@ -217,6 +220,7 @@ export class SubmissionService {
   ) {
     await this.updateProblemStatistics(problem.id);
     await this.updateCategoryProgress(userId, problem.category.id);
+    await this.updateCategoryStatistics(problem.category.id);
     const updatedProblem = await this.problemRepository.findOneBy({
       id: problem.id,
     });
@@ -259,7 +263,7 @@ export class SubmissionService {
     });
   }
 
-  // 카테고리 통계 갱신 로직
+  // 해당 유저의 카테고리 통계 갱신 로직
   private async updateCategoryProgress(userId: number, categoryId: number) {
     const categorySubmissions = await this.submissionRepository.find({
       where: {
@@ -310,6 +314,29 @@ export class SubmissionService {
       : 0;
 
     await this.userCategoryProgressRepository.save(progress);
+  }
+
+  // 전체 카테고리 통계 갱신
+  private async updateCategoryStatistics(categoryId: number) {
+    const stats = await this.submissionRepository
+      .createQueryBuilder('submission')
+      .select('AVG(CAST(submission.isCorrect AS float)) * 100', 'avgAccuracy')
+      .innerJoin(
+        'submission.problem',
+        'problem',
+        'problem.category_id = :categoryId',
+        { categoryId },
+      )
+      .getRawOne();
+
+    await this.categoryRepository.update(
+      { id: categoryId },
+      {
+        avgAccuracy: stats.avgAccuracy
+          ? Number(stats.avgAccuracy.toFixed(1))
+          : 0,
+      },
+    );
   }
 
   // 풀이 분석 조회 요청 API
