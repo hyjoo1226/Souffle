@@ -3,8 +3,6 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as crypto from 'crypto';
-(global as any).crypto = crypto;
 
 dotenv.config();
 

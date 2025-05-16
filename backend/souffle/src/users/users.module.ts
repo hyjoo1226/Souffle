@@ -10,6 +10,7 @@ import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
+import { NoteModule } from 'src/notes/notes.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Submission } from 'src/submissions/entities/submission.entity';
       Category,
       Submission,
     ]),
+    NoteModule,
   ],
   controllers: [UserController],
   providers: [UserService],

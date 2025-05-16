@@ -20,6 +20,6 @@ import { SubmissionStep } from 'src/submissions/entities/submission-step.entity'
   ],
   providers: [NoteService],
   controllers: [NoteController],
-  exports: [TypeOrmModule],
+  exports: [NoteService],
 })
 export class NoteModule {}
