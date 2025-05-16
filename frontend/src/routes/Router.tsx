@@ -60,14 +60,7 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/my-report"
-        element={
-          <ProtectedRoute>
-            <MyStudyReportPage />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/my-report" element={<MyStudyReportPage />} />
       <Route
         path="/select-unit"
         element={
