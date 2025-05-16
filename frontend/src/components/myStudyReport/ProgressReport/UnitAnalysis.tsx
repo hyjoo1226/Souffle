@@ -14,7 +14,8 @@ type UnitData = {
   accuracy: number;
 };
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getUnitData } from "@/services/api/MyStudyReport";
 
 const data: UnitData[] = [
   { name: "부등식", accuracy: 100 },
@@ -27,9 +28,20 @@ const data: UnitData[] = [
 ];
 
 const UnitAnalysis = () => {
+  const [selectedSubject, setSelectedSubject] = useState("");
+
+  const fetchUnitData = () => {
+    const res = getUnitData();
+    console.log("response", res);
+  };
+  useEffect(() => {
+    fetchUnitData();
+  }, []);
+
   const [sortType, setSortType] = useState<"accuracy" | "progressRate">(
     "accuracy"
   );
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(0);
   return (
     <div className="flex flex-col gap-8">
       <p className="headline-medium text-gray-700">단원별 분석</p>
@@ -57,44 +69,64 @@ const UnitAnalysis = () => {
           </p>
         </div>
       </div>
-      <div className="w-full h-[300px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{ top: 20, right: 20, left: 20, bottom: 50 }}
-            barCategoryGap="15%"
-          >
-            <CartesianGrid vertical={false} strokeDasharray="3 3" />
-            <XAxis
-              dataKey="name"
-              tick={{ fontSize: 12, fill: "#333" }}
-              interval={0}
-              angle={0}
-              tickLine={false}
-              dy={10}
-              height={60}
-            />
-            <YAxis
-              tickFormatter={(value) => `${value}%`}
-              domain={[0, 100]}
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip formatter={(value: number) => `${value}%`} />
-            <Bar
-              dataKey="accuracy"
-              fill="#6973C8"
-              barSize={24}
-              radius={[0, 0, 0, 0]} // top-left, top-right, bottom-right, bottom-left
+      <div className="grid grid-cols-8 w-full h-[300px] gap-x-4">
+        {/* 왼쪽 텍스트 (1칸 차지) */}
+        <div className="col-span-1 flex flex-col gap-10 text-gray-700 body-medium">
+          {["공통수학1", "공통수학2"].map((label, index) => (
+            <p
+              key={index}
+              onClick={() => setSelectedIndex(index)}
+              className={`cursor-pointer transition-colors ${
+                selectedIndex === index
+                  ? "text-primary-600 headline-small"
+                  : "text-gray-300"
+              }`}
             >
-              <LabelList
-                dataKey="accuracy"
-                position="top"
-                formatter={(val: number) => `${val}%`}
-                style={{ fill: "#333", fontSize: 12 }}
+              {label}
+            </p>
+          ))}
+        </div>
+
+        {/* 오른쪽 그래프 (6칸 차지) */}
+        <div className="col-span-7">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 20, right: 20, left: 20, bottom: 50 }}
+              barCategoryGap="15%"
+            >
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 12, fill: "#333" }}
+                interval={0}
+                angle={0}
+                tickLine={false}
+                dy={10}
+                height={60}
               />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+              <YAxis
+                tickFormatter={(value) => `${value}%`}
+                domain={[0, 100]}
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip formatter={(value: number) => `${value}%`} />
+              <Bar
+                dataKey="accuracy"
+                fill="#6973C8"
+                barSize={24}
+                radius={[0, 0, 0, 0]}
+              >
+                <LabelList
+                  dataKey="accuracy"
+                  position="top"
+                  formatter={(val: number) => `${val}%`}
+                  style={{ fill: "#333", fontSize: 12 }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

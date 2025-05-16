@@ -29,3 +29,17 @@ export const data2025 = {
     { date: "2025-07-07", problem_count: 7 },
   ],
 };
+
+export const dailyStudyTime = {
+  week_start: "2025-05-09",
+  week_end: "2025-05-15",
+  daily_records: [
+    { date: "2025-05-09", weekday: 4, total_solve_time: 1 },
+    { date: "2025-05-10", weekday: 5, total_solve_time: 131 },
+    { date: "2025-05-11", weekday: 6, total_solve_time: 65 },
+    { date: "2025-05-12", weekday: 0, total_solve_time: 38 },
+    { date: "2025-05-13", weekday: 1, total_solve_time: 15 },
+    { date: "2025-05-14", weekday: 2, total_solve_time: 166 },
+    { date: "2025-05-15", weekday: 3, total_solve_time: 7 },
+  ],
+};
