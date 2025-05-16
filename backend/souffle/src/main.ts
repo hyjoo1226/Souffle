@@ -22,8 +22,8 @@ async function bootstrap() {
   }
 
   const config = new DocumentBuilder()
-    .setTitle('풀이 분석 API')
-    .setDescription('제출, 분석, 통계 등 API 명세')
+    .setTitle('Souffle')
+    .setDescription('API 명세')
     .setVersion('1.0')
     .addTag('submission')
     .build();

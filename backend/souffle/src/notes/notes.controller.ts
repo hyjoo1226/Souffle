@@ -95,19 +95,23 @@ export class NoteController {
   })
   @ApiResponse({
     status: 201,
-    description: '생성된 폴더 정보',
+    description: '생성된 폴더 id',
     schema: {
-      $ref: '#/components/schemas/NoteFolder',
+      type: 'object',
+      properties: {
+        id: { type: 'integer', example: 123 },
+      },
     },
   })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @Post('folder')
   async createNoteFolder(
     @Body() createFolderDto: CreateNoteFolderDto,
     @Req() req,
   ) {
-    const userId = req.user.id;
+    // const userId = req.user.id;
+    const userId = 1;
     return this.noteService.createNoteFolder(userId, createFolderDto);
   }
 

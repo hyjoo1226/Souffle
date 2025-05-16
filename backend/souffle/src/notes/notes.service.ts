@@ -115,8 +115,9 @@ export class NoteService {
       sort_order: nextSortOrder,
     });
 
-    // 저장 및 반환
-    return this.noteFolderRepository.save(newFolder);
+    const savedFolder = await this.noteFolderRepository.save(newFolder);
+
+    return { folder_id: savedFolder.id };
   }
 
   // 폴더 이름 변경 API
