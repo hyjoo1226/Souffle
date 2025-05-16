@@ -7,24 +7,25 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig({
-  define: {
-    'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://www.souffle.kr/api/v1')},
+  // define: {
+  //   'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://www.souffle.kr/api/v1')},
   plugins: [
     react(),
     VitePWA({
-      injectRegister: null,
+      injectRegister: 'auto',
       registerType: 'autoUpdate',
       workbox: {
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [
           /^\/api\/v1\/auth\//,
+          /^\/api\/v1\/auth\//,
           /^\/swagger/,
           /^\/docs/,
           /^\/openapi.json/,
-          /^\/popup-login\.html$/,
+          /^\/popup-login\.html(?:\?.*)?$/,
         ],
       },
-      includeAssets: ['favicon.svg', 'robots.txt', 'popup-login.html'],
+      includeAssets: ['favicon.svg', 'robots.txt'],
         manifest: {
         name: 'Souffle',
         short_name: 'Souffle',

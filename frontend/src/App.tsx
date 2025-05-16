@@ -2,6 +2,7 @@ import { useState } from "react";
 import SideBar from "./layouts/SideBar";
 import Router from "./routes/Router";
 import { useLocation } from "react-router-dom";
+import 'katex/dist/katex.min.css';
 
 function App() {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
