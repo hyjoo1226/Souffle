@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 # API 라우터 설정
 api_router = APIRouter(prefix="/data/api/v1")
 api_router.include_router(ocr_router.router)
+api_router.include_router(health_router.router)
 
 # FastAPI 앱 생성
 app = FastAPI(
@@ -54,12 +55,12 @@ async def root():
     return {"message": "수플래 분석 서버가 실행 중입니다.", "version": "1.0.1"}
 
 # POST 헬스 체크 (요청 그대로 응답)
-@app.post("/health")
-async def health_check(request: Request):
-    """상세 헬스 체크 엔드포인트 (요청을 그대로 응답)"""
-    body = await request.json()
-    logger.info(f"헬스 체크 호출: {body}")
-    return body
+# @app.post("/health")
+# async def health_check(request: Request):
+#     """상세 헬스 체크 엔드포인트 (요청을 그대로 응답)"""
+#     body = await request.json()
+#     logger.info(f"헬스 체크 호출: {body}")
+#     return body
 
 # 시작 로그
 logger.info("수플래 분석 서버 시작")
