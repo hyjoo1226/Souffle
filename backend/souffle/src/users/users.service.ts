@@ -12,6 +12,7 @@ import { UserProblem } from './entities/user-problem.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { NoteService } from 'src/notes/notes.service';
 
 @Injectable()
 export class UserService {
@@ -32,6 +33,7 @@ export class UserService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(Submission)
     private submissionRepository: Repository<Submission>,
+    private noteService: NoteService,
   ) {}
 
   // 이메일로 유저 찾기
@@ -69,7 +71,12 @@ export class UserService {
       ...userInfo,
       nickname,
     });
-    return this.userRepository.save(user);
+
+    // 새 유저 생성 후 기본 폴더 생성
+    const savedUser = await this.userRepository.save(user);
+    await this.noteService.createDefaultFoldersForUser(savedUser.id);
+
+    return savedUser;
   }
 
   // 유저 통계 정보
