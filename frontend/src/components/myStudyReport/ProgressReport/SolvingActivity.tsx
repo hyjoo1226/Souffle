@@ -1,7 +1,6 @@
 import CalendarHeatmap from "react-calendar-heatmap";
 import "react-calendar-heatmap/dist/styles.css";
-import { subDays } from "date-fns";
-import { data2024, data2025 } from "@/mocks/dummyReportData";
+// import { data2024, data2025 } from "@/mocks/dummyReportData";
 import { useEffect, useState } from "react";
 import { getSolvingActivityData } from "@/services/api/MyStudyReport";
 import { Tooltip as ReactTooltip } from "react-tooltip";
@@ -18,10 +17,11 @@ const SolvingActivity = () => {
   const [solvingActivities, setSolvingActivities] = useState<
     solvingActivityData[] | undefined
   >(undefined);
-  const fetchSolvingActivityData = () => {
-    const res = data2025;
+  const fetchSolvingActivityData = async () => {
+    // const res = data2025;
+    const res = await getSolvingActivityData(selectedYear);
+    // console.log("res", res.daily_records);
     setSolvingActivities(res.daily_records);
-    // const res = getSolvingActivityData(selectedYear);
   };
 
   useEffect(() => {

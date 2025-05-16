@@ -34,10 +34,11 @@ const StudyTimeChart = () => {
   }, [weekOffset]);
 
   // fetch 데이터
-  const fetchStudyTimeData = () => {
-    const res = dailyStudyTime;
+  const fetchStudyTimeData = async () => {
+    // const res = dailyStudyTime;
+    const res = await getStudyTimeData(selectedDate);
+    console.log("res", res);
     setStudyTimeData(res.daily_records);
-    // const res = getStudyTimeData(selectedDate);
   };
 
   useEffect(() => {
