@@ -43,7 +43,6 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-<<<<<<< HEAD
       <Route
         path="/review/:user_problem_id"
         element={
@@ -52,7 +51,14 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/review-list" element={<ReviewNoteListPage />} />
+      <Route
+        path="/review-list"
+        element={
+          <ProtectedRoute>
+            <ReviewNoteListPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/landing"
         element={
@@ -61,7 +67,14 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route path="/my-report" element={<MyStudyReportPage />} />
+      <Route
+        path="/my-report"
+        element={
+          <ProtectedRoute>
+            <MyStudyReportPage />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/select-unit"
         element={
@@ -86,16 +99,6 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-
-=======
-      <Route path="/review/:user_problem_id" element={<ProtectedRoute><ReviewNoteDetailPage /></ProtectedRoute>} />
-      <Route path="/review-list" element={<ProtectedRoute><ReviewNoteListPage /></ProtectedRoute>} />
-      <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
-      <Route path="/my-report" element={<ProtectedRoute><MyStudyReportPage /></ProtectedRoute>} />
-      <Route path="/select-unit" element={<ProtectedRoute><SelectUnitPage /></ProtectedRoute>} />
-      <Route path="/study" element={<ProtectedRoute><ConceptStudyPage /></ProtectedRoute>} />
-      <Route path="/problem-study" element={<ProtectedRoute><ProblemStudyPage /></ProtectedRoute>}/>
->>>>>>> 1de67c7f8c59cbeda913c14a538c9618888e9d18
       <Route path="/" element={<LoginPage />} />
     </Routes>
   );

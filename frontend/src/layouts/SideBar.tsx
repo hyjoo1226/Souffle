@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const SideBar = ({
-    isSideBarOpen,
-    setIsSideBarOpen,
-  } : {
-    isSideBarOpen: boolean;
-    setIsSideBarOpen: (value: boolean) => void;
-  }) => {
+  isSideBarOpen,
+  setIsSideBarOpen,
+}: {
+  isSideBarOpen: boolean;
+  setIsSideBarOpen: (value: boolean) => void;
+}) => {
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null); // 기본 선택 없음
   const menuItems = [
     "메인",
@@ -25,7 +25,7 @@ const SideBar = ({
       case "오답 노트":
         return "/review-list";
       case "개념 학습":
-        return "/problem-select";
+        return "/select-unit";
       case "내 학습 현황":
         return "/problem-select";
       default:
@@ -68,12 +68,19 @@ const SideBar = ({
             className="w-10 h-10 rounded-full border border-gray-200"
           />
           <div className="flex-col">
-            <p className="text-gray-700 body-medium-bold">{user.nickname || "등록된 닉네임이 없습니다."}</p>
-            <p className="text-gray-500 body-small">{user.email ? user.email : "등록된 이메일이 없습니다."}</p>
+            <p className="text-gray-700 body-medium-bold">
+              {user.nickname || "등록된 닉네임이 없습니다."}
+            </p>
+            <p className="text-gray-500 body-small">
+              {user.email ? user.email : "등록된 이메일이 없습니다."}
+            </p>
           </div>
         </div>
         <div className="flex justify-center">
-          <div className="flex gap-2 items-center cursor-pointer" onClick={handleLogout}>
+          <div
+            className="flex gap-2 items-center cursor-pointer"
+            onClick={handleLogout}
+          >
             <img src="/icons/log-out.png" alt="로그아웃" className="w-6 h-6" />
             <p className="body-small text-gray-400">로그아웃</p>
           </div>
