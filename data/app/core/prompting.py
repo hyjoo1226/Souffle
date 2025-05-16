@@ -53,7 +53,7 @@ async def analyze_step(problem: str, index: int, image_path: Path):
 """
 
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-4.1-mini",
         messages=[
             {"role": "system", "content": "당신은 수학 문제를 단계적으로 분석하고 오류를 감지하는 학습 피드백 AI입니다."},
             {"role": "user", "content": [
