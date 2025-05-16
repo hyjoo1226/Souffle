@@ -11,6 +11,8 @@ import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AnalysisService } from 'src/analyses/analyses.service';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
+import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
+import { Category } from 'src/categories/entities/category.entity';
 
 @Injectable()
 export class SubmissionService {
@@ -27,6 +29,10 @@ export class SubmissionService {
     private userProblemRepository: Repository<UserProblem>,
     @InjectRepository(NoteFolder)
     private noteFolderRepository: Repository<NoteFolder>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(UserCategoryProgress)
+    private userCategoryProgressRepository: Repository<UserCategoryProgress>,
     private fileService: FileService,
     private ocrService: OcrService,
     private analysisService: AnalysisService,
@@ -172,7 +178,11 @@ export class SubmissionService {
       console.error('OCR 변환 실패로 채점 생략');
       savedSubmission.isCorrect = null;
       await this.submissionRepository.save(savedSubmission);
-      return this.updateStatsAndReturnResponse(problem, savedSubmission);
+      return this.updateStatsAndReturnResponse(
+        problem,
+        savedSubmission,
+        userId,
+      );
     }
     // // OCR 변환 요청 큐 등록
     // await this.ocrService.addOcrJob({
@@ -181,16 +191,36 @@ export class SubmissionService {
     //   problem_answer: problem.answer,
     // });
 
-    // 문제 통계 갱신
-    return this.updateStatsAndReturnResponse(problem, savedSubmission);
+    // 해당 단원의 진도가 있는지 확인
+    const progress = await this.userCategoryProgressRepository.findOne({
+      where: {
+        user: { id: userId },
+        category: { id: problem.category.id },
+      },
+    });
+    if (!progress) {
+      await this.userCategoryProgressRepository.save({
+        user: { id: userId },
+        category: { id: problem.category.id },
+        solveTime: 0,
+        progressRate: 0.0,
+        testAccuracy: 0.0,
+      });
+    }
+
+    // 통계 갱신
+    return this.updateStatsAndReturnResponse(problem, savedSubmission, userId);
   }
 
   // 통계 갱신 후 리턴
   private async updateStatsAndReturnResponse(
     problem: Problem,
     savedSubmission: Submission,
+    userId: number,
   ) {
     await this.updateProblemStatistics(problem.id);
+    await this.updateCategoryProgress(userId, problem.category.id);
+    await this.updateCategoryStatistics(problem.category.id);
     const updatedProblem = await this.problemRepository.findOneBy({
       id: problem.id,
     });
@@ -231,6 +261,82 @@ export class SubmissionService {
       avgSolveTime: Math.round(stats.avgSolveTime) || 0,
       avgReviewTime: Math.round(stats.avgReviewTime) || 0,
     });
+  }
+
+  // 해당 유저의 카테고리 통계 갱신 로직
+  private async updateCategoryProgress(userId: number, categoryId: number) {
+    const categorySubmissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        problem: { category: { id: categoryId } },
+      },
+      relations: ['problem'],
+    });
+
+    const totalProblemsInCategory = await this.problemRepository.count({
+      where: { category: { id: categoryId } },
+    });
+    const solvedProblems = new Set(
+      categorySubmissions.map((sub) => sub.problem.id),
+    ).size;
+    const correctSubmissions = categorySubmissions.filter(
+      (sub) => sub.isCorrect,
+    ).length;
+    const totalSolveTime = categorySubmissions.reduce(
+      (sum, sub) => sum + (sub.totalSolveTime || 0),
+      0,
+    );
+
+    let progress = await this.userCategoryProgressRepository.findOne({
+      where: {
+        user: { id: userId },
+        category: { id: categoryId },
+      },
+    });
+    if (!progress) {
+      progress = this.userCategoryProgressRepository.create({
+        user: { id: userId },
+        category: { id: categoryId },
+        solveTime: 0,
+        progressRate: 0.0,
+        testAccuracy: 0.0,
+      });
+    }
+
+    progress.solveTime = totalSolveTime;
+    progress.progressRate = totalProblemsInCategory
+      ? Number(((solvedProblems / totalProblemsInCategory) * 100).toFixed(1))
+      : 0;
+    progress.testAccuracy = categorySubmissions.length
+      ? Number(
+          ((correctSubmissions / categorySubmissions.length) * 100).toFixed(1),
+        )
+      : 0;
+
+    await this.userCategoryProgressRepository.save(progress);
+  }
+
+  // 전체 카테고리 통계 갱신
+  private async updateCategoryStatistics(categoryId: number) {
+    const stats = await this.submissionRepository
+      .createQueryBuilder('submission')
+      .select('AVG(CAST(submission.isCorrect AS float)) * 100', 'avgAccuracy')
+      .innerJoin(
+        'submission.problem',
+        'problem',
+        'problem.category_id = :categoryId',
+        { categoryId },
+      )
+      .getRawOne();
+
+    await this.categoryRepository.update(
+      { id: categoryId },
+      {
+        avgAccuracy: stats.avgAccuracy
+          ? Number(stats.avgAccuracy.toFixed(1))
+          : 0,
+      },
+    );
   }
 
   // 풀이 분석 조회 요청 API

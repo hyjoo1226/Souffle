@@ -104,14 +104,13 @@ export class NoteController {
     },
   })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Post('folder')
   async createNoteFolder(
     @Body() createFolderDto: CreateNoteFolderDto,
     @Req() req,
   ) {
-    // const userId = req.user.id;
-    const userId = 1;
+    const userId = req.user.id;
     return this.noteService.createNoteFolder(userId, createFolderDto);
   }
 
@@ -128,8 +127,15 @@ export class NoteController {
   async updateFolderName(
     @Param('folder_id') folderId: number,
     @Body() updateDto: UpdateNoteFolderDto,
+    @Req() req,
   ) {
-    return this.noteService.updateNoteFolderName(folderId, updateDto.name);
+    const userId = req.user.id;
+
+    return this.noteService.updateNoteFolderName(
+      folderId,
+      userId,
+      updateDto.name,
+    );
   }
 
   // 폴더 순서 변경 API
@@ -145,9 +151,13 @@ export class NoteController {
   async updateFolderOrder(
     @Param('folder_id') folderId: number,
     @Body() updateDto: UpdateNoteFolderOrderDto,
+    @Req() req,
   ) {
+    const userId = req.user.id;
+
     return this.noteService.updateNoteFolderOrder(
       folderId,
+      userId,
       updateDto.sort_order,
     );
   }
@@ -159,8 +169,10 @@ export class NoteController {
   @ApiResponse({ status: 404, description: '폴더를 찾을 수 없음' })
   @UseGuards(AuthGuard('jwt'))
   @Delete('folder/:folder_id')
-  async deleteNoteFolder(@Param('folder_id') folderId: number) {
-    return this.noteService.deleteNoteFolder(folderId);
+  async deleteNoteFolder(@Param('folder_id') folderId: number, @Req() req) {
+    const userId = req.user.id;
+
+    return this.noteService.deleteNoteFolder(folderId, userId);
   }
 
   // 문제 오답노트에 추가 API
