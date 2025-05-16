@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 
 import "./index.css";
 import App from "./App.tsx";
+import 'katex/dist/katex.min.css';
 
 import { registerSW } from "virtual:pwa-register";
 import { AuthProvider } from "@/contexts/AuthContext";
