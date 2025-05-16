@@ -165,23 +165,30 @@ export class UserService {
 
   // 유저 정보 조회 API
   async getProfile(userId: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['authentications'],
-      select: ['id', 'nickname', 'profileImage', 'createdAt'],
-    });
+    const result = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userAuthentications', 'auth')
+      .where('user.id = :userId', { userId })
+      .andWhere('auth.provider = :provider', { provider: 'google' }) // 필요시 provider 조건
+      .select([
+        'user.id',
+        'user.nickname',
+        'user.profileImage',
+        'user.createdAt',
+        'auth.email',
+      ])
+      .getOne();
 
-    if (!user) {
+    if (!result) {
       throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
-    const email = user.authentications?.[0]?.email ?? null;
 
     return {
-      id: user.id,
-      nickname: user.nickname,
-      profile_image: user.profileImage,
-      created_at: user.createdAt,
-      email,
+      id: result.id,
+      nickname: result.nickname,
+      profileImage: result.profileImage,
+      createdAt: result.createdAt,
+      email: result.authentications?.[0]?.email ?? null,
     };
   }
 
