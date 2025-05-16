@@ -49,8 +49,10 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     }
 
     // 없으면 새 유저 + UserAuthentication 생성
+    const givenName = name.givenName ?? '';
+    const familyName = name.familyName ?? '';
     const newUser = await this.userService.create({
-      nickname: name.givenName + name.familyName,
+      nickname: familyName + givenName,
       profileImage: photos[0].value,
     });
 

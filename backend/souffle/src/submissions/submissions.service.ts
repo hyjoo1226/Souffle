@@ -34,12 +34,13 @@ export class SubmissionService {
 
   // 풀이 데이터 전송 API
   async createSubmission(
+    userId,
     submissionDto: CreateSubmissionDto,
     files: Express.Multer.File[],
   ) {
     // 유저조회 - 현재는 인증 로직 없으므로 직접 할당
     const user = await this.userRepository.findOneBy({
-      id: submissionDto.user_id,
+      id: userId,
     });
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
 

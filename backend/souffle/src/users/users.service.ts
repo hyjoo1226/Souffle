@@ -108,6 +108,7 @@ export class UserService {
       where: { userId },
       order: { createdAt: 'DESC' },
     });
+
     if (!latest) return null;
     return {
       ai_diagnosis: latest.aiDiagnosis,
@@ -165,23 +166,30 @@ export class UserService {
 
   // 유저 정보 조회 API
   async getProfile(userId: number) {
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-      relations: ['authentications'],
-      select: ['id', 'nickname', 'profileImage', 'createdAt'],
-    });
+    const result = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.userAuthentications', 'auth')
+      .where('user.id = :userId', { userId })
+      .andWhere('auth.provider = :provider', { provider: 'google' }) // 필요시 provider 조건
+      .select([
+        'user.id',
+        'user.nickname',
+        'user.profileImage',
+        'user.createdAt',
+        'auth.email',
+      ])
+      .getOne();
 
-    if (!user) {
+    if (!result) {
       throw new NotFoundException('사용자를 찾을 수 없습니다.');
     }
-    const email = user.authentications?.[0]?.email ?? null;
 
     return {
-      id: user.id,
-      nickname: user.nickname,
-      profile_image: user.profileImage,
-      created_at: user.createdAt,
-      email,
+      id: result.id,
+      nickname: result.nickname,
+      profileImage: result.profileImage,
+      createdAt: result.createdAt,
+      email: result.authentications?.[0]?.email ?? null,
     };
   }
 
@@ -196,34 +204,68 @@ export class UserService {
 
   // 단원 별 분석 조회 API
   async getCategoryAnalysis(userId: number) {
-    const categories = await this.categoryRepository.find();
+    const allCategories = await this.categoryRepository.find({
+      relations: ['parent'],
+    });
 
-    const results = await Promise.all(
-      categories.map(async (category) => {
-        const userProblems = await this.userProblemRepository
-          .createQueryBuilder('up')
-          .innerJoin('up.problem', 'p')
-          .where('up.user_id = :userId', { userId })
-          .andWhere('p.categoryId = :categoryId', { categoryId: category.id })
-          .getMany();
+    const topCategories = allCategories.filter((cat) => cat.type === 1);
+    const leafCategories = allCategories.filter((cat) => cat.type === 3);
+    const categoryMap = new Map(allCategories.map((cat) => [cat.id, cat]));
 
-        const total = userProblems.length;
-        const correct = userProblems.filter(
-          (up) => up.correct_count > 0,
-        ).length;
-        const solved = userProblems.filter((up) => up.try_count > 0).length;
+    function getTopParentId(categoryId) {
+      let current = categoryMap.get(categoryId);
+      if (!current) return null;
 
-        return {
-          id: category.id,
-          name: category.name,
-          type: category.type,
-          accuracy_rate: total ? Math.round((correct / total) * 1000) / 10 : 0,
-          progress_rate: total ? Math.round((solved / total) * 1000) / 10 : 0,
-        };
-      }),
-    );
+      let parentId = current.parent ? current.parent.id : null;
+      while (parentId) {
+        current = categoryMap.get(parentId);
+        if (!current) break;
 
-    return { categories: results };
+        if (current.type === 1) return current.id;
+        parentId = current.parent ? current.parent.id : null;
+      }
+      return null;
+    }
+
+    const topCategoryMap = new Map();
+    topCategories.forEach((cat) => {
+      topCategoryMap.set(cat.id, {
+        id: cat.id,
+        name: cat.name,
+        type: cat.type,
+        sub_categories: [],
+      });
+    });
+
+    for (const leafCategory of leafCategories) {
+      const userProblems = await this.userProblemRepository
+        .createQueryBuilder('up')
+        .innerJoin('up.problem', 'p')
+        .where('up.user_id = :userId', { userId })
+        .andWhere('p.categoryId = :categoryId', { categoryId: leafCategory.id })
+        .getMany();
+
+      const total = userProblems.length;
+      const correct = userProblems.filter((up) => up.correct_count > 0).length;
+      const solved = userProblems.filter((up) => up.try_count > 0).length;
+      const categoryData = {
+        id: leafCategory.id,
+        name: leafCategory.name,
+        type: leafCategory.type,
+        avgAccuracy: leafCategory.avgAccuracy || 0,
+        accuracy_rate: total ? Math.round((correct / total) * 1000) / 10 : 0,
+        progress_rate: total ? Math.round((solved / total) * 1000) / 10 : 0,
+      };
+
+      const topParentId = getTopParentId(leafCategory.id);
+      if (topParentId && topCategoryMap.has(topParentId)) {
+        topCategoryMap.get(topParentId).sub_categories.push(categoryData);
+      }
+    }
+
+    const result = Array.from(topCategoryMap.values());
+
+    return { categories: result };
   }
 
   // 주간 학습 시간 조회 API

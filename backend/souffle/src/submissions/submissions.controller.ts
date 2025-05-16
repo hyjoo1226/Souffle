@@ -111,7 +111,11 @@ export class SubmissionController {
       steps: body.steps,
     };
 
-    return this.submissionService.createSubmission(submissionDto, files);
+    return this.submissionService.createSubmission(
+      userId,
+      submissionDto,
+      files,
+    );
   }
 
   // 풀이 분석 조회 요청 API

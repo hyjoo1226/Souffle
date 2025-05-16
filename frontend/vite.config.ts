@@ -15,13 +15,14 @@ export default defineConfig({
       injectRegister: 'auto',
       registerType: 'autoUpdate',
       workbox: {
-	navigateFallback: '/index.html',
+        navigateFallback: '/index.html',
         navigateFallbackDenylist: [
+          /^\/api\/v1\/auth\//,
           /^\/api\/v1\/auth\//,
           /^\/swagger/,
           /^\/docs/,
           /^\/openapi.json/,
-	  /^\/popup-login\.html(?:\?.*)?$/,
+          /^\/popup-login\.html(?:\?.*)?$/,
         ],
       },
       includeAssets: ['favicon.svg', 'robots.txt'],

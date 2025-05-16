@@ -8,7 +8,6 @@ export class AnswerDto {
 }
 
 export class CreateSubmissionDto {
-  // 아직 인증로직 없으므로 userid 직접 입력
   @ApiProperty({ example: 1, description: '유저 ID' })
   @IsNumber()
   @Type(() => Number)
