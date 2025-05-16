@@ -1,0 +1,62 @@
+www.souffle.kr {
+    encode gzip
+
+    route {
+	@popup-login {
+	    path_regexp popup-login ^/popup-login\.html(?:\?.*)?$
+	}
+
+	handle @popup-login {
+	    rewrite * /popup-login.html
+	    root * /srv
+	    header Cache-Control "no-store"
+	    file_server
+	}
+
+	handle /swagger {
+	    reverse_proxy backend:4000
+	}
+	handle /swagger/* {
+	    reverse_proxy backend:4000
+	}
+
+        handle_path /uploads/* {
+            root * /app/uploads
+            file_server
+        }
+
+        handle /docs* {
+	    header Cache-Control "no-store"
+            reverse_proxy data:8000
+        }
+
+        handle /openapi.json {
+            reverse_proxy data:8000
+        }
+
+	handle /auth/* {
+	    reverse_proxy backend:4000
+	}
+
+	handle /health {
+	    reverse_proxy backend:4000
+	}
+
+        handle /api/v1/* {
+            reverse_proxy backend:4000
+        }
+
+        handle /data/api/v1/* {
+            reverse_proxy data:8000
+        }
+
+	handle {
+            root * /srv
+            try_files {path} /index.html
+            file_server
+	}
+    }
+
+    tls ssafya304@gmail.com
+}
+
