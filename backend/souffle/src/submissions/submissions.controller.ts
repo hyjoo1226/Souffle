@@ -27,7 +27,7 @@ export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
   // 풀이 데이터 전송 API(FE-BE)
-  @UseGuards(AuthGuard('jwt'))
+  // @UseGuards(AuthGuard('jwt'))
   @Post()
   @ApiOperation({ summary: '풀이 데이터 전송' })
   @ApiConsumes('multipart/form-data')
@@ -111,7 +111,11 @@ export class SubmissionController {
       steps: body.steps,
     };
 
-    return this.submissionService.createSubmission(submissionDto, files);
+    return this.submissionService.createSubmission(
+      userId,
+      submissionDto,
+      files,
+    );
   }
 
   // 풀이 분석 조회 요청 API
