@@ -20,6 +20,7 @@ import { AuthModule } from './auth/auth.module';
 import { HealthModule } from './health/health.module';
 import { ConceptModule } from './concepts/concepts.module';
 import { ReportModule } from './report/report.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import * as path from 'path';
 
 @Module({
@@ -57,6 +58,7 @@ import * as path from 'path';
     AuthModule,
     HealthModule,
     ConceptModule,
+    ScheduleModule.forRoot(),
     ReportModule,
   ],
 })
