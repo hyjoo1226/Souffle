@@ -59,7 +59,6 @@ integration-test:
     - build-be
     - build-fe
     - build-data
-    - backup-db
   script:
     - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
     - docker-compose -f docker-compose.ci.yml up -d
