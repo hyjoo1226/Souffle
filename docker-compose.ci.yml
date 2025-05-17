@@ -1,11 +1,14 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_APP_API_URL: "${VITE_APP_API_URL}"
     container_name: frontend
     ports:
       - "3000:3000"
-    environment:
-      VITE_APP_API_URL: ${VITE_APP_API_URL}
+        #    environment:
+        #      VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
       - public
     volumes:
