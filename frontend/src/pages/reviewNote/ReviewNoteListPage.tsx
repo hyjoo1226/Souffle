@@ -31,7 +31,6 @@ const ReviewNoteListPage = () => {
   const tabs = ["정답률↑", "정답률↓", "미해결"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-
   const [selectedType, setSelectedType] = useState<number | null>(null);
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
@@ -60,12 +59,13 @@ const ReviewNoteListPage = () => {
     console.log("unit", unit);
     console.log("id", id);
 
-    // const res = await getProblemListApi(type, id);
     if (type == 1) {
-      const res = mockType1ListData;
+      // const res = mockType1ListData;
+      const res = await getProblemListApi(type, id);
       setReviewNoteList(res);
     } else {
-      const res = mockType2ListData;
+      //
+      const res = await getProblemListApi(type, id);
       setReviewNoteList(res);
     }
 
@@ -129,21 +129,34 @@ const ReviewNoteListPage = () => {
   };
   const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
+  const [mergedFolders, setMergedFolders] = useState<
+    {
+      type: number;
+      folders: Folder[];
+      setFolders: (folders: Folder[]) => void;
+    }[]
+  >([]);
+
   const fetchFolderList = async () => {
-    // const favRes = await getFavoriteFoldersApi();
-    // const ReviewRes = await getReviewNoteFolderApi();
-    // const favoriteRes = favRes[0];
-    // const reviewNoteRes = ReviewRes[0];
+    const favRes = await getFavoriteFoldersApi();
+    const reviewRes = await getReviewNoteFolderApi();
+    setFavoriteFolders(favRes);
+    setNoteFolders(reviewRes);
 
-    const favoriteRes = mockFavoriteFolderData[0];
-    const reviewNoteRes = mockReviewNoteFolderData;
-
-    setFavoriteFolders([favoriteRes]);
-    setNoteFolders(reviewNoteRes);
-    // const merged = [favoriteRes, ...reviewNoteRes]; // 하나의 배열로 합치기
-    // setNoteFolders(merged);
-    console.log("favoriteFolders", favoriteFolders);
-    console.log("noteFolders", noteFolders);
+    setMergedFolders([
+      {
+        type: 1,
+        folders: favRes,
+        setFolders: setFavoriteFolders,
+      },
+      {
+        type: 2,
+        folders: reviewRes,
+        setFolders: setNoteFolders,
+      },
+    ]);
+    console.log("favoriteFolders", favRes);
+    console.log("noteFolders", reviewRes);
   };
 
   useEffect(() => {
@@ -154,31 +167,20 @@ const ReviewNoteListPage = () => {
     <>
       <div className="grid grid-cols-12 gap-x-4 py-[clamp(16px,2.33vh,28px)] h-screen">
         <div className="col-span-4 h-full border border-gray-200 rounded-[10px] py-4 px-3 flex flex-col gap-y-4 overflow-y-auto">
-          {/* 동적으로 렌더링되는 단원들 */}
-          {favoriteFolders?.map((item) => (
-            <NoteFolder
-              key={item.id}
-              chapter={item.name}
-              sections={item.children}
-              type={item.type}
-              folders={favoriteFolders}
-              setFavoriteFolders={setFavoriteFolders}
-              onSelectUnit={handleSelectUnit}
-              onDropProblem={handleDropProblemToSection}
-            />
-          ))}
-          {noteFolders?.map((item) => (
-            <NoteFolder
-              key={item.id}
-              chapter={item.name}
-              sections={item.children}
-              type={item.type}
-              folders={noteFolders}
-              setFavoriteFolders={setNoteFolders}
-              onSelectUnit={handleSelectUnit}
-              onDropProblem={handleDropProblemToSection}
-            />
-          ))}
+          {mergedFolders.map(({ folders, setFolders, type }) =>
+            folders.map((item) => (
+              <NoteFolder
+                key={item.id}
+                chapter={item.name}
+                sections={item.children}
+                type={type}
+                folders={folders}
+                setFavoriteFolders={setFolders}
+                onSelectUnit={handleSelectUnit}
+                onDropProblem={handleDropProblemToSection}
+              />
+            ))
+          )}
         </div>
 
         <div className="col-span-8 h-full flex flex-col gap-y-5">

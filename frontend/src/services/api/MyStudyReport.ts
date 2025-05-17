@@ -22,3 +22,13 @@ export const getUnitData = async () => {
   const response = await api.get("/users/statistic/category-analysis");
   return response.data;
 };
+
+export const getUserScoreStats = async () => {
+  const response = await api.get("/users/statistic/score-stats");
+  return response.data;
+};
+
+export const getUserReport = async () => {
+  const response = await api.get("/users/report/latest");
+  return response.data;
+};

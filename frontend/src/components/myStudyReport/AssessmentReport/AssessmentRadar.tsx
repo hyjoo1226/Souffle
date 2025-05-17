@@ -7,23 +7,81 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { getUserScoreStats } from "@/services/api/MyStudyReport";
+import { useEffect, useState } from "react";
 
 type RadarData = {
   subject: string;
-  user: number;
-  average: number;
+  today: number;
+  previous: number;
+  past: number;
 };
 
-const data: RadarData[] = [
-  { subject: "속도 점수", user: 31.2, average: 70 },
-  { subject: "개선 점수", user: 100.0, average: 80 },
-  { subject: "복습 점수", user: 43.8, average: 65 },
-  { subject: "성실 점수", user: 43.8, average: 65 },
-  { subject: "해결 점수", user: 84.4, average: 60 },
-  { subject: "참여 점수", user: 21.9, average: 50 },
+const convertToRadarData = (
+  todayStats: any | {},
+  previousStats: any | {},
+  weekAgoStats: any | {}
+): RadarData[] => [
+  {
+    subject: "해결 점수",
+    today: todayStats.correct_score,
+    previous: previousStats.correct_score,
+    past: weekAgoStats.correct_score,
+  },
+  {
+    subject: "참여 점수",
+    today: todayStats.participation_score,
+    previous: previousStats.participation_score,
+    past: weekAgoStats.participation_score,
+  },
+  {
+    subject: "속도 점수",
+    today: todayStats.speed_score,
+    previous: previousStats.speed_score,
+    past: weekAgoStats.speed_score,
+  },
+  {
+    subject: "개선 점수",
+    today: todayStats.reflection_score,
+    previous: previousStats.reflection_score,
+    past: weekAgoStats.reflection_score,
+  },
+  {
+    subject: "복습 점수",
+    today: todayStats.review_score,
+    previous: previousStats.review_score,
+    past: weekAgoStats.review_score,
+  },
+  {
+    subject: "성실 점수",
+    today: todayStats.sincerity_score,
+    previous: previousStats.sincerity_score,
+    past: weekAgoStats.sincerity_score,
+  },
 ];
 
 const AssessmentRadar = () => {
+  const [chartData, setChartData] = useState<RadarData[]>([]);
+
+  const fetchUserScoreStats = async () => {
+    try {
+      const res = await getUserScoreStats();
+      const { score_stats, previous_stats, week_ago_stats } = res;
+      const radarData = convertToRadarData(
+        score_stats,
+        previous_stats,
+        week_ago_stats
+      );
+      setChartData(radarData);
+    } catch (error) {
+      console.error("RadarChart 데이터 로드 실패:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserScoreStats();
+  }, []);
+
   return (
     <div className="relative">
       <ResponsiveContainer width="100%" height={350}>
@@ -31,7 +89,7 @@ const AssessmentRadar = () => {
           cx="50%"
           cy="50%"
           outerRadius="80%"
-          data={data}
+          data={chartData}
           startAngle={-60}
           endAngle={300}
         >
