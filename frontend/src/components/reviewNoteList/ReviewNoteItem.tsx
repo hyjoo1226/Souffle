@@ -1,49 +1,66 @@
-import { ReactComponent as Star } from "@/assets/icons/Star.svg";
-
-interface Problem {
-    id: number;
-    title: string;
-    correctCount: number;
-    totalCount: number;
-}
+import type { ReviewNoteItem } from "@/services/api/ReviewNoteList";
+// import ProblemPreview from "./ProblemPreview";
 
 interface Props {
-  problem: Problem;
+  problem: ReviewNoteItem;
   isSelected: boolean;
   onToggle: (id: number) => void;
   selectedProblemIds: number[];
+  handleClickProblem: (id: number) => void;
 }
-  
-const ReviewNoteItem = ({ problem, isSelected, onToggle, selectedProblemIds }: Props) => {
+
+const ReviewNoteItem = ({
+  problem,
+  isSelected,
+  onToggle,
+  selectedProblemIds,
+  handleClickProblem,
+}: Props) => {
   return (
-    <div 
-      className="flex justify-between items-center"
+    <div
+      className="grid grid-cols-6 gap-x-4 items-start border-b px-4 py-3"
       draggable
       onDragStart={(e) => {
-        const data = JSON.stringify(selectedProblemIds.length > 0 ? selectedProblemIds : [problem.id]);
+        const data = JSON.stringify(
+          selectedProblemIds.length > 0
+            ? selectedProblemIds
+            : [problem.problem_id]
+        );
         e.dataTransfer.setData("application/json", data);
       }}
     >
-      <div className="flex items-center">
-        <label className="inline-flex items-center">
-          <input 
-            type="checkbox" 
+      <div className="col-span-4 flex items-center">
+        <label className="inline-flex items-center mr-4">
+          <input
+            type="checkbox"
             checked={isSelected}
-            onChange={() => onToggle(problem.id)}
-            className="peer hidden" />
-          <div className="w-4 h-4 mr-5 border-1 border-primary-500 rounded-sm peer-checked:bg-primary-500 peer-checked:after:content-['✓'] peer-checked:after:text-white peer-checked:after:absolute peer-checked:after:text-xs peer-checked:after:ml-[2px] peer-checked:after:mt-[-1.5px] relative" />
+            onChange={() => onToggle(problem.problem_id)}
+            className="peer hidden"
+          />
+          <div className="w-4 h-4 border border-primary-500 rounded-sm peer-checked:bg-primary-500 peer-checked:after:content-['✓'] peer-checked:after:text-white peer-checked:after:absolute peer-checked:after:text-xs peer-checked:after:ml-[2px] peer-checked:after:mt-[-1.5px] relative" />
         </label>
-        <Star className='mr-5' />
-        <div className='flex items-center gap-x-1'>
-          <p className="body-medium text-gray-800">{problem.title}</p>
-          {problem.correctCount > 0 && (
-              <span className="text-[12px] px-2 py-[2px] rounded-full bg-primary-100 text-primary-500">
-                  해결
-              </span>
+
+        <div
+          className="flex items-center gap-x-1"
+          onClick={() => handleClickProblem(problem.problem_id)}
+        >
+          <p className="body-medium text-gray-800">
+            {problem.category_name} {problem.problem_id}번 문제
+          </p>
+
+          {problem.user.correct_count > 0 && (
+            <span className="text-[12px] px-2 py-[2px] rounded-full bg-primary-100 text-primary-500">
+              해결
+            </span>
           )}
         </div>
       </div>
-      <p className="text-primary-500 body-medium mr-9">{problem.correctCount}/{problem.totalCount}</p>
+
+      <div className="col-span-2 text-center">
+        <p className="text-primary-500 body-medium">
+          {problem.user.correct_count}/{problem.user.try_count}
+        </p>
+      </div>
     </div>
   );
 };

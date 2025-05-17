@@ -64,7 +64,7 @@ export const createStroke = (
 
 export const shouldCreateNewBlock = (
   first: { x: number; y: number; time: number },
-  lastPoint: { x: number; y: number } | null,
+  lastPoint: { x: number; y: number } | null
   // lastStrokeTime: number | null
 ) => {
   const distance = lastPoint
@@ -103,7 +103,7 @@ export const updateBlocksWithStroke = ({
     blocks.length === 0 ||
     shouldCreateNewBlock(
       { ...stroke.start, time: stroke.timestamp },
-      lastPoint,
+      lastPoint
       // lastStrokeTime
     ) ||
     !newBlocks.find((b) => b.block_id === lastBlockId);
@@ -194,7 +194,7 @@ export function getPointerUpHandler(
       blocks.length === 0 ||
       shouldCreateNewBlock(
         { ...stroke.start, time: stroke.timestamp },
-        lastPoint,
+        lastPoint
         // lastStrokeTime
       ) ||
       !blocks.find((b) => b.block_id === lastBlockId);
@@ -280,7 +280,7 @@ export async function generateStepImages(
 
     const stepNumber = i; // step1부터 시작
     const stepFileName = `step${String(stepNumber).padStart(2, "0")}.jpg`;
-    console.log("개수보자", snapshot.length);
+    // console.log("개수보자", snapshot.length);
 
     window.open(URL.createObjectURL(stepBlob));
 
