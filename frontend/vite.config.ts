@@ -4,10 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import svgr from 'vite-plugin-svgr';
-import dotenv from 'dotenv'
 
 // https://vite.dev/config/
-dotenv.config({ path: '.env.production' })
 export default defineConfig({
   define: {
     'import.meta.env.VITE_APP_API_URL': JSON.stringify(process.env.VITE_APP_API_URL)},
