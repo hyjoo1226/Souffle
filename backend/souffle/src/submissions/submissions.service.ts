@@ -321,10 +321,7 @@ export class SubmissionService {
   private async updateCategoryStatistics(categoryId: number) {
     const stats = await this.submissionRepository
       .createQueryBuilder('submission')
-      .select(
-        'AVG(CAST(submission.isCorrect:int AS float)) * 100',
-        'avgAccuracy',
-      )
+      .select('AVG(submission.isCorrect::int) * 100', 'avgAccuracy')
       .innerJoin(
         'submission.problem',
         'problem',
