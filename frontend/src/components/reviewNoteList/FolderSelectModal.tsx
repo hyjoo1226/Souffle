@@ -3,7 +3,7 @@ import { Folder } from "@/services/api/ReviewNoteList"; // 🔁 실제 타입 im
 // import { Button } from "../common/Button";
 import {
   createFolderApi,
-  // moveToFavFolderApi,
+  moveToFavFolderApi,
 } from "@/services/api/ReviewNoteList";
 interface Props {
   favoriteFolders: Folder[];
@@ -34,33 +34,39 @@ const FolderSelectModal = ({
   // console.log("favoriteFolders", favoriteFolders);
 
   // const handleModalOpen = () => setIsOpen(!isOpen);
-  const handleCreateFolder = async (folderName: string) => {
-    // console.log("🆕 새 폴더 생성:", folderName);
-    const data = {
-      name: folderName,
-      type: 1,
-      parent_id: null,
-    };
+  // const handleCreateFolder = async (folderName: string) => {
+  //   const data = {
+  //     name: folderName,
+  //     type: 1,
+  //     parent_id: 18,
+  //   };
 
-    const res = await createFolderApi(data);
-    const newFolderId = res.id;
+  //   const res = await createFolderApi(data);
+  //   const newFolderId = res.id;
 
-    const newFolder: Folder = {
-      id: newFolderId,
-      name: folderName,
-      type: 1,
-      parent_id: 1,
-      children: [],
-    };
+  //   const newFolder: Folder = {
+  //     id: newFolderId,
+  //     name: folderName,
+  //     type: 1,
+  //     parent_id: 18,
+  //     children: [],
+  //     problem_count: 0, // ✅ 이게 없으면 백엔드에서 undefined로 오류 날 수 있음
+  //   };
 
-    const updated = [...favoriteFolders];
-    updated[0] = {
-      ...updated[0],
-      children: [...updated[0].children, newFolder], // ✅ 하위에 추가
-    };
-    setSelectedFavId(newFolderId);
-    setFavoriteFolders(updated);
-  };
+  //   const updated = [...favoriteFolders];
+  //   updated[0] = {
+  //     ...updated[0],
+  //     children: [...updated[0].children, newFolder],
+  //   };
+
+  //   setFavoriteFolders(updated);
+  //   setSelectedFavId(newFolderId);
+  //   setSelectedFavName(folderName);
+
+  //   // ✅ 이 줄을 꼭 넣자: 클릭한 것처럼 처리
+  //   setIsCreatingFolder(false);
+  //   setIsOpen(false);
+  // };
 
   const handleFolderSelect = (folder: Folder) => {
     setSelectedFavName(folder.name);
@@ -69,63 +75,121 @@ const FolderSelectModal = ({
     // console.log("여기", selectedFavId);
   };
 
-  const handleMoveToFolder = async () => {
-    if (!selectedFavId || selectedProblemIds.length === 0) return;
-
-    // 실제 API 이동 호출 (주석 해제 필요)
-    // await Promise.all(
-    //   selectedProblemIds.map((problemId) =>
-    //     moveToFavFolderApi(problemId, selectedFavId, 1)
-    //   )
-    // );
-
+  const handleMoveToFolder = async (folder: Folder) => {
     const movedProblems =
       reviewNoteList?.filter((item) =>
         selectedProblemIds.includes(item.problem_id)
       ) || [];
 
-    // console.log("movedProblems", movedProblems);
-    // console.log("reviewNoteList", reviewNoteList);
+    const updatedFolder: Folder = {
+      ...folder,
+      problem_count: movedProblems.length,
+      children: movedProblems,
+    };
 
-    const updated = [...favoriteFolders];
-    const targetFolderIndex = updated[0].children.findIndex(
-      (folder) => folder.id === selectedFavId
+    const updatedFolders = [...favoriteFolders];
+    updatedFolders[0] = {
+      ...updatedFolders[0],
+      children: [
+        ...updatedFolders[0].children.filter((f) => f.id !== folder.id),
+        updatedFolder,
+      ],
+    };
+
+    setFavoriteFolders(updatedFolders);
+
+    await Promise.all(
+      selectedProblemIds.map((problemId) =>
+        moveToFavFolderApi(problemId, folder.id, 1)
+      )
     );
-
-    if (targetFolderIndex !== -1) {
-      updated[0].children[targetFolderIndex] = {
-        ...updated[0].children[targetFolderIndex],
-        problem_count:
-          (updated[0].children[targetFolderIndex].problem_count || 0) +
-          movedProblems.length,
-        children: [
-          ...(updated[0].children[targetFolderIndex].children || []),
-          ...movedProblems,
-        ],
-      };
-
-      setFavoriteFolders(updated);
-    }
 
     setReviewNoteList(
       (prev: any[] | null) =>
         prev?.filter((item) => !selectedProblemIds.includes(item.problem_id)) ??
         null
     );
-    const selectedChapter = "즐겨찾기";
-    const selectedSection = selectedFavName; // Replace with the actual value or logic to retrieve the section
-    const selectedUnit = null; // Replace with the actual value or logic to retrieve the unit
-    const selectedType = 1; // Replace with the actual value or logic to retrieve the type
-    const selectedFolderId = selectedFavId; // Replace with the actual value or logic to retrieve the folder ID
 
     await handleSelectUnit({
-      chapter: selectedChapter,
-      section: selectedSection,
-      unit: selectedUnit,
-      type: selectedType,
-      id: selectedFolderId,
+      chapter: "즐겨찾기",
+      section: folder.name,
+      unit: null,
+      type: 1,
+      id: folder.id,
+    });
+  };
+
+  const handleCreateAndMove = async (folderName: string) => {
+    // 1. 폴더 생성
+    const data = {
+      name: folderName,
+      type: 1,
+      parent_id: 18,
+    };
+
+    const res = await createFolderApi(data);
+    const newFolderId = res.folder_id;
+
+    const newFolder: Folder = {
+      id: newFolderId,
+      name: folderName,
+      type: 1,
+      parent_id: 18,
+      children: [],
+      problem_count: 0,
+    };
+
+    const updatedFolders = [...favoriteFolders];
+    updatedFolders[0] = {
+      ...updatedFolders[0],
+      children: [...updatedFolders[0].children, newFolder],
+    };
+
+    setFavoriteFolders(updatedFolders);
+    setSelectedFavId(newFolderId);
+    setSelectedFavName(folderName);
+
+    // 2. 문제 이동
+    const movedProblems =
+      reviewNoteList?.filter((item) =>
+        selectedProblemIds.includes(item.problem_id)
+      ) || [];
+
+    const folderIndex = updatedFolders[0].children.findIndex(
+      (folder) => folder.id === newFolderId
+    );
+
+    if (folderIndex !== -1) {
+      updatedFolders[0].children[folderIndex] = {
+        ...updatedFolders[0].children[folderIndex],
+        problem_count: movedProblems.length,
+        children: movedProblems,
+      };
+
+      setFavoriteFolders(updatedFolders);
+    }
+
+    if (!newFolderId || isNaN(newFolderId)) {
+      alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
+      return;
+    }
+    await Promise.all(
+      selectedProblemIds.map((problemId) =>
+        moveToFavFolderApi(problemId, newFolderId, 1)
+      )
+    );
+
+    // 3. 선택된 폴더로 이동
+    await handleSelectUnit({
+      chapter: "즐겨찾기",
+      section: folderName,
+      unit: null,
+      type: 1,
+      id: newFolderId,
     });
 
+    // 4. 모달 닫기
+    setIsCreatingFolder(false);
     setIsOpen(false);
     setIsFavoriteModalOpen(false);
   };
@@ -142,12 +206,12 @@ const FolderSelectModal = ({
             placeholder="새 폴더 이름"
             className="flex-1 h-full px-3 border border-gray-200 rounded-[4px] text-sm text-gray-700"
           />
-          <button
+          {/* <button
             onClick={() => handleCreateFolder(newFolderName)}
             className="h-full px-4 bg-primary-500 text-white rounded-[4px] text-sm"
           >
             추가
-          </button>
+          </button> */}
         </div>
       ) : (
         <div className="relative flex items-center gap-2 h-12 w-full">
@@ -208,7 +272,24 @@ const FolderSelectModal = ({
         </button>
         <button
           className="px-4 py-2 bg-primary-500 text-white text-sm rounded-[4px]"
-          onClick={handleMoveToFolder}
+          onClick={() => {
+            if (isCreatingFolder) {
+              handleCreateAndMove(newFolderName);
+            } else {
+              if (!selectedFavId || isNaN(selectedFavId)) {
+                alert("❗폴더가 선택되지 않았습니다.");
+                return;
+              }
+              const folder = favoriteFolders[0].children.find(
+                (f) => f.id === selectedFavId
+              );
+              if (folder) {
+                handleMoveToFolder(folder);
+                setIsOpen(false);
+                setIsFavoriteModalOpen(false);
+              }
+            }
+          }}
         >
           저장
         </button>

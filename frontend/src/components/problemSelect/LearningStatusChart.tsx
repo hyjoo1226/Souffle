@@ -2,8 +2,8 @@ import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 const LearningStatusChart = ({ selectedData }: { selectedData: number }) => {
   const data = [
-    { name: "1", value: selectedData * 100, fill: "#6973C8" },
-    { name: "2", value: 100 - selectedData * 100, fill: "#E0E0E0" },
+    { name: "1", value: selectedData, fill: "#6973C8" },
+    { name: "2", value: 100 - selectedData, fill: "#E0E0E0" },
   ];
 
   return (

@@ -46,14 +46,11 @@ const ProblemSelectPage = () => {
   const fetchProblemList = async () => {
     if (selectedLessonId !== null) {
       const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
-      // console.log("res", res); // 클릭한 카테고리 ID 출력
+      console.log("문제목록", res.problem); // 클릭한 카테고리 ID 출력
       setProblemList(res.problem); // 문제 리스트 상태 업데이트
       setProgressRate(res.user.progress_rate); // 진도율 상태 업데이트
       setAccuracyRate(res.user.accuracy); // 정답률 상태 업데이트
     }
-
-    // const problem = dummyProblemList[0].problem;
-    // const learningStatus = dummyProblemList[0].user;
 
     // console.log("accuracyRate", accuracyRate); // 클릭한 카테고리 ID 출력
   };
@@ -72,12 +69,17 @@ const ProblemSelectPage = () => {
   };
 
   const handleProblemClick = async (problemId: number, problemNo: number) => {
+    const problemIndex = problemList.findIndex(
+      (problem) => problem.problem_id === problemId
+    );
     navigate(`/solving/${problemId}`, {
       state: {
         selectedLessonName,
         selectedSubject,
         selectedUnit,
         problemNo,
+        problemIndex: problemNo,
+        problemList: sortedProblemList,
       },
     });
   };
@@ -103,22 +105,25 @@ const ProblemSelectPage = () => {
           />
           {/* 진도율, 정답률 차트 */}
           {selectedLessonId !== null && (
-            <div className="flex flex-col border border-gray-200 rounded-[10px] px-4.5 py-7 gap-17">
+            <div className="flex flex-col border border-gray-200 rounded-[10px] px-4.5 py-7 gap-17 min-h-[200px] justify-between">
               <p className="headline-medium text-gray-700">단원별 학습 현황</p>
-              <div className="flex items-center justify-center gap-15">
-                {progressRate !== null && accuracyRate !== null && (
+
+              {progressRate !== null && accuracyRate !== null ? (
+                <div className="flex items-center justify-center gap-15">
                   <div className="flex flex-col gap-3 items-center">
                     <p className="headline-small text-gray-700">단원 학습율</p>
                     <LearningStatusChart selectedData={progressRate} />
                   </div>
-                )}
-                {progressRate !== null && accuracyRate !== null && (
                   <div className="flex flex-col gap-3 items-center">
                     <p className="headline-small text-gray-700">단원 정답률</p>
                     <LearningStatusChart selectedData={accuracyRate} />
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center text-gray-400 body-medium h-[120px]">
+                  아직 학습되지 않은 단원입니다. 학습을 진행해주세요!
+                </div>
+              )}
             </div>
           )}
         </div>

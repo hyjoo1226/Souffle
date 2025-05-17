@@ -34,7 +34,7 @@ const NoteFolder = ({
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
   };
-
+  // console.log("sections", sections);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [_isUpdateFolder, setIsUpdateFolder] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
