@@ -1,5 +1,5 @@
 // ReviewNoteListPage.tsx
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useMemo } from "react";
 import NoteFolder from "@/components/reviewNoteList/NoteFolder";
 import ReviewNoteItem from "@/components/reviewNoteList/ReviewNoteItem";
 import { ReactComponent as UploadLight } from "@/assets/icons/UploadLight.svg";
@@ -61,12 +61,14 @@ const ReviewNoteListPage = () => {
 
     if (type == 1) {
       // const res = mockType1ListData;
-      const res = await getProblemListApi(type, id);
+      const res = await getProblemListApi(1, id);
       setReviewNoteList(res);
+      // console.log("선택폴더Id", id);
     } else {
       //
-      const res = await getProblemListApi(type, id);
+      const res = await getProblemListApi(2, id);
       setReviewNoteList(res);
+      // console.log("선택폴더Id", id);
     }
 
     console.log("노트리스트", reviewNoteList);
@@ -129,34 +131,31 @@ const ReviewNoteListPage = () => {
   };
   const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
-  const [mergedFolders, setMergedFolders] = useState<
-    {
-      type: number;
-      folders: Folder[];
-      setFolders: (folders: Folder[]) => void;
-    }[]
-  >([]);
 
-  const fetchFolderList = async () => {
-    const favRes = await getFavoriteFoldersApi();
-    const reviewRes = await getReviewNoteFolderApi();
-    setFavoriteFolders(favRes);
-    setNoteFolders(reviewRes);
-
-    setMergedFolders([
+  const mergedFolders = useMemo(() => {
+    return [
       {
         type: 1,
-        folders: favRes,
+        folders: favoriteFolders ?? [],
         setFolders: setFavoriteFolders,
       },
       {
         type: 2,
-        folders: reviewRes,
+        folders: noteFolders ?? [],
         setFolders: setNoteFolders,
       },
-    ]);
-    console.log("favoriteFolders", favRes);
-    console.log("noteFolders", reviewRes);
+    ];
+  }, [favoriteFolders, noteFolders]);
+
+  const fetchFolderList = async () => {
+    const folderList: Folder[] = await getFavoriteFoldersApi();
+    console.log("folderList", folderList);
+
+    const favoriteFolders = folderList.filter((f) => f.type === 1);
+    const noteFolders = folderList.filter((f) => f.type === 2);
+
+    setFavoriteFolders(favoriteFolders);
+    setNoteFolders(noteFolders);
   };
 
   useEffect(() => {

@@ -101,16 +101,11 @@ export const deleteFolderApi = async (folderId: number) => {
   });
 };
 
-export const getProblemListApi = async (type: number, id: number) => {
-  // const token =
-  //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjcsIm5pY2tuYW1lIjoi7Iq57KO87J20IiwicHJvZmlsZUltYWdlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jTHp1RDk4ekNabk9PNzFCdGhUUFFoM3RqTmFsMllRWG1HdkZXWEJVWGJYUlp1dnl3PXM5Ni1jIiwiaWF0IjoxNzQ3MTE4NzA3LCJleHAiOjE3NDcyMDUxMDd9.MdAibNyQhp0aYAp9k6Ve1Uo1Ybk4Z_sp4DeigTTmnGg";
-  const response = await api.get(`/notes/folder/${id}`, {
+export const getProblemListApi = async (type: number, folderId: number) => {
+  const response = await api.get(`/notes/folder/${folderId}/problem`, {
     params: {
       type: type,
     },
-    // headers: {
-    //   Authorization: `Bearer ${token}`,
-    // },
   });
   return response.data;
 };

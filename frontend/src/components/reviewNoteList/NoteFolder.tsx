@@ -40,11 +40,19 @@ const NoteFolder = ({
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
 
-  const handleCreateFolder = () => {
+  const handleCreateFolder = async () => {
     if (!folders) return;
+    const data = { name: newFolderName, type: 1, parent_id: folders[0]?.id };
+
+    const res = await createFolderApi(data);
+    console.log("res", res);
+
+    // console.log("newFolderName", newFolderName);
+    // console.log("selectedFolderId", folders[0]?.id);
+    // console.log("type", 1);
 
     const newFolder: Folder = {
-      id: Date.now(), // or 서버 응답으로 받은 ID
+      id: res.folder_id, // or 서버 응답으로 받은 ID
       name: newFolderName,
       type,
       parent_id: type,
@@ -71,7 +79,7 @@ const NoteFolder = ({
     const data = {
       name: newFolderName,
     };
-    // updateFolderApi(sectionId, data);
+    updateFolderApi(sectionId, data);
 
     const updated = folders?.map((folder) => {
       const updatedChildren = folder.children.map((child) =>
@@ -88,7 +96,7 @@ const NoteFolder = ({
   };
 
   const handleDeleteFolder = (folderId: number) => {
-    // deleteFolderApi(folderId);
+    deleteFolderApi(folderId);
     const updated =
       folders?.map((folder) => ({
         ...folder,
