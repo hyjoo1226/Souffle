@@ -51,8 +51,9 @@ export class SubmissionService {
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
 
     // 문제 조회
-    const problem = await this.problemRepository.findOneBy({
-      id: submissionDto.problem_id,
+    const problem = await this.problemRepository.findOne({
+      where: { id: submissionDto.problem_id },
+      relations: ['category'],
     });
     if (!problem) throw new NotFoundException('문제를 찾을 수 없습니다.');
 
