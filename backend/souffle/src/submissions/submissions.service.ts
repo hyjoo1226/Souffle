@@ -325,7 +325,7 @@ export class SubmissionService {
       .innerJoin(
         'submission.problem',
         'problem',
-        'problem.category_id = :categoryId',
+        'problem.categoryId = :categoryId',
         { categoryId },
       )
       .getRawOne();
