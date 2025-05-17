@@ -20,7 +20,7 @@ const AssessmentReport = () => {
     const res = await getUserReport();
     setAiDiagnosis(res.ai_diagnosis);
     setStudyPlan(res.study_plan);
-    console.log(res);
+    // console.log(res);
   };
 
   useEffect(() => {

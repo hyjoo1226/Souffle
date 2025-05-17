@@ -2,12 +2,12 @@ import ProblemCategory from "@/components/problemSelect/ProblemCategory";
 import UnitReport from "@/components/problemSelect/UnitReport";
 import { useEffect, useState } from "react";
 
-// import {
-//   getProblemListApi,
-//   // getAllCategoriesApi,
-// } from "@/services/api/ProblemSolving";
+import {
+  getProblemListApi,
+  getAllCategoriesApi,
+} from "@/services/api/ProblemSolving";
 import LearningStatusChart from "@/components/problemSelect/LearningStatusChart";
-import { dummyCategoryData, dummyProblemList } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
+// import { dummyCategoryData, dummyProblemList } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
 import { useNavigate } from "react-router-dom";
 
 const ProblemSelectPage = () => {
@@ -16,6 +16,8 @@ const ProblemSelectPage = () => {
   const [selectedLessonName, setSelectedLessonName] = useState<string | null>(
     null
   );
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
   // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
@@ -42,17 +44,18 @@ const ProblemSelectPage = () => {
   // const [categoryId, setCategoryId] = useState<number>(1); // 카테고리 ID 상태
   const navigate = useNavigate();
   const fetchProblemList = async () => {
-    // if (selectedLessonId !== null) {
-    //   const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
-    // }
-    const problem = dummyProblemList[0].problem;
-    const learningStatus = dummyProblemList[0].user;
+    if (selectedLessonId !== null) {
+      const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
+      // console.log("res", res); // 클릭한 카테고리 ID 출력
+      setProblemList(res.problem); // 문제 리스트 상태 업데이트
+      setProgressRate(res.user.progress_rate); // 진도율 상태 업데이트
+      setAccuracyRate(res.user.accuracy); // 정답률 상태 업데이트
+    }
 
-    setProblemList(problem); // 문제 리스트 상태 업데이트
-    setProgressRate(learningStatus.progress_rate); // 진도율 상태 업데이트
-    setAccuracyRate(learningStatus.accuracy); // 정답률 상태 업데이트
-    console.log("problemList", problem); // 클릭한 카테고리 ID 출력
-    console.log("accuracyRate", accuracyRate); // 클릭한 카테고리 ID 출력
+    // const problem = dummyProblemList[0].problem;
+    // const learningStatus = dummyProblemList[0].user;
+
+    // console.log("accuracyRate", accuracyRate); // 클릭한 카테고리 ID 출력
   };
 
   useEffect(() => {
@@ -62,17 +65,21 @@ const ProblemSelectPage = () => {
   }, [selectedLessonId]); // selectedLessonId가 변경될 때마다 실행
 
   const handleCategoryClick = async () => {
-    // const res = await getAllCategoriesApi();
-    const res = dummyCategoryData; // 더미 데이터 사용
-    console.log("카테고리 데이터", res); // 카테고리 데이터 출력
+    const res = await getAllCategoriesApi();
+    // const res = dummyCategoryData; // 더미 데이터 사용
+    // console.log("카테고리 데이터", res); // 카테고리 데이터 출력
     setCategoryData(res); // 카테고리 데이터 상태 업데이트
   };
 
-  const handleProblemClick = async (problemId: number) => {
-    console.log("문제 클릭", problemId);
-    navigate(
-      `/solving/${problemId}` // 문제 풀이 페이지로 이동
-    );
+  const handleProblemClick = async (problemId: number, problemNo: number) => {
+    navigate(`/solving/${problemId}`, {
+      state: {
+        selectedLessonName,
+        selectedSubject,
+        selectedUnit,
+        problemNo,
+      },
+    });
   };
 
   useEffect(() => {
@@ -89,6 +96,10 @@ const ProblemSelectPage = () => {
             setSelectedLessonId={setSelectedLessonId}
             selectedLessonName={selectedLessonName}
             setSelectedLessonName={setSelectedLessonName}
+            selectedSubject={selectedSubject}
+            setSelectedSubject={setSelectedSubject}
+            selectedUnit={selectedUnit}
+            setSelectedUnit={setSelectedUnit}
           />
           {/* 진도율, 정답률 차트 */}
           {selectedLessonId !== null && (
@@ -172,7 +183,9 @@ const ProblemSelectPage = () => {
                 <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
                   <p
                     className="body-medium text-gray-700"
-                    onClick={() => handleProblemClick(problem.problem_id)}
+                    onClick={() =>
+                      handleProblemClick(problem.problem_id, problem.inner_no)
+                    }
                   >
                     {`${selectedLessonName} ${problem.inner_no}번 문제`}
                   </p>

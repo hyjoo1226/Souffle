@@ -13,7 +13,6 @@ import SelectUnitPage from "@/pages/concept/SelectUnitPage";
 import ConceptStudyPage from "@/pages/concept/ConceptStudyPage";
 import ProblemStudyPage from "@/pages/concept/ProblemStudyPage";
 import LoginPage from "@/pages/LoginPage";
-import FolderSelectModal from "@/components/reviewNoteList/FolderSelectModal";
 
 const Router = () => {
   return (

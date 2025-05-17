@@ -74,7 +74,7 @@ const AssessmentRadar = () => {
       );
       setChartData(radarData);
     } catch (error) {
-      console.error("RadarChart 데이터 로드 실패:", error);
+      // console.error("RadarChart 데이터 로드 실패:", error);
     }
   };
 

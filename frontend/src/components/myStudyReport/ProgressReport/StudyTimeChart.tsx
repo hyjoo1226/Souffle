@@ -7,7 +7,6 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { dailyStudyTime } from "@/mocks/dummyReportData";
 import { useEffect, useState } from "react";
 import { getStudyTimeData } from "@/services/api/MyStudyReport";
 import { format, addDays } from "date-fns";
@@ -37,7 +36,7 @@ const StudyTimeChart = () => {
   const fetchStudyTimeData = async () => {
     // const res = dailyStudyTime;
     const res = await getStudyTimeData(selectedDate);
-    console.log("res", res);
+    // console.log("res", res);
     setStudyTimeData(res.daily_records);
   };
 

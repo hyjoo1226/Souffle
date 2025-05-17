@@ -1,5 +1,5 @@
 import type { ReviewNoteItem } from "@/services/api/ReviewNoteList";
-import ProblemPreview from "./ProblemPreview";
+// import ProblemPreview from "./ProblemPreview";
 
 interface Props {
   problem: ReviewNoteItem;

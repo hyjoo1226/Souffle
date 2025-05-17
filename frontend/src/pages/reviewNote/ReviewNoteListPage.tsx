@@ -2,24 +2,19 @@
 import { useState, useEffect, useMemo } from "react";
 import NoteFolder from "@/components/reviewNoteList/NoteFolder";
 import ReviewNoteItem from "@/components/reviewNoteList/ReviewNoteItem";
-import { ReactComponent as UploadLight } from "@/assets/icons/UploadLight.svg";
+// import { ReactComponent as UploadLight } from "@/assets/icons/UploadLight.svg";
 import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
 import { ReactComponent as Star } from "@/assets/icons/Star.svg";
 import {
   getFavoriteFoldersApi,
-  getReviewNoteFolderApi,
+  // getReviewNoteFolderApi,
   getProblemListApi,
   Folder,
   ReviewNoteList,
-  deleteProblemApi,
+  // deleteProblemApi,
   UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
-import {
-  mockFavoriteFolderData,
-  mockReviewNoteFolderData,
-  mockType1ListData,
-  mockType2ListData,
-} from "@/mocks/dummyReviewData";
+
 import FolderSelectModal from "@/components/reviewNoteList/FolderSelectModal";
 import ProblemPreview from "@/components/reviewNoteList/ProblemPreview";
 
@@ -31,7 +26,7 @@ const ReviewNoteListPage = () => {
   const tabs = ["정답률↑", "정답률↓", "미해결"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const [selectedType, setSelectedType] = useState<number | null>(null);
+  const [_selectedType, setSelectedType] = useState<number | null>(null);
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
@@ -53,11 +48,11 @@ const ReviewNoteListPage = () => {
     setSelectedType(type);
     setSelectedUnit(unit);
 
-    console.log("chapter", selectedChapter);
-    console.log("section", section);
-    console.log("type", type);
-    console.log("unit", unit);
-    console.log("id", id);
+    // console.log("chapter", selectedChapter);
+    // console.log("section", section);
+    // console.log("type", type);
+    // console.log("unit", unit);
+    // console.log("id", id);
 
     if (type == 1) {
       // const res = mockType1ListData;
@@ -71,7 +66,7 @@ const ReviewNoteListPage = () => {
       // console.log("선택폴더Id", id);
     }
 
-    console.log("노트리스트", reviewNoteList);
+    // console.log("노트리스트", reviewNoteList);
     setSelectedProblem(null);
   };
   const handleCheckboxToggle = (problemId: number) => {
@@ -86,21 +81,21 @@ const ReviewNoteListPage = () => {
     const found =
       reviewNoteList?.find((p) => p.problem_id === problemId) || null;
     setSelectedProblem(found);
-    console.log("🔍 선택된 문제:", found);
+    // console.log("🔍 선택된 문제:", found);
   };
 
   const handleClickDelete = () => {
     const confirmed = window.confirm("선택한 문제를 삭제하시겠습니까?");
     if (confirmed) {
-      console.log("selectedProblemIds", selectedProblemIds);
-      console.log("selectedType", selectedType);
+      // console.log("selectedProblemIds", selectedProblemIds);
+      // console.log("selectedType", selectedType);
 
       if (!reviewNoteList) return;
-      if (selectedType !== null) {
-        selectedProblemIds.map((selectedProblemId) => {
-          // deleteProblemApi(selectedProblemId, selectedType);
-        });
-      }
+      // if (selectedType !== null) {
+      //   selectedProblemIds.map((selectedProblemId) => {
+      //     // deleteProblemApi(selectedProblemId, selectedType);
+      //   });
+      // }
 
       const updatedList = reviewNoteList.filter(
         (item) => !selectedProblemIds.includes(item.problem_id)
@@ -120,15 +115,14 @@ const ReviewNoteListPage = () => {
   //   })
   // }
 
-  const handleDropProblemToSection = (targetSection: string) => {
-    console.log("이동할 문제들:", selectedProblemIds);
-    console.log("타겟 소단원:", targetSection);
-    // 일단 드래그 앤 드랍으로 문제 이동하는 기능은 구현했으나 태블릿 환경에 적합한지는 의문
-    // 고도화 할 기회가 있다면 논의 후 폴더 이동 버튼 구현
-
-    // TODO: 여기에 백엔드 요청 붙이면 됨
-    // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
-  };
+  // const handleDropProblemToSection = (targetSection: string) => {
+  //   // console.log("이동할 문제들:", selectedProblemIds);
+  //   // console.log("타겟 소단원:", targetSection);
+  //   // 일단 드래그 앤 드랍으로 문제 이동하는 기능은 구현했으나 태블릿 환경에 적합한지는 의문
+  //   // 고도화 할 기회가 있다면 논의 후 폴더 이동 버튼 구현
+  //   // TODO: 여기에 백엔드 요청 붙이면 됨
+  //   // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
+  // };
   const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
 
@@ -149,7 +143,7 @@ const ReviewNoteListPage = () => {
 
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
-    console.log("folderList", folderList);
+    // console.log("folderList", folderList);
 
     const favoriteFolders = folderList.filter((f) => f.type === 1);
     const noteFolders = folderList.filter((f) => f.type === 2);
@@ -176,7 +170,7 @@ const ReviewNoteListPage = () => {
                 folders={folders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
-                onDropProblem={handleDropProblemToSection}
+                // onDropProblem={handleDropProblemToSection}
               />
             ))
           )}

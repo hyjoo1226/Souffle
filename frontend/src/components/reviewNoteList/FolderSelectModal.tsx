@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Folder } from "@/services/api/ReviewNoteList"; // 🔁 실제 타입 import
-import { Button } from "../common/Button";
+// import { Button } from "../common/Button";
 import {
   createFolderApi,
-  moveToFavFolderApi,
+  // moveToFavFolderApi,
 } from "@/services/api/ReviewNoteList";
 interface Props {
   favoriteFolders: Folder[];
@@ -31,11 +31,11 @@ const FolderSelectModal = ({
     undefined
   );
   const [selectedFavName, setSelectedFavName] = useState<string>("");
-  console.log("favoriteFolders", favoriteFolders);
+  // console.log("favoriteFolders", favoriteFolders);
 
-  const handleModalOpen = () => setIsOpen(!isOpen);
+  // const handleModalOpen = () => setIsOpen(!isOpen);
   const handleCreateFolder = async (folderName: string) => {
-    console.log("🆕 새 폴더 생성:", folderName);
+    // console.log("🆕 새 폴더 생성:", folderName);
     const data = {
       name: folderName,
       type: 1,
@@ -66,7 +66,7 @@ const FolderSelectModal = ({
     setSelectedFavName(folder.name);
     setSelectedFavId(folder.id);
     setIsOpen(false);
-    console.log("여기", selectedFavId);
+    // console.log("여기", selectedFavId);
   };
 
   const handleMoveToFolder = async () => {
@@ -84,8 +84,8 @@ const FolderSelectModal = ({
         selectedProblemIds.includes(item.problem_id)
       ) || [];
 
-    console.log("movedProblems", movedProblems);
-    console.log("reviewNoteList", reviewNoteList);
+    // console.log("movedProblems", movedProblems);
+    // console.log("reviewNoteList", reviewNoteList);
 
     const updated = [...favoriteFolders];
     const targetFolderIndex = updated[0].children.findIndex(

@@ -36,7 +36,7 @@ const NoteFolder = ({
   };
 
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
-  const [isUpdateFolder, setIsUpdateFolder] = useState(false);
+  const [_isUpdateFolder, setIsUpdateFolder] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
 
@@ -45,7 +45,7 @@ const NoteFolder = ({
     const data = { name: newFolderName, type: 1, parent_id: folders[0]?.id };
 
     const res = await createFolderApi(data);
-    console.log("res", res);
+    // console.log("res", res);
 
     // console.log("newFolderName", newFolderName);
     // console.log("selectedFolderId", folders[0]?.id);

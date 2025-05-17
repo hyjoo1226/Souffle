@@ -70,7 +70,7 @@ const NoteSectionItem = ({
           const problemIds: number[] = JSON.parse(data);
           onDropProblem?.(sectionTitle, problemIds); // title은 중단원명
         } catch (err) {
-          console.error("문제 ID 파싱 오류:", err);
+          // console.error("문제 ID 파싱 오류:", err);
         }
       }}
     >
