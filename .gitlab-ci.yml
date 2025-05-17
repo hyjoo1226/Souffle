@@ -4,8 +4,8 @@ variables:
 
 stages:
   - build
-  - test
   - backup
+  - test
   - deploy
 
 build-be:
@@ -40,6 +40,7 @@ build-fe:
     
 backup-db:
   stage: backup
+  tags: [deploy]
   script:
     - docker exec db pg_dump -U ssafy -d app > db-backup.sql
     - tar czf db-backup.tar.gz db-backup.sql
