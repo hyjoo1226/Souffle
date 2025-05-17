@@ -42,6 +42,7 @@ backup-db:
   stage: backup
   tags: [deploy]
   script:
+    - mkdir -p ./volumes/backup
     - docker exec db pg_dump -U ssafy -d app > db-backup.sql
     - tar czf db-backup.tar.gz db-backup.sql
     - mv db-backup.tar.gz ./volumes/backup/
