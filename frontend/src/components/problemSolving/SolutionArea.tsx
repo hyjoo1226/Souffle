@@ -309,7 +309,7 @@ const SolutionArea = forwardRef((_props, ref) => {
       <img
         src="/icons/note-spring.png"
         alt="노트 스프링"
-        className="absolute z-50 left-[12.5%] top-[-2%] w-[70%] pointer-events-none"
+        className="absolute z-50 left-[12.5%] top-[-4%] w-[70%] pointer-events-none"
       />
       {showEraseModal && (
         <Eraser
@@ -373,13 +373,13 @@ const SolutionArea = forwardRef((_props, ref) => {
             />
           </div>
         </div>
-      </div>
-      <div className="relative w-full h-full ">
-        <canvas
-          id="drawCanvas"
-          ref={canvasRef}
-          className="touch-none w-full h-full"
-        />
+        <div className="relative w-full h-full ">
+          <canvas
+            id="drawCanvas"
+            ref={canvasRef}
+            className="touch-none w-full h-full"
+          />
+        </div>
       </div>
     </div>
   );

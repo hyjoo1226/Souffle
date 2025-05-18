@@ -72,7 +72,7 @@ const FolderSelectModal = ({
     setSelectedFavName(folder.name);
     setSelectedFavId(folder.id);
     setIsOpen(false);
-    // console.log("여기", selectedFavId);
+    console.log("여기", selectedFavId);
   };
 
   const handleMoveToFolder = async (folder: Folder) => {
@@ -103,6 +103,7 @@ const FolderSelectModal = ({
         moveToFavFolderApi(problemId, folder.id, 1)
       )
     );
+    console.log("선택된문제ID", selectedProblemIds);
 
     setReviewNoteList(
       (prev: any[] | null) =>
