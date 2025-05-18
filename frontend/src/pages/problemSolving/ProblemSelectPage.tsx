@@ -64,7 +64,7 @@ const ProblemSelectPage = () => {
   const handleCategoryClick = async () => {
     const res = await getAllCategoriesApi();
     // const res = dummyCategoryData; // 더미 데이터 사용
-    // console.log("카테고리 데이터", res); // 카테고리 데이터 출력
+    console.log("카테고리 데이터", res); // 카테고리 데이터 출력
     setCategoryData(res); // 카테고리 데이터 상태 업데이트
   };
 

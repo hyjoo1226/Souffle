@@ -253,7 +253,7 @@ const ProblemSolvingPage = () => {
 
           {/* 버튼 영역*/}
           <div className="shrink-0 flex items-center justify-center gap-3 p-4">
-            <Button
+            {/* <Button
               variant="outline"
               size="md"
               onClick={goToPrevious}
@@ -278,7 +278,7 @@ const ProblemSolvingPage = () => {
               }
             >
               다음 문제
-            </Button>
+            </Button> */}
             {isCorrect == null ? (
               <Button variant="solid" size="md" onClick={handleSubmit}>
                 채점 하기

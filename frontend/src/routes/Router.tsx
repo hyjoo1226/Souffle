@@ -21,9 +21,9 @@ const Router = () => {
       <Route
         path="/solving/:problemId"
         element={
-          <ProtectedRoute>
-            <ProblemSolvingPage />
-          </ProtectedRoute>
+          // <ProtectedRoute>
+          <ProblemSolvingPage />
+          // </ProtectedRoute>
         }
       />
       <Route

@@ -46,9 +46,9 @@ const SolutionArea = forwardRef((_props, ref) => {
   const handleEraserClick = () => {
     if (!isEraserActive) {
       // 처음 클릭 → 지우개 모드 ON
-      if (blocks.length > 0) {
-        blockSnapshotsRef.current.push(JSON.parse(JSON.stringify(blocks)));
-      }
+      // if (blocks.length > 0) {
+      //   blockSnapshotsRef.current.push(JSON.parse(JSON.stringify(blocks)));
+      // }
       setEraseOption(null); // 지우개 옵션 초기화
       setIsPencilActive(false); // 펜 아이콘 비활성화
       setIsEraserActive(true);
