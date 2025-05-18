@@ -123,3 +123,13 @@ export const moveToFavFolderApi = async (
   });
   return response.data;
 };
+
+export const switchOrderFolderAPi = async (
+  folderId: number,
+  sortOrder: number
+) => {
+  const response = await api.patch(`/notes/folder/${folderId}/order`, {
+    sort_order: sortOrder,
+  });
+  return response.data;
+};

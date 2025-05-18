@@ -145,10 +145,10 @@ const ReviewNoteListPage = () => {
 
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
-    console.log("folderList", folderList);
 
     const favoriteFolders = folderList.filter((f) => f.type === 1);
     const noteFolders = folderList.filter((f) => f.type === 2);
+    // console.log("favoriteFolders", favoriteFolders);
 
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
@@ -170,6 +170,7 @@ const ReviewNoteListPage = () => {
                 sections={item.children}
                 type={type}
                 folders={folders}
+                favoriteFolders={favoriteFolders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
                 // onDropProblem={handleDropProblemToSection}

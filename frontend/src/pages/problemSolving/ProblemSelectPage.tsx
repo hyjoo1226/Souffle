@@ -188,9 +188,9 @@ const ProblemSelectPage = () => {
                 <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
                   <p
                     className="body-medium text-gray-700"
-                    onClick={() =>
-                      handleProblemClick(problem.problem_id, problem.inner_no)
-                    }
+                    onClick={() => {
+                      handleProblemClick(problem.problem_id, problem.inner_no);
+                    }}
                   >
                     {`${selectedLessonName} ${problem.inner_no}번 문제`}
                   </p>

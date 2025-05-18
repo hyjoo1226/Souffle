@@ -9,6 +9,7 @@ import {
   updateFolderApi,
   deleteFolderApi,
   UnitSelectPayload,
+  switchOrderFolderAPi,
 } from "@/services/api/ReviewNoteList";
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
   sections: Folder[];
   type: number;
   folders: Folder[] | null;
+  favoriteFolders: Folder[] | null;
   setFavoriteFolders: (folders: Folder[]) => void;
   onSelectUnit: ({ section, type, unit, id }: UnitSelectPayload) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
@@ -26,6 +28,7 @@ const NoteFolder = ({
   sections,
   type,
   folders,
+  favoriteFolders,
   setFavoriteFolders,
   onSelectUnit,
   onDropProblem,
@@ -34,11 +37,15 @@ const NoteFolder = ({
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
   };
-  // console.log("sections", sections);
+  console.log(
+    "favoriteFolders.children",
+    favoriteFolders?.[0]?.children ?? "No children available"
+  );
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [_isUpdateFolder, setIsUpdateFolder] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState("");
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleCreateFolder = async () => {
     if (!folders) return;
@@ -130,50 +137,81 @@ const NoteFolder = ({
       {/* 소단원 리스트 */}
       {isOpen && (
         <div className="flex flex-col gap-y-2">
-          {sections.map((section) =>
-            selectedFolderId === section.id ? (
-              // 수정 중인 폴더 자리에 input 표시
-              <div key={section.id} className="flex gap-x-2 items-center pl-8">
-                <input
-                  type="text"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  className="border border-gray-200 px-2 py-1 rounded w-full text-gray-700"
-                />
-                <button
-                  onClick={() => {
-                    if (newFolderName.trim() === "") return;
-                    handleUpdateFolder(section.id, newFolderName);
-                  }}
-                  className="text-body-small bg-primary-500 text-white px-2 py-1 rounded min-w-[70px]"
-                >
-                  수정
-                </button>
-              </div>
-            ) : (
-              <NoteSectionItem
-                key={section.id}
-                chapter={chapter}
-                sectionTitle={section.name}
-                count={section.problem_count ?? 0}
-                id={section.id}
-                type={section.type}
-                subUnit={section.children}
-                setIsUpdateFolder={setIsUpdateFolder}
-                setSelectedFolderId={setSelectedFolderId}
-                setNewFolderName={setNewFolderName}
-                onSelectUnit={(child?: UnitSelectPayload) => {
-                  if (!child) return;
-                  onSelectUnit(child);
-                }}
-                onDropProblem={(targetSection, problemIds) =>
-                  onDropProblem?.(targetSection, problemIds)
-                }
-                onDeleteFolder={handleDeleteFolder}
-              />
-            )
-          )}
+          {sections.map((section, index) => (
+            <div
+              key={section.id}
+              draggable={selectedFolderId !== section.id}
+              onDragStart={() => setDraggedIndex(index)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={async () => {
+                if (draggedIndex === null || draggedIndex === index) return;
 
+                const newSections = [...sections];
+                const [moved] = newSections.splice(draggedIndex, 1);
+                newSections.splice(index, 0, moved);
+
+                const updatedFolders =
+                  favoriteFolders?.map((folder) =>
+                    folder.name === chapter
+                      ? { ...folder, children: newSections }
+                      : folder
+                  ) ?? [];
+
+                setFavoriteFolders(updatedFolders);
+
+                await switchOrderFolderAPi(moved.id, index);
+
+                setDraggedIndex(null);
+              }}
+              className="pl-8"
+              style={{
+                opacity: draggedIndex === index ? 0.5 : 1,
+                cursor: selectedFolderId === section.id ? "default" : "move",
+              }}
+            >
+              {selectedFolderId === section.id ? (
+                <div className="flex gap-x-2 items-center">
+                  <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    className="border border-gray-200 px-2 py-1 rounded w-full text-gray-700"
+                  />
+                  <button
+                    onClick={() => {
+                      if (newFolderName.trim() === "") return;
+                      handleUpdateFolder(section.id, newFolderName);
+                    }}
+                    className="text-body-small bg-primary-500 text-white px-2 py-1 rounded min-w-[70px]"
+                  >
+                    수정
+                  </button>
+                </div>
+              ) : (
+                <NoteSectionItem
+                  chapter={chapter}
+                  sectionTitle={section.name}
+                  count={section.problem_count ?? 0}
+                  id={section.id}
+                  type={section.type}
+                  subUnit={section.children}
+                  setIsUpdateFolder={setIsUpdateFolder}
+                  setSelectedFolderId={setSelectedFolderId}
+                  setNewFolderName={setNewFolderName}
+                  onSelectUnit={(child?: UnitSelectPayload) => {
+                    if (!child) return;
+                    onSelectUnit(child);
+                  }}
+                  onDropProblem={(targetSection, problemIds) =>
+                    onDropProblem?.(targetSection, problemIds)
+                  }
+                  onDeleteFolder={handleDeleteFolder}
+                />
+              )}
+            </div>
+          ))}
+
+          {/* 폴더 생성 input */}
           {isCreatingFolder && (
             <div className="flex gap-x-2 items-center pl-8">
               <input
