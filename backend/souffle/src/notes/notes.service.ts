@@ -55,14 +55,33 @@ export class NoteService {
         parent_id: f.parent_id,
       }),
     );
+
+    const roots: any[] = [];
     folders.forEach((f) => {
+      const folderObj = folderMap.get(f.id);
       if (f.parent_id) {
         const parent = folderMap.get(f.parent_id);
-        if (parent) parent.children.push(folderMap.get(f.id));
+        if (parent) parent.children.push(folderObj);
+      } else {
+        roots.push(folderObj);
       }
     });
 
-    return folders.filter((f) => !f.parent_id).map((f) => folderMap.get(f.id));
+    // 상위 폴더 문제 개수수
+    function accumulateProblemCount(folder: any): number {
+      if (!folder.children || folder.children.length === 0) {
+        return folder.problem_count;
+      }
+      let sum = folder.problem_count;
+      for (const child of folder.children) {
+        sum += accumulateProblemCount(child);
+      }
+      folder.problem_count = sum;
+      return sum;
+    }
+    roots.forEach(accumulateProblemCount);
+
+    return roots;
   }
 
   // 폴더별 문제 개수 조회 메서드
