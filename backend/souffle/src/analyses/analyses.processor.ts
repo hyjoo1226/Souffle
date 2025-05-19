@@ -52,11 +52,13 @@ export class AnalysisProcessor {
             stepNumber: step.step_number,
             stepFeedback: step.step_feedback,
             latex: step.latex,
+            currentLatex: step.current_latex,
           },
           {
             isValid: step.step_valid,
             stepFeedback: step.step_feedback,
             latex: step.latex,
+            currentLatex: step.current_latex,
           },
         );
       }
