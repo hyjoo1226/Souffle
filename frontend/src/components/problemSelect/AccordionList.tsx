@@ -20,6 +20,7 @@ const AccordianList = ({
   setSelectedSubject: (name: string) => void;
   setSelectedUnit: (name: string) => void;
 }) => {
+  // console.log("categoryData", categoryData);
   const [openSubjectId, setOpenSubjectId] = useState<number[]>([]);
   const [openUnitId, setOpenUnitId] = useState<number[]>([]);
 

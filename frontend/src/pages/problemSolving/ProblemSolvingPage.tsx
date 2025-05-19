@@ -29,8 +29,62 @@ const ProblemSolvingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { selectedLessonName, selectedSubject, selectedUnit, problemNo } =
-    location.state || {};
+  const {
+    selectedLessonName,
+    selectedSubject,
+    selectedUnit,
+    problemNo,
+    // problemIndex,
+    // problemList,
+  } = location.state || {};
+
+  const [lessonName, setLessonName] = useState(selectedLessonName);
+  const [subject, setSubject] = useState(selectedSubject);
+  const [unit, setUnit] = useState(selectedUnit);
+  const [num, setNum] = useState(problemNo);
+
+  useEffect(() => {
+    setLessonName(location.state?.selectedLessonName);
+    setSubject(location.state?.selectedSubject);
+    setUnit(location.state?.selectedUnit);
+    setNum(location.state?.problemNo);
+  }, [location.state]);
+
+  // const goToNext = () => {
+  //   if (problemIndex < problemList.length - 1) {
+  //     const next = problemIndex + 1;
+  //     const nextProblem = problemList[next];
+
+  //     navigate(`/solving/${nextProblem.problem_id}`, {
+  //       state: {
+  //         selectedLessonName,
+  //         selectedSubject,
+  //         selectedUnit,
+  //         problemNo: nextProblem.inner_no, // ✅ 문제 번호 갱신
+  //         problemIndex: next,
+  //         problemList,
+  //       },
+  //     });
+  //   }
+  // };
+
+  // const goToPrevious = () => {
+  //   if (problemIndex > 0) {
+  //     const prev = problemIndex - 1;
+  //     const prevProblem = problemList[prev];
+
+  //     navigate(`/solving/${prevProblem.problem_id}`, {
+  //       state: {
+  //         selectedLessonName,
+  //         selectedSubject,
+  //         selectedUnit,
+  //         problemNo: prevProblem.inner_no, // ✅ 문제 번호 갱신
+  //         problemIndex: prev,
+  //         problemList,
+  //       },
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     const fetchProblem = async () => {
@@ -158,10 +212,10 @@ const ProblemSolvingPage = () => {
         {problem && (
           <ProblemSourceInfo
             data={problem}
-            lessonName={selectedLessonName}
-            subject={selectedSubject}
-            unit={selectedUnit}
-            num={problemNo}
+            lessonName={lessonName}
+            subject={subject}
+            unit={unit}
+            num={num}
           />
         )}
       </div>
@@ -199,12 +253,32 @@ const ProblemSolvingPage = () => {
 
           {/* 버튼 영역*/}
           <div className="shrink-0 flex items-center justify-center gap-3 p-4">
-            <Button variant="outline" size="md">
+            {/* <Button
+              variant="outline"
+              size="md"
+              onClick={goToPrevious}
+              disabled={problemIndex === 0}
+              className={
+                problemIndex === 0
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : ""
+              }
+            >
               이전 문제
             </Button>
-            <Button variant="outline" size="md">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={goToNext}
+              disabled={problemIndex === problemList.length - 1}
+              className={
+                problemIndex === problemList.length - 1
+                  ? "bg-gray-200 border !border-gray-400 text-gray-400 cursor-not-allowed"
+                  : ""
+              }
+            >
               다음 문제
-            </Button>
+            </Button> */}
             {isCorrect == null ? (
               <Button variant="solid" size="md" onClick={handleSubmit}>
                 채점 하기
