@@ -3,15 +3,31 @@ import { useNavigate } from "react-router-dom";
 import { InlineMath } from "react-katex";
 import "katex/dist/katex.min.css";
 
+// 특수 공백 제거
+const sanitizeText = (text: string) =>
+  text.replace(/[\u2000-\u200F\u2028-\u202F\uFEFF]/g, " ");
+
 const renderWithMath = (text: string) => {
   const parts = text.split(/(\\\(.*?\\\))/g);
-  return parts.map((part, index) =>
-    part.startsWith("\\(") && part.endsWith("\\)") ? (
-      <InlineMath key={index} math={part.slice(2, -2)} />
-    ) : (
-      <span key={index}>{part}</span>
-    )
-  );
+
+  return parts.flatMap((part, index) => {
+    if (part.startsWith("\\(") && part.endsWith("\\)")) {
+      return <InlineMath key={index} math={part.slice(2, -2)} />;
+    } else {
+      const lines = part.split("\n");
+      return lines.flatMap((line, i) => {
+        const elements = [];
+        if (/^①/.test(line.trim())) {
+          elements.push(<br key={`extra-br-${index}-${i}`} />);
+        }
+        elements.push(<span key={`${index}-${i}`}>{line}</span>);
+        if (i !== lines.length - 1) {
+          elements.push(<br key={`br-${index}-${i}`} />);
+        }
+        return elements;
+      });
+    }
+  });
 };
 interface Problem {
   problem_id: number;
@@ -32,30 +48,35 @@ interface Problem {
 
 interface ProblemPreviewProps {
   selectedProblem: Problem | null;
-  selectedProblemId: number[];
 }
 
-const ProblemPreview = ({
-  selectedProblem,
-  selectedProblemId,
-}: ProblemPreviewProps) => {
+const ProblemPreview = ({ selectedProblem }: ProblemPreviewProps) => {
+  const navigate = useNavigate();
   const handleGoToReviewNote = () => {
-    const navigate = useNavigate();
-    navigate(`/review/${selectedProblemId}`);
+    // console.log("클릭됨");
+    if (!selectedProblem) return;
+    const userProblemId = selectedProblem?.user_problem_id;
+    navigate(`/review/${userProblemId}`);
   };
-  //   if (!selectedProblem) return null;
+
+  const sanitizedContent = sanitizeText(selectedProblem?.content ?? "");
+
   return (
     <div className="flex flex-col h-full border-l border-gray-200 px-5">
       {selectedProblem ? (
         <div className="flex flex-col h-full">
           {/* 문제 내용 (스크롤이 필요하면 overflow 처리 가능) */}
           <div className="text-gray-700 body-medium mt-4">
-            {renderWithMath(selectedProblem.content ?? "")}
+            {renderWithMath(sanitizedContent ?? "")}
           </div>
 
           {/* 하단 버튼 (항상 고정) */}
           <div className="mt-auto pt-4 pb-6 flex justify-center">
-            <Button variant="solid" size="md">
+            <Button
+              variant="solid"
+              size="md"
+              onClick={() => handleGoToReviewNote()}
+            >
               오답 정리하기
             </Button>
           </div>
@@ -73,7 +94,6 @@ const ProblemPreview = ({
               variant="solid"
               size="md"
               className="!bg-gray-100 text-gray-300"
-              onClick={handleGoToReviewNote}
             >
               오답 정리하기
             </Button>
