@@ -119,6 +119,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
       - /srv/souffle/volumes/caddy_data:/data
       - /srv/souffle/volumes/caddy_config:/config
       - /srv/souffle/uploads:/app/uploads

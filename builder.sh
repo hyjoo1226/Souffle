@@ -1,8 +1,8 @@
 set -e
 
-VITE_APP_API_URL=https://www.souffle.kr/api/v1 docker compose build --no-cache frontend
+VITE_APP_API_URL=https://www.souffle.kr/api/v1 docker build --no-cache -t frontend:ci -f frontend/Dockerfile ./frontend
 
-docker create --name tmp-frontend s12p31a304-frontend
+docker create --name tmp-frontend frontend:ci
 
 rm -rf frontend/dist
 
