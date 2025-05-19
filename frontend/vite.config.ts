@@ -6,8 +6,10 @@ import path from "path";
 import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
-export default defineConfig({
- plugins: [
+export default defineConfig(({mode}) => {
+  const env = loadEnv(mode, process.cwd());
+  return {
+  plugins: [
     react(),
     VitePWA({
       injectRegister: "auto",
@@ -61,5 +63,6 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
+    envPrefix: "VITE_",
   },
 });
