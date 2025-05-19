@@ -1,7 +1,7 @@
 import ProgressReport from "@/components/myStudyReport/ProgressReport/ProgressReport";
 import AssessmentReport from "@/components/myStudyReport/AssessmentReport/AssessmentReport";
 import { useEffect, useState } from "react";
-import { getUserInfoApi, patchRemakeNicknameApi } from "@/services/api/User";
+import { patchRemakeNicknameApi } from "@/services/api/User";
 import { User } from "@/types/User";
 import { useUser } from "@/contexts/UserContext";
 
@@ -10,23 +10,6 @@ const MyStudyReportPage = () => {
   const [userInfo, setUserInfo] = useState<User>();
   const [isEditing, setIsEditing] = useState(false); // 닉네임 수정 중 여부
   const [editedNickname, setEditedNickname] = useState("") // 입력 값
-  // const { user, setUser } = useUser();
-
-  // useEffect(() => {
-  //   const getData = async () => {
-  //     try {
-  //       const data = await getUserInfoApi();
-  //       setUser(data);
-  //       console.log("context 업데이트:", user)
-  //       console.log("유저 정보: ", data)
-  //       setUserInfo(data);
-  //     } catch (error) {
-  //       console.error("유저 정보 조회 실패: ", error);
-  //     }
-  //   };
-
-  //   getData();
-  // }, []);
   const { setUser, user } = useUser();
 
   useEffect(() => {
@@ -57,7 +40,7 @@ const MyStudyReportPage = () => {
       setUserInfo((prev) => prev ? { ...prev, nickname: editedNickname } : prev);
 
       setUser((prev) => prev ? { ...prev, nickname: editedNickname } : prev);
-      
+
       setIsEditing(false);
     } catch (error) {
       console.error("닉네임 수정 실패:", error);
