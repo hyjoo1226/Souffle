@@ -11,9 +11,10 @@ interface ProblemStatus {
 interface SideBarProps {
   problems: ProblemStatus[];
   onCheckAnswer: () => void;
+  title: string;
 }
 
-const Sidebar = ({ problems, onCheckAnswer }: SideBarProps) => {
+const Sidebar = ({ title, problems, onCheckAnswer }: SideBarProps) => {
   const total = problems.length;
   const done = problems.filter((p) => p.isDone).length;
   const progressPercent = Math.round((done / total) * 100);
@@ -22,7 +23,7 @@ const Sidebar = ({ problems, onCheckAnswer }: SideBarProps) => {
     <div className="col-span-3 border-1 border-gray-700 flex flex-col justify-between py-7 px-4.5">
       {/* 상단: 타이틀 + 문제 리스트 */}
       <div className="w-full">
-        <p className="text-gray-600 headline-large mb-3">함수 예제 풀기</p>
+        <p className="text-gray-600 headline-large mb-3 whitespace-pre-wrap">{`${title}\n예제 풀기`}</p>
         <div className="flex flex-col gap-y-3">
           {problems.map((p, idx) => (
             <div key={idx} className="w-full flex justify-between items-center">
@@ -31,7 +32,7 @@ const Sidebar = ({ problems, onCheckAnswer }: SideBarProps) => {
                   p.current ? "text-primary-500" : "text-gray-500"
                 }`}
               >
-                {idx + 1}. {p.title}
+                {idx + 1}번 문제
               </p>
               <div 
                 className={`w-4.5 h-4.5 ${

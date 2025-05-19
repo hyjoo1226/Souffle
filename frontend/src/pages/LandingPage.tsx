@@ -35,7 +35,7 @@ const LandingPage = () => {
     {
       label: "개념 학습",
       color: "#FAC748",
-      path: "/concept",
+      path: "/select-unit",
       lines: [
         <>
           {" "}
