@@ -68,9 +68,9 @@ integration-test:
   stage: test
   tags: [deploy]
   needs:
-    - build-be
     - build-fe
       artifacts: true
+    - build-be
     - build-data
     - backup-db
   script:
