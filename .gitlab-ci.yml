@@ -1,6 +1,6 @@
 variables:
   GIT_STRATEGY: fetch
-#  GIT_CLEAN_FLAGS: none
+  GIT_CLEAN_FLAGS: force
 
 stages:
   - build
@@ -9,15 +9,12 @@ stages:
   - deploy
 
 before_script:
-    - |
-      if [ -d static/popup-login.html ]; then
-        echo "Directory instead of file. Deleting..."
-        sudo rm -rf static/popup-login.html
-      elif [ -f static/popup-login.html ]; then
-        echo "state normal"
-      else
-        echo "no popup html"
-      fi
+  - echo "=== Checking static/popup-login.html ==="
+  - ls -la static || echo "static dir not found"
+  - if [ -d static/popup-login.html ]; then
+      echo "Found directory instead of file. Removing it...";
+      rm -rf static/popup-login.html;
+    fi
 
 build-be:
   stage: build
