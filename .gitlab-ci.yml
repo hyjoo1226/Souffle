@@ -9,12 +9,10 @@ stages:
   - deploy
 
 before_script:
-  - echo "=== Checking static/popup-login.html ==="
-  - ls -la static || echo "static dir not found"
-  - if [ -d static/popup-login.html ]; then
-      echo "Found directory instead of file. Removing it...";
-      rm -rf static/popup-login.html;
-    fi
+  - echo "Fixing permissions..."
+  - chmod -R u+rw ./uploads ./volumes ./frontend/dist || echo "chmod failed, skipping"
+  - echo "Checking static/popup-login.html..."
+  - '[ -d static/popup-login.html ] && echo "Found directory instead of file. Removing it..." && rm -rf static/popup-login.html || echo "No directory to clean."'
 
 build-be:
   stage: build
