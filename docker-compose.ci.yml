@@ -2,8 +2,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_APP_API_URL: "${VITE_APP_API_URL}"
+      #args:
+        #VITE_APP_API_URL: "${VITE_APP_API_URL}"
     container_name: frontend
     ports:
       - "3000:3000"
@@ -91,7 +91,7 @@ services:
       POSTGRES_PASSWORD: ssafy1234
       POSTGRES_DB: app
     volumes:
-      - ./volumes/db_data:/var/lib/postgresql/data
+      - /home/ubuntu/S12P31A304/volumes/db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
