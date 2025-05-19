@@ -11,7 +11,7 @@ import {
   getProblemListApi,
   Folder,
   ReviewNoteList,
-  // deleteProblemApi,
+  deleteProblemApi,
   UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
 
@@ -26,7 +26,7 @@ const ReviewNoteListPage = () => {
   const tabs = ["정답률↑", "정답률↓", "미해결"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const [_selectedType, setSelectedType] = useState<number | null>(null);
+  const [selectedType, setSelectedType] = useState<number | null>(null);
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
@@ -75,13 +75,15 @@ const ReviewNoteListPage = () => {
         ? prev.filter((id) => id !== problemId)
         : [...prev, problemId]
     );
+    // console.log(selectedProblemIds);
   };
 
   const handleClickProblem = (problemId: number) => {
     const found =
       reviewNoteList?.find((p) => p.problem_id === problemId) || null;
     setSelectedProblem(found);
-    // console.log("🔍 선택된 문제:", found);
+
+    // console.log("🔍 선택된 문제:", selectedProblem);
   };
 
   const handleClickDelete = () => {
@@ -91,11 +93,11 @@ const ReviewNoteListPage = () => {
       // console.log("selectedType", selectedType);
 
       if (!reviewNoteList) return;
-      // if (selectedType !== null) {
-      //   selectedProblemIds.map((selectedProblemId) => {
-      //     // deleteProblemApi(selectedProblemId, selectedType);
-      //   });
-      // }
+      if (selectedType !== null) {
+        selectedProblemIds.map((selectedProblemId) => {
+          deleteProblemApi(selectedProblemId, selectedType);
+        });
+      }
 
       const updatedList = reviewNoteList.filter(
         (item) => !selectedProblemIds.includes(item.problem_id)
@@ -143,10 +145,10 @@ const ReviewNoteListPage = () => {
 
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
-    // console.log("folderList", folderList);
-
+    // const reviewFolderList: Folder[] = await getReviewNoteFolderApi();
     const favoriteFolders = folderList.filter((f) => f.type === 1);
     const noteFolders = folderList.filter((f) => f.type === 2);
+    // console.log("favoriteFolders", reviewFolderList);
 
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
@@ -168,6 +170,7 @@ const ReviewNoteListPage = () => {
                 sections={item.children}
                 type={type}
                 folders={folders}
+                favoriteFolders={favoriteFolders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
                 // onDropProblem={handleDropProblemToSection}
