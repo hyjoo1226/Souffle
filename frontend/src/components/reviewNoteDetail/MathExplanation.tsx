@@ -1,27 +1,44 @@
-import { InlineMath } from 'react-katex';
+import { InlineMath } from "react-katex";
 
 interface MathExplanationProps {
   text: string;
 }
 
-// LaTeX 수식을 감지해서 <InlineMath />로 렌더링
-const MathExplanation = ({ text }: MathExplanationProps) => {
-  // LaTeX 수식 패턴: \명령어{...} 또는 \명령어
-  const LATEX_REGEX = /(\\[a-zA-Z]+(?:\{[^{}]*\})+(?:\{[^{}]*\})*)/g;
+const LATEX_REGEX = /\\\((.+?)\\\)/g;
 
-  const parts = text.split(LATEX_REGEX);
+const MathExplanation = ({ text }: MathExplanationProps) => {
+  const parts: (string | { latex: string })[] = [];
+  let lastIndex = 0;
+
+  // 수식 분리
+  text.replace(LATEX_REGEX, (match, latex, offset) => {
+    if (lastIndex < offset) {
+      parts.push(text.slice(lastIndex, offset));
+    }
+    parts.push({ latex });
+    lastIndex = offset + match.length;
+    return match;
+  });
+
+  if (lastIndex < text.length) {
+    parts.push(text.slice(lastIndex));
+  }
 
   return (
-    <div className="body-medium whitespace-pre-wrap text-gray-700">
+    <div className="body-medium text-gray-700">
       {parts.map((part, index) => {
-        if (LATEX_REGEX.test(part)) {
-          try {
-            return <InlineMath key={index} math={part} />;
-          } catch (error) {
-            return <span key={index} className="text-red-500">{part}</span>;
-          }
+        if (typeof part === "string") {
+          // \n 또는 \\n을 줄바꿈 <br />으로 치환
+          return part
+            .split(/\\n|\n/g)
+            .map((line, idx, arr) => (
+              <span key={`${index}-${idx}`}>
+                {line}
+                {idx !== arr.length - 1 && <br />}
+              </span>
+            ));
         } else {
-          return <span key={index}>{part}</span>;
+          return <InlineMath key={index} math={part.latex} />;
         }
       })}
     </div>

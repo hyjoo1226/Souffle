@@ -20,7 +20,7 @@ const UnitCard = ( { title, description, numberLabel, background, onClick }: Uni
         <p className="headline-medium">{title}</p>
       </div>
       <div className='pt-6'>
-        {description.slice(0, 2).map((line, idx) => (
+        {description.slice(0, 3).map((line, idx) => (
             <p key={idx} className="body-small text-white/90">
                 {line}
             </p>
