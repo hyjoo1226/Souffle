@@ -8,6 +8,9 @@ stages:
   - test
   - deploy
 
+before_script:
+  - '[ -d static/popup-login.html ] && rm -r static/popup-login.html'
+  - '[ ! -f static/popup-login.html ] && echo "<html>popup</html>" > static/popup-login.html'
 build-be:
   stage: build
   tags: [deploy]
