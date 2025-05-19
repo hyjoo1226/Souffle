@@ -9,8 +9,8 @@ services:
         #      VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
       - public
-    volumes:
-      - ./frontend/dist:/app/dist
+    #volumes:
+      #- ./frontend/dist:/app/dist
 
   backend:
     build: ./backend/souffle
