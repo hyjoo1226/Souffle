@@ -12,9 +12,9 @@ import { useEffect, useState } from "react";
 
 type RadarData = {
   subject: string;
-  today: number;
-  previous: number;
-  past: number;
+  today: number | null;
+  previous: number | null;
+  past: number | null;
 };
 
 const convertToRadarData = (
@@ -24,39 +24,39 @@ const convertToRadarData = (
 ): RadarData[] => [
   {
     subject: "해결 점수",
-    today: todayStats.correct_score,
-    previous: previousStats.correct_score,
-    past: weekAgoStats.correct_score,
+    today: todayStats.correctScore ?? 0,
+    previous: previousStats.correctScore ?? 0,
+    past: weekAgoStats.correctScore ?? 0,
   },
   {
     subject: "참여 점수",
-    today: todayStats.participation_score,
-    previous: previousStats.participation_score,
-    past: weekAgoStats.participation_score,
+    today: todayStats.participationScore ?? 0,
+    previous: previousStats.participationScore ?? 0,
+    past: weekAgoStats.participationScore ?? 0,
   },
   {
     subject: "속도 점수",
-    today: todayStats.speed_score,
-    previous: previousStats.speed_score,
-    past: weekAgoStats.speed_score,
+    today: todayStats.speedScore ?? 0,
+    previous: previousStats.speedScore ?? 0,
+    past: weekAgoStats.speedScore ?? 0,
   },
   {
     subject: "개선 점수",
-    today: todayStats.reflection_score,
-    previous: previousStats.reflection_score,
-    past: weekAgoStats.reflection_score,
+    today: todayStats.reflectionScore ?? 0,
+    previous: previousStats.reflectionScore ?? 0,
+    past: weekAgoStats.reflectionScore ?? 0,
   },
   {
     subject: "복습 점수",
-    today: todayStats.review_score,
-    previous: previousStats.review_score,
-    past: weekAgoStats.review_score,
+    today: todayStats.reviewScore ?? 0,
+    previous: previousStats.reviewScore ?? 0,
+    past: weekAgoStats.reviewScore ?? 0,
   },
   {
     subject: "성실 점수",
-    today: todayStats.sincerity_score,
-    previous: previousStats.sincerity_score,
-    past: weekAgoStats.sincerity_score,
+    today: todayStats.sincerityScore ?? 0,
+    previous: previousStats.sincerityScore ?? 0,
+    past: weekAgoStats.sincerityScore ?? 0,
   },
 ];
 
@@ -66,11 +66,12 @@ const AssessmentRadar = () => {
   const fetchUserScoreStats = async () => {
     try {
       const res = await getUserScoreStats();
+      // console.log("rader res", res);
       const { score_stats, previous_stats, week_ago_stats } = res;
       const radarData = convertToRadarData(
-        score_stats,
-        previous_stats,
-        week_ago_stats
+        score_stats ?? {},
+        previous_stats ?? {},
+        week_ago_stats ?? {}
       );
       setChartData(radarData);
     } catch (error) {
@@ -108,18 +109,22 @@ const AssessmentRadar = () => {
           />
           <Radar
             name="오늘"
-            dataKey="user"
+            dataKey="today"
             stroke="#8390FA"
             fill="#6973C8"
             fillOpacity={0.4}
           />
-          <Radar
-            name="지난 한 주"
-            dataKey="average"
-            stroke="#F88DAD"
-            fill="#F493A6"
-            fillOpacity={0.2}
-          />
+          {chartData.some(
+            (d) => d.previous !== undefined && d.previous !== null
+          ) && (
+            <Radar
+              name="지난 한 주"
+              dataKey="previous"
+              stroke="#F88DAD"
+              fill="#F493A6"
+              fillOpacity={0.2}
+            />
+          )}
           <Legend />
         </RadarChart>
       </ResponsiveContainer>
