@@ -9,7 +9,6 @@ stages:
   - deploy
 
 before_script:
-  - rm -rf volumes uploads frontend/dist || true
   - echo "Checking static/popup-login.html..."
   - '[ -d static/popup-login.html ] && echo "Found directory instead of file. Removing it..." && rm -rf static/popup-login.html || echo "No directory to clean."'
 
