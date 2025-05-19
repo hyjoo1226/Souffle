@@ -10,14 +10,14 @@ stages:
 
 before_script:
     - |
-    if [ -d static/popup-login.html ]; then
-      echo "Directory instead of file. Deleting..."
-      sudo rm -rf static/popup-login.html
-    elif [ -f static/popup-login.html ]; then
-      echo "state normal"
-    else
-      echo "no popup html"
-    fi
+      if [ -d static/popup-login.html ]; then
+        echo "Directory instead of file. Deleting..."
+        sudo rm -rf static/popup-login.html
+      elif [ -f static/popup-login.html ]; then
+        echo "state normal"
+      else
+        echo "no popup html"
+      fi
 
 build-be:
   stage: build
