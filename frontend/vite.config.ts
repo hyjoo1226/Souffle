@@ -6,8 +6,8 @@ import path from "path";
 import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
-export default defineConfig({
-  export default defineConfig(({ mode }) => {
+
+export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd());
   return {
   plugins: [
