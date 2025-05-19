@@ -6,7 +6,9 @@ docker create --name tmp-frontend s12p31a304-frontend
 
 rm -rf frontend/dist
 
-docker cp tmp-frontend:/app/dist ./frontend/dist
+mkdir -p frontend/dist
+
+docker cp tmp-frontend:/app/dist/. ./frontend/dist/
 
 docker rm tmp-frontend
 
