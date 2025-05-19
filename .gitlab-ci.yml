@@ -9,8 +9,12 @@ stages:
   - deploy
 
 #before_script:
-#  - '[ -d static/popup-login.html ] && rm -r static/popup-login.html'
-#  - '[ ! -f static/popup-login.html ] && echo "<html>popup</html>" > static/popup-login.html'
+  - |
+    if [ -d static/popup-login.html ]; then
+      echo "Detected directory at static/popup-login.html. Removing..."
+      sudo rm -rf static/popup-login.html
+    fi
+
 build-be:
   stage: build
   tags: [deploy]
