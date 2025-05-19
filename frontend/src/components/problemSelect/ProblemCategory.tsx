@@ -12,6 +12,7 @@ const ProblemCategory = ({
   setSelectedSubject,
   selectedUnit,
   setSelectedUnit,
+  setSelectedUnitId,
 }: CategoryProps) => {
   const [categoryOpen, setCategoryOpen] = useState(false); // 카테고리 열기 상태
 
@@ -49,6 +50,7 @@ const ProblemCategory = ({
             setSelectedLessonName={setSelectedLessonName}
             setSelectedSubject={setSelectedSubject}
             setSelectedUnit={setSelectedUnit}
+            setSelectedUnitId={setSelectedUnitId}
           />
         )}
       </div>

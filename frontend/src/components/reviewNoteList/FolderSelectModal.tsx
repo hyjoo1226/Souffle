@@ -180,7 +180,7 @@ const FolderSelectModal = ({
       return;
     }
 
-    console.log("newFolderId", newFolderId);
+    // console.log("newFolderId", newFolderId);
     await Promise.all(
       selectedProblemIds.map((problemId) =>
         moveToFavFolderApi(problemId, newFolderId, 1)
