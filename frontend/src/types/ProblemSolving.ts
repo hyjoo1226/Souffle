@@ -8,6 +8,7 @@ export interface CategoryProps {
   setSelectedSubject: (selectedSubject: string) => void;
   selectedUnit: string | null;
   setSelectedUnit: (selectedUnit: string) => void;
+  setSelectedUnitId: (selectedUnitId: number) => void;
 }
 
 export interface CategoryData {

@@ -18,7 +18,7 @@ const ProblemSelectPage = () => {
   );
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
   // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
   const [progressRate, setProgressRate] = useState<number | null>(null); // 진도율 상태
@@ -102,6 +102,7 @@ const ProblemSelectPage = () => {
             setSelectedSubject={setSelectedSubject}
             selectedUnit={selectedUnit}
             setSelectedUnit={setSelectedUnit}
+            setSelectedUnitId={setSelectedUnitId}
           />
           {/* 진도율, 정답률 차트 */}
           {selectedLessonId !== null && (
@@ -129,7 +130,9 @@ const ProblemSelectPage = () => {
         </div>
         {selectedLessonId !== null && (
           <div className="flex-1">
-            <UnitReport />
+            {selectedUnitId !== null && (
+              <UnitReport selectedUnitId={selectedUnitId} />
+            )}
           </div>
         )}
       </div>
