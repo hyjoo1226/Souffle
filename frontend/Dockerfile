@@ -10,5 +10,6 @@ RUN yarn install --frozen-lockfile
 COPY . .
 #COPY .env .env
 RUN echo "VITE_APP_API_URL=$VITE_APP_API_URL" > .env.production
+RUN echo "=== .env.production ===" && cat .env.production
 RUN yarn build --mode production
 
