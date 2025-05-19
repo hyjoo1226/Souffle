@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";
 
 const SideBar = ({
   isSideBarOpen,
@@ -27,13 +28,14 @@ const SideBar = ({
       case "개념 학습":
         return "/select-unit";
       case "내 학습 현황":
-        return "/problem-select";
+        return "/my-report";
       default:
         return "/landing";
     }
   };
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  // const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const { user } = useUser();
 
   // 로그아웃 처리 함수
   const handleLogout = () => {
@@ -63,17 +65,14 @@ const SideBar = ({
         </div>
         <div className="flex gap-2.5 mb-5.5 items-center">
           <img
-            src="/icons/plus.png"
+            src={user?.profile_image}
             alt="프로필 이미지"
             className="w-10 h-10 rounded-full border border-gray-200"
+            referrerPolicy="no-referrer"
           />
           <div className="flex-col">
-            <p className="text-gray-700 body-medium-bold">
-              {user.nickname || "등록된 닉네임이 없습니다."}
-            </p>
-            <p className="text-gray-500 body-small">
-              {user.email ? user.email : "등록된 이메일이 없습니다."}
-            </p>
+            <p className="text-gray-700 body-medium-bold">{user?.nickname || "등록된 닉네임이 없습니다."}</p>
+            <p className="text-gray-500 body-small">{user?.email ? user?.email : "등록된 이메일이 없습니다."}</p>
           </div>
         </div>
         <div className="flex justify-center">

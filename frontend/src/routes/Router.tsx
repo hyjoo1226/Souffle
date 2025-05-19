@@ -83,7 +83,7 @@ const Router = () => {
         }
       />
       <Route
-        path="/study"
+        path="/study/:category_id"
         element={
           <ProtectedRoute>
             <ConceptStudyPage />
@@ -91,7 +91,7 @@ const Router = () => {
         }
       />
       <Route
-        path="/problem-study"
+        path="/problem-study/:category_id"
         element={
           <ProtectedRoute>
             <ProblemStudyPage />
