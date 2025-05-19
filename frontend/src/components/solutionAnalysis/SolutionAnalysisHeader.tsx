@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import {
   Folder,
   ReviewNoteList,
-  UnitSelectPayload,
+  //   UnitSelectPayload,
 } from "@/services/api/ReviewNoteList";
 import { getFavoriteFoldersApi } from "@/services/api/ReviewNoteList";
 interface SolutionAnalysisHeaderProps {
@@ -19,14 +19,14 @@ const SolutionAnalysisHeader = ({
 }: SolutionAnalysisHeaderProps) => {
   //   const [isFolderSelectModalOpen, setIsFolderSelectModalOpen] = useState(false);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
-  const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
+  //   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
   const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
 
   const handleSelectUnit = () => {
-    console.log();
+    // console.log();
   };
 
   const fetchFolderList = async () => {

@@ -34,8 +34,8 @@ const ProblemSolvingPage = () => {
     selectedSubject,
     selectedUnit,
     problemNo,
-    problemIndex,
-    problemList,
+    // problemIndex,
+    // problemList,
   } = location.state || {};
 
   const [lessonName, setLessonName] = useState(selectedLessonName);
@@ -50,41 +50,41 @@ const ProblemSolvingPage = () => {
     setNum(location.state?.problemNo);
   }, [location.state]);
 
-  const goToNext = () => {
-    if (problemIndex < problemList.length - 1) {
-      const next = problemIndex + 1;
-      const nextProblem = problemList[next];
+  // const goToNext = () => {
+  //   if (problemIndex < problemList.length - 1) {
+  //     const next = problemIndex + 1;
+  //     const nextProblem = problemList[next];
 
-      navigate(`/solving/${nextProblem.problem_id}`, {
-        state: {
-          selectedLessonName,
-          selectedSubject,
-          selectedUnit,
-          problemNo: nextProblem.inner_no, // ✅ 문제 번호 갱신
-          problemIndex: next,
-          problemList,
-        },
-      });
-    }
-  };
+  //     navigate(`/solving/${nextProblem.problem_id}`, {
+  //       state: {
+  //         selectedLessonName,
+  //         selectedSubject,
+  //         selectedUnit,
+  //         problemNo: nextProblem.inner_no, // ✅ 문제 번호 갱신
+  //         problemIndex: next,
+  //         problemList,
+  //       },
+  //     });
+  //   }
+  // };
 
-  const goToPrevious = () => {
-    if (problemIndex > 0) {
-      const prev = problemIndex - 1;
-      const prevProblem = problemList[prev];
+  // const goToPrevious = () => {
+  //   if (problemIndex > 0) {
+  //     const prev = problemIndex - 1;
+  //     const prevProblem = problemList[prev];
 
-      navigate(`/solving/${prevProblem.problem_id}`, {
-        state: {
-          selectedLessonName,
-          selectedSubject,
-          selectedUnit,
-          problemNo: prevProblem.inner_no, // ✅ 문제 번호 갱신
-          problemIndex: prev,
-          problemList,
-        },
-      });
-    }
-  };
+  //     navigate(`/solving/${prevProblem.problem_id}`, {
+  //       state: {
+  //         selectedLessonName,
+  //         selectedSubject,
+  //         selectedUnit,
+  //         problemNo: prevProblem.inner_no, // ✅ 문제 번호 갱신
+  //         problemIndex: prev,
+  //         problemList,
+  //       },
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     const fetchProblem = async () => {

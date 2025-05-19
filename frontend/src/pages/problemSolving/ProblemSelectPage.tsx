@@ -46,7 +46,7 @@ const ProblemSelectPage = () => {
   const fetchProblemList = async () => {
     if (selectedLessonId !== null) {
       const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
-      console.log("문제목록", res.problem); // 클릭한 카테고리 ID 출력
+      // console.log("문제목록", res.problem); // 클릭한 카테고리 ID 출력
       setProblemList(res.problem); // 문제 리스트 상태 업데이트
       setProgressRate(res.user.progress_rate); // 진도율 상태 업데이트
       setAccuracyRate(res.user.accuracy); // 정답률 상태 업데이트
@@ -64,14 +64,14 @@ const ProblemSelectPage = () => {
   const handleCategoryClick = async () => {
     const res = await getAllCategoriesApi();
     // const res = dummyCategoryData; // 더미 데이터 사용
-    console.log("카테고리 데이터", res); // 카테고리 데이터 출력
+    // console.log("카테고리 데이터", res); // 카테고리 데이터 출력
     setCategoryData(res); // 카테고리 데이터 상태 업데이트
   };
 
   const handleProblemClick = async (problemId: number, problemNo: number) => {
-    const problemIndex = problemList.findIndex(
-      (problem) => problem.problem_id === problemId
-    );
+    // const problemIndex = problemList.findIndex(
+    //   (problem) => problem.problem_id === problemId
+    // );
     navigate(`/solving/${problemId}`, {
       state: {
         selectedLessonName,

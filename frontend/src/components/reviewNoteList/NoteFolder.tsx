@@ -37,10 +37,10 @@ const NoteFolder = ({
   const handleToggle = () => {
     setIsOpen((prev) => !prev);
   };
-  console.log(
-    "favoriteFolders.children",
-    favoriteFolders?.[0]?.children ?? "No children available"
-  );
+  // console.log(
+  //   "favoriteFolders.children",
+  //   favoriteFolders?.[0]?.children ?? "No children available"
+  // );
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [_isUpdateFolder, setIsUpdateFolder] = useState(false);
   const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
