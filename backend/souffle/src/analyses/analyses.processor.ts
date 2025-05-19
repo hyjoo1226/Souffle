@@ -51,8 +51,13 @@ export class AnalysisProcessor {
             submission: { id: submission_id },
             stepNumber: step.step_number,
             stepFeedback: step.step_feedback,
+            latex: step.latex,
           },
-          { isValid: step.step_valid, stepFeedback: step.step_feedback },
+          {
+            isValid: step.step_valid,
+            stepFeedback: step.step_feedback,
+            latex: step.latex,
+          },
         );
       }
 
