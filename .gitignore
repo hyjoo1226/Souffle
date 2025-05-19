@@ -1,6 +1,3 @@
-volumes/**/*
-!volumes/.gitkeep
-
-uploads/**/*
-!uploads/.gitkeep
-
+volumes/
+uploads/
+frontend/dist/
