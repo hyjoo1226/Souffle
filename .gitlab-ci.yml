@@ -82,8 +82,9 @@ integration-test:
     - docker exec -i db psql -U ssafy -d app < db-backup.sql
     
     - '[ -f frontend/dist/index.html ] || (echo "? dist missing" && ls -la frontend && exit 1)'
+    - docker-compose -f docker-compose.ci.yml up -d frontend caddy
     - docker cp ./frontend/dist/. caddy:/srv/
-    - docker-compose -f docker-compose.ci.yml up -d backend data frontend caddy
+    - docker-compose -f docker-compose.ci.yml up -d backend data
     - docker restart caddy
     - |
       for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf http://localhost:8000/data/api/v1/health && break || sleep 3; done || (echo "data healthcheck failed" && docker logs backend && exit 1)
