@@ -164,7 +164,7 @@ const ReviewNoteListPage = () => {
       (f) => f.type === 1 && f.parent_id === null
     )?.id;
     setTopFavoriteFolderId(topFolderId || null);
-    console.log("topFavoriteFolderId", topFolderId);
+    // console.log("topFavoriteFolderId", topFolderId);
 
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
@@ -299,10 +299,7 @@ const ReviewNoteListPage = () => {
                     </div>
                   </div>
                   <div className="col-span-6 ">
-                    <ProblemPreview
-                      selectedProblem={selectedProblem}
-                      selectedProblemId={selectedProblemIds}
-                    />
+                    <ProblemPreview selectedProblem={selectedProblem} />
                   </div>
                 </div>
               </div>
