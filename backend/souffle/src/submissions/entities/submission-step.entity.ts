@@ -40,6 +40,9 @@ export class SubmissionStep extends BaseEntity {
   latex: string;
 
   @Column({ type: 'text', nullable: true })
+  currentLatex: string;
+
+  @Column({ type: 'text', nullable: true })
   stepFeedback: string;
 
   @CreateDateColumn()

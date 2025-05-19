@@ -526,6 +526,7 @@ export class NoteService {
         step_valid: step.isValid,
         step_feedback: step.stepFeedback,
         step_latex: step.latex,
+        step_current_latex: step.currentLatex,
       })),
     };
   }
