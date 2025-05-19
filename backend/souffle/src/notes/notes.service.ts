@@ -33,6 +33,7 @@ export class NoteService {
         { user: { id: userId }, ...(type && { type }) },
         { user: IsNull() },
       ],
+      order: { sort_order: 'ASC' },
     });
 
     const folderIds = folders.map((f) => f.id);
@@ -67,7 +68,7 @@ export class NoteService {
       }
     });
 
-    // 상위 폴더 문제 개수수
+    // 상위 폴더 문제 개수
     function accumulateProblemCount(folder: any): number {
       if (!folder.children || folder.children.length === 0) {
         return folder.problem_count;
