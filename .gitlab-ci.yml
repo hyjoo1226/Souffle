@@ -8,11 +8,15 @@ stages:
   - test
   - deploy
 
-#before_script:
-  - |
+before_script:
+    - |
     if [ -d static/popup-login.html ]; then
-      echo "Detected directory at static/popup-login.html. Removing..."
+      echo "Directory instead of file. Deleting..."
       sudo rm -rf static/popup-login.html
+    elif [ -f static/popup-login.html ]; then
+      echo "state normal"
+    else
+      echo "no popup html"
     fi
 
 build-be:
