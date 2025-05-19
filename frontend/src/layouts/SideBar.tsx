@@ -25,7 +25,7 @@ const SideBar = ({
       case "오답 노트":
         return "/review-list";
       case "개념 학습":
-        return "/problem-select";
+        return "/select-unit";
       case "내 학습 현황":
         return "/problem-select";
       default:

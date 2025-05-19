@@ -46,8 +46,8 @@ const Router = () => {
       <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
       <Route path="/my-report" element={<ProtectedRoute><MyStudyReportPage /></ProtectedRoute>} />
       <Route path="/select-unit" element={<ProtectedRoute><SelectUnitPage /></ProtectedRoute>} />
-      <Route path="/study" element={<ProtectedRoute><ConceptStudyPage /></ProtectedRoute>} />
-      <Route path="/problem-study" element={<ProtectedRoute><ProblemStudyPage /></ProtectedRoute>}/>
+      <Route path="/study/:category_id" element={<ProtectedRoute><ConceptStudyPage /></ProtectedRoute>} />
+      <Route path="/problem-study/:category_id" element={<ProtectedRoute><ProblemStudyPage /></ProtectedRoute>}/>
       <Route path="/" element={<LoginPage />} />
     </Routes>
   );

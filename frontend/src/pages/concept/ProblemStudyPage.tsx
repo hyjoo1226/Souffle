@@ -1,60 +1,152 @@
-import { useNavigate } from "react-router-dom";
-import { useState } from 'react';
+import { useNavigate, useParams } from "react-router-dom";
+import { useState, useEffect } from 'react';
 
 import { ReactComponent as ExpandSlim } from "@/assets/icons/ExpandSlim.svg"
 import { Button } from "@/components/common/Button"
 import SideBar from "@/components/problemStudy/SideBar"
 import ProblemContent from "@/components/problemStudy/ProblemContent";
 
+import { getProblemStudyApi, getCategoryAncestorsApi } from "@/services/api/SelectUnit";
+import { TotalQuiz, ConceptQuiz, Quiz, Problem } from "@/types/SelectUnit";
+
 const ProblemStudyPage = () => {
     const navigate = useNavigate();
+    const { category_id } = useParams<{ category_id: string }>();
+    const [middleCategoryName, setMiddleCategoryName] = useState<string>('');
 
-    const problemList = [
-        {
-            id: 1,
-            title: "함수의 정의",
-            sentence: ["함수는 ", " 와 ", " 사이의 관계를 나타낸다."],
-            blanks: ["정의역", "공역"],
-            choices: ["정의역", "공역", "치역", "연역"],
-        },
-        {
-            id: 2,
-            title: "함수의 그래프",
-            sentence: ["함수의 그래프는 ", "축과 ", "축에 대한 정보를 제공한다."],
-            blanks: ["x", "y"],
-            choices: ["x", "y", "z", "원점"],
-        },
-    ];
+    const [problemList, setProblemList] = useState<Problem[]>([]);
+
+    useEffect(() => {
+        if (!category_id) return;
+
+        const fetchQuiz = async () => {
+            try {
+                const data: TotalQuiz = await getProblemStudyApi(Number(category_id));
+                const transformed: Problem[] = data.concepts.flatMap((concept: ConceptQuiz) => {
+                    return concept.quizzes.flatMap((quiz: Quiz) => {
+                        return [{
+                        id: quiz.quiz_id,
+                        title: concept.title,
+                        sentence: quiz.content?.split(/\[BLANK_\d+\]/g) ?? [quiz.content],
+                        blanks: Array(quiz.blanks.length).fill(""),
+                        choices: quiz.blanks.map((b) => b.choice), // flatten to string[]
+                        correctAnswers: quiz.blanks.map((b) => b.choice[b.answer_index]),
+                        }];
+                    });
+                });
+
+
+                setProblemList(transformed);
+
+                const ancestorsData = await getCategoryAncestorsApi(Number(category_id));
+                setMiddleCategoryName(ancestorsData.current.name)
+
+                console.log("퀴즈 원본:", data);
+                console.log("중단원:", ancestorsData.current.name)
+            } catch (err) {
+                console.error("퀴즈 불러오기 실패:", err);
+            }
+        };
+
+        fetchQuiz();
+    }, [category_id]);
+
+    // const problemList = [
+    //     {
+    //         id: 1,
+    //         title: "함수의 정의",
+    //         sentence: ["함수는 ", " 와 ", " 사이의 관계를 나타낸다."],
+    //         blanks: ["정의역", "공역"],
+    //         choices: ["정의역", "공역", "치역", "연역"],
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "함수의 그래프",
+    //         sentence: ["함수의 그래프는 ", "축과 ", "축에 대한 정보를 제공한다."],
+    //         blanks: ["x", "y"],
+    //         choices: ["x", "y", "z", "원점"],
+    //     },
+    // ];
 
     // 상태 초기화
-    const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
-    const [userAnswers, setUserAnswers] = useState<string[][]>(
-        problemList.map(p => Array(p.blanks.length).fill("")) // ["", ""] 식으로 초기화
-    );
-    const [showWrongMark, setShowWrongMark] = useState(false);
-    const currentProblem = problemList[currentProblemIndex];
-    const [isChecked, setIsChecked] = useState<boolean[]>(
-        problemList.map(() => false)
-    );
+    // const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+    // const [userAnswers, setUserAnswers] = useState<string[][]>(
+    //     problemList.map(p => Array(p.blanks.length).fill("")) // ["", ""] 식으로 초기화
+    // );
+    // const [showWrongMark, setShowWrongMark] = useState(false);
+    // const currentProblem = problemList[currentProblemIndex];
+    // const [isChecked, setIsChecked] = useState<boolean[]>(
+    //     problemList.map(() => false)
+    // );
 
-    // 보기 클릭 핸들러 함수
+    // // 보기 클릭 핸들러 함수
+    // const handleChoiceClick = (blankIndex: number, choice: string) => {
+    //     const updatedAnswers = [...userAnswers];
+    //     updatedAnswers[currentProblemIndex][blankIndex] = choice;
+    //     setUserAnswers(updatedAnswers);
+    // };
+
+    // // 취소 핸들러 함수 추가
+    // const handleCancelAnswer = (blankIndex: number) => {
+    //     const updatedAnswers = [...userAnswers];
+    //     updatedAnswers[currentProblemIndex][blankIndex] = "";
+    //     setUserAnswers(updatedAnswers);
+    // };
+
+    // // 버튼 핸들러 함수
+    // const handleCheckAnswer = () => {
+    //     const isAllCorrect = currentProblem.blanks.every(
+    //         (blank, idx) => userAnswers[currentProblemIndex][idx] === blank
+    //     );
+
+    //     if (isAllCorrect) {
+    //         const updatedChecked = [...isChecked];
+    //         updatedChecked[currentProblemIndex] = true;
+    //         setIsChecked(updatedChecked);
+
+    //         if (currentProblemIndex < problemList.length - 1) {
+    //             setCurrentProblemIndex(currentProblemIndex + 1);
+    //         } else {
+    //             navigate("/study");
+    //         }
+    //             setShowWrongMark(false);
+    //         } else {
+    //             setShowWrongMark(true);
+    //         }
+    //     };
+
+    // const problemStatuses = problemList.map((problem, index) => ({
+    //     title: problem.title,
+    //     isDone: isChecked[index],
+    //     current: index === currentProblemIndex,
+    // }));
+    const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
+    const [userAnswers, setUserAnswers] = useState<string[][]>([]);
+    const [showWrongMark, setShowWrongMark] = useState(false);
+    const [isChecked, setIsChecked] = useState<boolean[]>([]);
+
+    useEffect(() => {
+        setUserAnswers(problemList.map(p => Array(p.blanks.length).fill("")));
+        setIsChecked(problemList.map(() => false));
+    }, [problemList]);
+
+    const currentProblem = problemList[currentProblemIndex];
+
     const handleChoiceClick = (blankIndex: number, choice: string) => {
         const updatedAnswers = [...userAnswers];
         updatedAnswers[currentProblemIndex][blankIndex] = choice;
         setUserAnswers(updatedAnswers);
     };
 
-    // 취소 핸들러 함수 추가
     const handleCancelAnswer = (blankIndex: number) => {
         const updatedAnswers = [...userAnswers];
         updatedAnswers[currentProblemIndex][blankIndex] = "";
         setUserAnswers(updatedAnswers);
     };
 
-    // 버튼 핸들러 함수
     const handleCheckAnswer = () => {
-        const isAllCorrect = currentProblem.blanks.every(
-            (blank, idx) => userAnswers[currentProblemIndex][idx] === blank
+        const isAllCorrect = currentProblem.correctAnswers.every(
+            (answer: string, idx: number) => userAnswers[currentProblemIndex][idx] === answer
         );
 
         if (isAllCorrect) {
@@ -67,11 +159,11 @@ const ProblemStudyPage = () => {
             } else {
                 navigate("/study");
             }
-                setShowWrongMark(false);
-            } else {
-                setShowWrongMark(true);
-            }
-        };
+            setShowWrongMark(false);
+        } else {
+            setShowWrongMark(true);
+        }
+    };
 
     const problemStatuses = problemList.map((problem, index) => ({
         title: problem.title,
@@ -82,16 +174,20 @@ const ProblemStudyPage = () => {
     return (
         <div className="flex flex-col bg-white w-full h-screen">
             <div className='flex items-center justify-between py-5'>
-                <div className='flex items-center'>
-                    <ExpandSlim className='text-gray-700' />
-                    <p className='body-medium text-gray-700' onClick={() => navigate("/select-unit")}>단원 선택</p>
-                </div>
-                <Button onClick={() => navigate("/study")}>개념 학습</Button>
+            <div className='flex items-center'>
+                <ExpandSlim className='text-gray-700' />
+                <p className='body-medium text-gray-700' onClick={() => navigate("/select-unit")}>단원 선택</p>
             </div>
+            <Button onClick={() => navigate(`/study/${category_id}`)}>개념 학습</Button>
+            </div>
+
             <div className="flex-grow mb-5 grid grid-cols-12 gap-x-4">
+            {problemList.length > 0 && currentProblem ? (
+                <>
                 <SideBar
-                    problems={problemStatuses} 
-                    onCheckAnswer={handleCheckAnswer} 
+                    problems={problemStatuses}
+                    onCheckAnswer={handleCheckAnswer}
+                    title={middleCategoryName}
                 />
                 <ProblemContent
                     problem={currentProblem}
@@ -100,6 +196,12 @@ const ProblemStudyPage = () => {
                     onCancelAnswer={handleCancelAnswer}
                     showWrongMark={showWrongMark}
                 />
+                </>
+            ) : (
+                <div className="col-span-12 flex justify-center items-center">
+                <p className="text-gray-500">문제를 불러오는 중입니다...</p>
+                </div>
+            )}
             </div>
         </div>
     );

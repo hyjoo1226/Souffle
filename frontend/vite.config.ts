@@ -7,8 +7,8 @@ import svgr from 'vite-plugin-svgr';
 
 // https://vite.dev/config/
 export default defineConfig({
-  define: {
-    'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://www.souffle.kr/api/v1')},
+  // define: {
+  //   'import.meta.env.VITE_APP_API_URL': JSON.stringify('https://www.souffle.kr/api/v1')},
   plugins: [
     react(),
     VitePWA({
