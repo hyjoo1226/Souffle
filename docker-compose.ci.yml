@@ -125,8 +125,10 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./volumes/caddy_data:/data
-      - ./volumes/caddy_config:/config
+      #- ./volumes/caddy_data:/data
+      #- ./volumes/caddy_config:/config
+      - caddy_data:/data
+      - caddy_config:/config
       - ./uploads:/app/uploads
       - ./frontend/dist:/srv
       - ./static/popup-login.html:/srv/popup-login.html
@@ -138,7 +140,10 @@ services:
       - public
       - internal
 
-
 networks:
   public:
   internal:
+  
+volumes:
+  caddy_data:
+  caddy_config:
