@@ -51,6 +51,7 @@ const SolutionAnalysisHeader = ({
           reviewNoteList={reviewNoteList}
           setReviewNoteList={setReviewNoteList}
           handleSelectUnit={handleSelectUnit}
+          setSelectedProblemIds={() => {}}
         />
       )}
       <div className="flex items-start justify-between py-[21px]">
