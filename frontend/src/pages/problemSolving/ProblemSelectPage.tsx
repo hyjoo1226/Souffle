@@ -2,12 +2,12 @@ import ProblemCategory from "@/components/problemSelect/ProblemCategory";
 import UnitReport from "@/components/problemSelect/UnitReport";
 import { useEffect, useState } from "react";
 
-// import {
-//   getProblemListApi,
-//   // getAllCategoriesApi,
-// } from "@/services/api/ProblemSolving";
+import {
+  getProblemListApi,
+  getAllCategoriesApi,
+} from "@/services/api/ProblemSolving";
 import LearningStatusChart from "@/components/problemSelect/LearningStatusChart";
-import { dummyCategoryData, dummyProblemList } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
+// import { dummyCategoryData, dummyProblemList } from "@/mocks/dummyCategoryData"; // 더미 데이터 임포트
 import { useNavigate } from "react-router-dom";
 
 const ProblemSelectPage = () => {
@@ -16,6 +16,8 @@ const ProblemSelectPage = () => {
   const [selectedLessonName, setSelectedLessonName] = useState<string | null>(
     null
   );
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
   // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
@@ -42,17 +44,15 @@ const ProblemSelectPage = () => {
   // const [categoryId, setCategoryId] = useState<number>(1); // 카테고리 ID 상태
   const navigate = useNavigate();
   const fetchProblemList = async () => {
-    // if (selectedLessonId !== null) {
-    //   const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
-    // }
-    const problem = dummyProblemList[0].problem;
-    const learningStatus = dummyProblemList[0].user;
+    if (selectedLessonId !== null) {
+      const res = await getProblemListApi(selectedLessonId); // 문제 리스트 요청
+      // console.log("문제목록", res.problem); // 클릭한 카테고리 ID 출력
+      setProblemList(res.problem); // 문제 리스트 상태 업데이트
+      setProgressRate(res.user.progress_rate); // 진도율 상태 업데이트
+      setAccuracyRate(res.user.accuracy); // 정답률 상태 업데이트
+    }
 
-    setProblemList(problem); // 문제 리스트 상태 업데이트
-    setProgressRate(learningStatus.progress_rate); // 진도율 상태 업데이트
-    setAccuracyRate(learningStatus.accuracy); // 정답률 상태 업데이트
-    console.log("problemList", problem); // 클릭한 카테고리 ID 출력
-    console.log("accuracyRate", accuracyRate); // 클릭한 카테고리 ID 출력
+    // console.log("accuracyRate", accuracyRate); // 클릭한 카테고리 ID 출력
   };
 
   useEffect(() => {
@@ -62,17 +62,26 @@ const ProblemSelectPage = () => {
   }, [selectedLessonId]); // selectedLessonId가 변경될 때마다 실행
 
   const handleCategoryClick = async () => {
-    // const res = await getAllCategoriesApi();
-    const res = dummyCategoryData; // 더미 데이터 사용
-    console.log("카테고리 데이터", res); // 카테고리 데이터 출력
+    const res = await getAllCategoriesApi();
+    // const res = dummyCategoryData; // 더미 데이터 사용
+    // console.log("카테고리 데이터", res); // 카테고리 데이터 출력
     setCategoryData(res); // 카테고리 데이터 상태 업데이트
   };
 
-  const handleProblemClick = async (problemId: number) => {
-    console.log("문제 클릭", problemId);
-    navigate(
-      `/solving/${problemId}` // 문제 풀이 페이지로 이동
-    );
+  const handleProblemClick = async (problemId: number, problemNo: number) => {
+    // const problemIndex = problemList.findIndex(
+    //   (problem) => problem.problem_id === problemId
+    // );
+    navigate(`/solving/${problemId}`, {
+      state: {
+        selectedLessonName,
+        selectedSubject,
+        selectedUnit,
+        problemNo,
+        problemIndex: problemNo,
+        problemList: sortedProblemList,
+      },
+    });
   };
 
   useEffect(() => {
@@ -89,25 +98,32 @@ const ProblemSelectPage = () => {
             setSelectedLessonId={setSelectedLessonId}
             selectedLessonName={selectedLessonName}
             setSelectedLessonName={setSelectedLessonName}
+            selectedSubject={selectedSubject}
+            setSelectedSubject={setSelectedSubject}
+            selectedUnit={selectedUnit}
+            setSelectedUnit={setSelectedUnit}
           />
           {/* 진도율, 정답률 차트 */}
           {selectedLessonId !== null && (
-            <div className="flex flex-col border border-gray-200 rounded-[10px] px-4.5 py-7 gap-17">
+            <div className="flex flex-col border border-gray-200 rounded-[10px] px-4.5 py-7 gap-17 min-h-[200px] justify-between">
               <p className="headline-medium text-gray-700">단원별 학습 현황</p>
-              <div className="flex items-center justify-center gap-15">
-                {progressRate !== null && accuracyRate !== null && (
+
+              {progressRate !== null && accuracyRate !== null ? (
+                <div className="flex items-center justify-center gap-15">
                   <div className="flex flex-col gap-3 items-center">
                     <p className="headline-small text-gray-700">단원 학습율</p>
                     <LearningStatusChart selectedData={progressRate} />
                   </div>
-                )}
-                {progressRate !== null && accuracyRate !== null && (
                   <div className="flex flex-col gap-3 items-center">
                     <p className="headline-small text-gray-700">단원 정답률</p>
                     <LearningStatusChart selectedData={accuracyRate} />
                   </div>
-                )}
-              </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center text-gray-400 body-medium h-[120px]">
+                  아직 학습되지 않은 단원입니다. 학습을 진행해주세요!
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -172,7 +188,9 @@ const ProblemSelectPage = () => {
                 <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
                   <p
                     className="body-medium text-gray-700"
-                    onClick={() => handleProblemClick(problem.problem_id)}
+                    onClick={() => {
+                      handleProblemClick(problem.problem_id, problem.inner_no);
+                    }}
                   >
                     {`${selectedLessonName} ${problem.inner_no}번 문제`}
                   </p>

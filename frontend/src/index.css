@@ -63,6 +63,24 @@
 }
 
 @layer utilities {
+  .color-empty {
+    fill: #f0f0f0;
+  }
+  .color-scale-1 {
+    fill: #ebf2fe;
+  }
+  .color-scale-2 {
+    fill: #cdd3fd;
+  }
+  .color-scale-3 {
+    fill: #b5bcfc;
+  }
+  .color-scale-4 {
+    fill: #9ca6fb;
+  }
+  .color-scale-5 {
+    fill: #8390fa;
+  }
   /* Display */
   .display-xlarge {
     font-family: "Pretendard", sans-serif;

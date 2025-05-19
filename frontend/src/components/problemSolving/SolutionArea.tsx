@@ -23,6 +23,7 @@ import Eraser from "./Eraser";
 const SolutionArea = forwardRef((_props, ref) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const currentStrokeRef = useRef<any[]>([]);
+  const erasedStrokesRef = useRef<Set<number>>(new Set());
 
   const [strokes, setStrokes] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
@@ -45,6 +46,9 @@ const SolutionArea = forwardRef((_props, ref) => {
   const handleEraserClick = () => {
     if (!isEraserActive) {
       // 처음 클릭 → 지우개 모드 ON
+      // if (blocks.length > 0) {
+      //   blockSnapshotsRef.current.push(JSON.parse(JSON.stringify(blocks)));
+      // }
       setEraseOption(null); // 지우개 옵션 초기화
       setIsPencilActive(false); // 펜 아이콘 비활성화
       setIsEraserActive(true);
@@ -107,6 +111,7 @@ const SolutionArea = forwardRef((_props, ref) => {
       if (e.pointerType === "touch") return;
 
       if (eraseMode) {
+        erasedStrokesRef.current.clear();
         const { x, y } = getRelativePointerPosition(e, canvas);
         const nearStrokeId = findStrokeNearPointer({
           x,
@@ -117,6 +122,7 @@ const SolutionArea = forwardRef((_props, ref) => {
         });
 
         if (nearStrokeId !== null) {
+          erasedStrokesRef.current.add(nearStrokeId);
           const { updatedStrokes, updatedBlocks } = eraseStrokeById({
             nearStrokeId,
             strokes,
@@ -149,6 +155,44 @@ const SolutionArea = forwardRef((_props, ref) => {
 
     // 선 그리기 중
     const handlePointerMove = (e: PointerEvent) => {
+      if (eraseMode) {
+        const { x, y } = getRelativePointerPosition(e, canvas);
+        const nearStrokeId = findStrokeNearPointer({
+          x,
+          y,
+          blocks,
+          strokes,
+          useBlock: true,
+        });
+
+        if (
+          nearStrokeId !== null &&
+          !erasedStrokesRef.current.has(nearStrokeId)
+        ) {
+          erasedStrokesRef.current.add(nearStrokeId);
+
+          const { updatedStrokes, updatedBlocks } = eraseStrokeById({
+            nearStrokeId,
+            strokes,
+            blocks,
+            setStrokes,
+            setBlocks,
+            canvas,
+            useBlock: true,
+          });
+
+          updateLastStrokeMetaAfterErase({
+            updatedStrokes,
+            blocks: updatedBlocks,
+            setLastPoint,
+            setLastStrokeTime,
+            setLastBlockId,
+            useBlock: true,
+          });
+        }
+
+        return;
+      }
       if (!drawing || eraseMode) return;
       const point = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current.push(point);

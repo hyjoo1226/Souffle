@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { getProblemDataApi } from "@/services/api/ProblemSolving";
 
 import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const ProblemSolvingPage = () => {
   const answerRef = useRef<any>(null);
@@ -27,13 +27,73 @@ const ProblemSolvingPage = () => {
     submissionId?: string;
   } | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const {
+    selectedLessonName,
+    selectedSubject,
+    selectedUnit,
+    problemNo,
+    problemIndex,
+    problemList,
+  } = location.state || {};
+
+  const [lessonName, setLessonName] = useState(selectedLessonName);
+  const [subject, setSubject] = useState(selectedSubject);
+  const [unit, setUnit] = useState(selectedUnit);
+  const [num, setNum] = useState(problemNo);
+
+  useEffect(() => {
+    setLessonName(location.state?.selectedLessonName);
+    setSubject(location.state?.selectedSubject);
+    setUnit(location.state?.selectedUnit);
+    setNum(location.state?.problemNo);
+  }, [location.state]);
+
+  const goToNext = () => {
+    if (problemIndex < problemList.length - 1) {
+      const next = problemIndex + 1;
+      const nextProblem = problemList[next];
+
+      navigate(`/solving/${nextProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: nextProblem.inner_no, // ✅ 문제 번호 갱신
+          problemIndex: next,
+          problemList,
+        },
+      });
+    }
+  };
+
+  const goToPrevious = () => {
+    if (problemIndex > 0) {
+      const prev = problemIndex - 1;
+      const prevProblem = problemList[prev];
+
+      navigate(`/solving/${prevProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: prevProblem.inner_no, // ✅ 문제 번호 갱신
+          problemIndex: prev,
+          problemList,
+        },
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchProblem = async () => {
-      console.log("문제 ID", problemId);
+      // console.log("문제 ID", problemId);
       if (!problemId) return;
       const res = await getProblemDataApi(Number(problemId)); // 문제 데이터 요청
+
       setProblem(res);
+      // console.log(res);
     };
     fetchProblem();
   }, [problemId]);
@@ -104,23 +164,28 @@ const ProblemSolvingPage = () => {
 
     // step 메타데이터 추가
     formData.append("steps", JSON.stringify(stepMeta));
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
     // 시간 정보 추가
-    formData.append("user_id", "1");
-    formData.append("problem_id", "1");
+    formData.append("user_id", user.id);
+    if (problemId) {
+      formData.append("problem_id", problemId);
+    } else {
+      // console.error("Problem ID is undefined");
+    }
     formData.append("total_solve_time", String(timing.totalSolveTime));
     formData.append("understand_time", String(timing.understandTime));
     formData.append("solve_time", String(timing.solveTime));
     formData.append("review_time", String(timing.reviewTime));
 
     // 디버깅 출력
-    for (const [key, value] of formData.entries()) {
-      console.log("📦", key, value);
-    }
+    // for (const [key, value] of formData.entries()) {
+    //   // console.log("📦", key, value);
+    // }
 
     // 서버 전송
     const result = await sendProblemSolvingDataApi(formData);
-    console.log("📦 result:", result);
+    // console.log("📦 result:", result);
 
     setIscorrect(result.is_correct);
     setResult(result);
@@ -136,7 +201,7 @@ const ProblemSolvingPage = () => {
         avg_total_solve_time: result?.avg_total_solve_time,
         avg_understand_time: result?.avg_understand_time,
         is_correct: result?.is_correct,
-        submissionId: result?.submissionId,
+        submissionId: problemId,
       },
     });
   };
@@ -144,7 +209,15 @@ const ProblemSolvingPage = () => {
   return (
     <div className="h-screen flex flex-col text-gray-700">
       <div className="shrink-0">
-        {problem && <ProblemSourceInfo data={problem} />}
+        {problem && (
+          <ProblemSourceInfo
+            data={problem}
+            lessonName={lessonName}
+            subject={subject}
+            unit={unit}
+            num={num}
+          />
+        )}
       </div>
 
       <div className="flex-grow min-h-0 grid grid-cols-12 gap-x-4">
@@ -166,8 +239,8 @@ const ProblemSolvingPage = () => {
               <ProblemBox
                 data={{
                   content: problem.content || "No content available",
-                  problem_image_url: "", // Provide a default or actual URL if available
-                  avg_accuracy: 0, // Provide a default or actual value if available
+                  problem_image_url: problem.image_url || null, // Provide a default or actual URL if available
+                  avg_accuracy: problem.avg_accuracy || null, // Provide a default or actual value if available
                 }}
               />
             )}
@@ -180,10 +253,30 @@ const ProblemSolvingPage = () => {
 
           {/* 버튼 영역*/}
           <div className="shrink-0 flex items-center justify-center gap-3 p-4">
-            <Button variant="outline" size="md">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={goToPrevious}
+              disabled={problemIndex === 0}
+              className={
+                problemIndex === 0
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : ""
+              }
+            >
               이전 문제
             </Button>
-            <Button variant="outline" size="md">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={goToNext}
+              disabled={problemIndex === problemList.length - 1}
+              className={
+                problemIndex === problemList.length - 1
+                  ? "bg-gray-200 border !border-gray-400 text-gray-400 cursor-not-allowed"
+                  : ""
+              }
+            >
               다음 문제
             </Button>
             {isCorrect == null ? (

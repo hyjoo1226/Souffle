@@ -1,5 +1,5 @@
 import { Route, Routes } from "react-router-dom";
-import ProtectedRoute from "@/components/common/ProtectedRoute"
+import ProtectedRoute from "@/components/common/ProtectedRoute";
 
 import ProblemSolvingPage from "../pages/problemSolving/ProblemSolvingPage";
 import SolutionAnalysisPage from "../pages/problemSolving/SolutionAnalysisPage";
@@ -18,13 +18,14 @@ const Router = () => {
   return (
     <Routes>
       {/* <Route path="/" element={<EntryPage />} /> */}
-      <Route 
-        path="/solving/:problemId" 
+      <Route
+        path="/solving/:problemId"
         element={
           <ProtectedRoute>
             <ProblemSolvingPage />
           </ProtectedRoute>
-        } />
+        }
+      />
       <Route
         path="/analysis/:submissionId"
         element={
@@ -33,21 +34,70 @@ const Router = () => {
           </ProtectedRoute>
         }
       />
-      <Route 
-        path="/problem-select" 
+      <Route
+        path="/problem-select"
         element={
           <ProtectedRoute>
             <ProblemSelectPage />
           </ProtectedRoute>
-        } 
+        }
       />
-      <Route path="/review/:user_problem_id" element={<ProtectedRoute><ReviewNoteDetailPage /></ProtectedRoute>} />
-      <Route path="/review-list" element={<ProtectedRoute><ReviewNoteListPage /></ProtectedRoute>} />
-      <Route path="/landing" element={<ProtectedRoute><LandingPage /></ProtectedRoute>} />
-      <Route path="/my-report" element={<ProtectedRoute><MyStudyReportPage /></ProtectedRoute>} />
-      <Route path="/select-unit" element={<ProtectedRoute><SelectUnitPage /></ProtectedRoute>} />
-      <Route path="/study/:category_id" element={<ProtectedRoute><ConceptStudyPage /></ProtectedRoute>} />
-      <Route path="/problem-study/:category_id" element={<ProtectedRoute><ProblemStudyPage /></ProtectedRoute>}/>
+      <Route
+        path="/review/:user_problem_id"
+        element={
+          <ProtectedRoute>
+            <ReviewNoteDetailPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/review-list"
+        element={
+          <ProtectedRoute>
+            <ReviewNoteListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/landing"
+        element={
+          <ProtectedRoute>
+            <LandingPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/my-report"
+        element={
+          <ProtectedRoute>
+            <MyStudyReportPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/select-unit"
+        element={
+          <ProtectedRoute>
+            <SelectUnitPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/study/:category_id"
+        element={
+          <ProtectedRoute>
+            <ConceptStudyPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/problem-study/:category_id"
+        element={
+          <ProtectedRoute>
+            <ProblemStudyPage />
+          </ProtectedRoute>
+        }
+      />
       <Route path="/" element={<LoginPage />} />
     </Routes>
   );

@@ -3,12 +3,12 @@ import { Link } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 
 const SideBar = ({
-    isSideBarOpen,
-    setIsSideBarOpen,
-  } : {
-    isSideBarOpen: boolean;
-    setIsSideBarOpen: (value: boolean) => void;
-  }) => {
+  isSideBarOpen,
+  setIsSideBarOpen,
+}: {
+  isSideBarOpen: boolean;
+  setIsSideBarOpen: (value: boolean) => void;
+}) => {
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null); // 기본 선택 없음
   const menuItems = [
     "메인",
@@ -26,6 +26,7 @@ const SideBar = ({
       case "오답 노트":
         return "/review-list";
       case "개념 학습":
+        return "/select-unit";
         return "/select-unit";
       case "내 학습 현황":
         return "/problem-select";
@@ -76,7 +77,10 @@ const SideBar = ({
           </div>
         </div>
         <div className="flex justify-center">
-          <div className="flex gap-2 items-center cursor-pointer" onClick={handleLogout}>
+          <div
+            className="flex gap-2 items-center cursor-pointer"
+            onClick={handleLogout}
+          >
             <img src="/icons/log-out.png" alt="로그아웃" className="w-6 h-6" />
             <p className="body-small text-gray-400">로그아웃</p>
           </div>

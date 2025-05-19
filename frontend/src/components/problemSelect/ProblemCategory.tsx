@@ -8,10 +8,12 @@ const ProblemCategory = ({
   setSelectedLessonId,
   selectedLessonName,
   setSelectedLessonName,
+  selectedSubject,
+  setSelectedSubject,
+  selectedUnit,
+  setSelectedUnit,
 }: CategoryProps) => {
   const [categoryOpen, setCategoryOpen] = useState(false); // 카테고리 열기 상태
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
   // console.log(categoryData);
   const handleCategoryClick = () => {

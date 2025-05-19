@@ -1,17 +1,14 @@
 FROM node:20-alpine AS builder
 
+ARG VITE_APP_API_URL
+ENV VITE_APP_API_URL=$VITE_APP_API_URL
+RUN echo "VITE_APP_API_URL=$VITE_APP_API_URL" > .env.production
+
 WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 COPY . .
-RUN yarn build
+COPY .env .env
+RUN yarn build --mode production
 
-FROM node:20-alpine AS runner
-
-WORKDIR /app
-RUN yarn global add serve
-COPY --from=builder /app/dist ./dist
-
-EXPOSE 3000
-CMD ["serve", "-s", "dist", "-l", "3000"]

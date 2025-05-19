@@ -20,6 +20,7 @@ const AccordianList = ({
   setSelectedSubject: (name: string) => void;
   setSelectedUnit: (name: string) => void;
 }) => {
+  // console.log("categoryData", categoryData);
   const [openSubjectId, setOpenSubjectId] = useState<number[]>([]);
   const [openUnitId, setOpenUnitId] = useState<number[]>([]);
 
@@ -35,7 +36,7 @@ const AccordianList = ({
     setOpenUnitId((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-    console.log(unitName);
+    // console.log(unitName);
     setSelectedUnit(unitName);
   };
 
@@ -43,11 +44,11 @@ const AccordianList = ({
     setSelectedLessonId(lessonId); // 선택된 소단원 ID 설정
     setSelectedLessonName(lessonName);
     setCategoryOpen(!categoryOpen);
-    console.log(lessonId); // 선택된 소단원 ID 출력
-    console.log("lessonName", lessonName); // 선택된 소단원 ID 상태 출력
+    // console.log(lessonId); // 선택된 소단원 ID 출력
+    // console.log("lessonName", lessonName); // 선택된 소단원 ID 상태 출력
   };
   useEffect(() => {
-    console.log(selectedLessonId); // 열려 있는 대단원 ID 출력
+    // console.log(selectedLessonId); // 열려 있는 대단원 ID 출력
   }, [selectedLessonId]);
 
   return (
