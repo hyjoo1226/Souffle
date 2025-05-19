@@ -51,8 +51,9 @@ export class SubmissionService {
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
 
     // 문제 조회
-    const problem = await this.problemRepository.findOneBy({
-      id: submissionDto.problem_id,
+    const problem = await this.problemRepository.findOne({
+      where: { id: submissionDto.problem_id },
+      relations: ['category'],
     });
     if (!problem) throw new NotFoundException('문제를 찾을 수 없습니다.');
 
@@ -253,13 +254,28 @@ export class SubmissionService {
       .getRawOne();
 
     await this.problemRepository.update(problemId, {
-      avgAccuracy: stats.avgAccuracy
-        ? Math.round(stats.avgAccuracy * 10) / 10
-        : 0,
-      avgTotalSolveTime: Math.round(stats.avgTotalSolveTime) || 0,
-      avgUnderstandTime: Math.round(stats.avgUnderstandTime) || 0,
-      avgSolveTime: Math.round(stats.avgSolveTime) || 0,
-      avgReviewTime: Math.round(stats.avgReviewTime) || 0,
+      avgAccuracy:
+        stats.avgAccuracy !== null && !isNaN(Number(stats.avgAccuracy))
+          ? Math.round(Number(stats.avgAccuracy) * 10) / 10
+          : 0,
+      avgTotalSolveTime:
+        stats.avgTotalSolveTime !== null &&
+        !isNaN(Number(stats.avgTotalSolveTime))
+          ? Math.round(Number(stats.avgTotalSolveTime))
+          : 0,
+      avgUnderstandTime:
+        stats.avgUnderstandTime !== null &&
+        !isNaN(Number(stats.avgUnderstandTime))
+          ? Math.round(Number(stats.avgUnderstandTime))
+          : 0,
+      avgSolveTime:
+        stats.avgSolveTime !== null && !isNaN(Number(stats.avgSolveTime))
+          ? Math.round(Number(stats.avgSolveTime))
+          : 0,
+      avgReviewTime:
+        stats.avgReviewTime !== null && !isNaN(Number(stats.avgReviewTime))
+          ? Math.round(Number(stats.avgReviewTime))
+          : 0,
     });
   }
 
@@ -320,23 +336,23 @@ export class SubmissionService {
   private async updateCategoryStatistics(categoryId: number) {
     const stats = await this.submissionRepository
       .createQueryBuilder('submission')
-      .select('AVG(CAST(submission.isCorrect AS float)) * 100', 'avgAccuracy')
+      .select('AVG("submission"."isCorrect"::int) * 100', 'avgAccuracy')
       .innerJoin(
         'submission.problem',
         'problem',
-        'problem.category_id = :categoryId',
+        'problem.categoryId = :categoryId',
         { categoryId },
       )
       .getRawOne();
 
-    await this.categoryRepository.update(
-      { id: categoryId },
-      {
-        avgAccuracy: stats.avgAccuracy
-          ? Number(stats.avgAccuracy.toFixed(1))
-          : 0,
-      },
-    );
+    const avgAccuracyValue =
+      stats.avgAccuracy !== null && !isNaN(Number(stats.avgAccuracy))
+        ? Number(Number(stats.avgAccuracy).toFixed(1))
+        : 0;
+
+    await this.categoryRepository.update(categoryId, {
+      avgAccuracy: avgAccuracyValue,
+    });
   }
 
   // 풀이 분석 조회 요청 API
