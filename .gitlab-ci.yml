@@ -68,11 +68,11 @@ integration-test:
   stage: test
   tags: [deploy]
   needs:
-    - build-fe
+    - job: build-fe
       artifacts: true
-    - build-be
-    - build-data
-    - backup-db
+    - job: build-be
+    - job: build-data
+    - job: backup-db
   script:
     - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
     - tar xzf ci-backup/db-backup.tar.gz
