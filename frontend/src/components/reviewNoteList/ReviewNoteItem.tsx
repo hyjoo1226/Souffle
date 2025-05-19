@@ -45,7 +45,7 @@ const ReviewNoteItem = ({
           onClick={() => handleClickProblem(problem.problem_id)}
         >
           <p className="body-medium text-gray-800">
-            {problem.category_name} {problem.problem_id}번 문제
+            {problem.category_name} {problem.inner_no}번 문제
           </p>
 
           {problem.user.correct_count > 0 && (
