@@ -10,6 +10,7 @@ const AccordianList = ({
   setSelectedLessonName,
   setSelectedSubject,
   setSelectedUnit,
+  setSelectedUnitId,
 }: {
   categoryOpen: boolean;
   setCategoryOpen: (open: boolean) => void;
@@ -19,8 +20,9 @@ const AccordianList = ({
   setSelectedLessonName: (name: string) => void;
   setSelectedSubject: (name: string) => void;
   setSelectedUnit: (name: string) => void;
+  setSelectedUnitId: (id: number) => void;
 }) => {
-  console.log("categoryData", categoryData);
+  // console.log("categoryData", categoryData);
   const [openSubjectId, setOpenSubjectId] = useState<number[]>([]);
   const [openUnitId, setOpenUnitId] = useState<number[]>([]);
 
@@ -36,8 +38,9 @@ const AccordianList = ({
     setOpenUnitId((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
-    // console.log(unitName);
+    // console.log(id);
     setSelectedUnit(unitName);
+    setSelectedUnitId(id);
   };
 
   const handleLessonClick = (lessonId: number, lessonName: string) => {
