@@ -149,26 +149,28 @@ const NoteSectionItem = ({
       {/* 소단원 리스트 */}
       {isOpen && subUnit && subUnit.length > 0 && (
         <div className="ml-19 mt-2 flex flex-col gap-y-1">
-          {subUnit.map((child) => (
-            <div
-              key={child.id}
-              className="flex items-center gap-x-2 pl-4 py-1 cursor-pointer hover:bg-gray-50 rounded"
-              onClick={() =>
-                onSelectUnit({
-                  chapter: chapter,
-                  section: sectionTitle,
-                  type: child.type,
-                  unit: child.name,
-                  id: child.id,
-                })
-              }
-            >
-              <p className="body-medium text-gray-600">{child.name}</p>
-              <p className="body-medium text-primary-700">
-                {child.problem_count ?? 0}
-              </p>
-            </div>
-          ))}
+          {[...subUnit]
+            .sort((a, b) => a.id - b.id)
+            .map((child) => (
+              <div
+                key={child.id}
+                className="flex items-center gap-x-2 pl-4 py-1 cursor-pointer hover:bg-gray-50 rounded"
+                onClick={() =>
+                  onSelectUnit({
+                    chapter: chapter,
+                    section: sectionTitle,
+                    type: child.type,
+                    unit: child.name,
+                    id: child.id,
+                  })
+                }
+              >
+                <p className="body-medium text-gray-600">{child.name}</p>
+                <p className="body-medium text-primary-700">
+                  {child.problem_count ?? 0}
+                </p>
+              </div>
+            ))}
         </div>
       )}
     </div>

@@ -7,9 +7,7 @@ import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
 export default defineConfig({
-  // define: {
-  // 'import.meta.env.VITE_APP_API_URL': JSON.stringify(process.env.VITE_APP_API_URL)},
-  plugins: [
+ plugins: [
     react(),
     VitePWA({
       injectRegister: "auto",

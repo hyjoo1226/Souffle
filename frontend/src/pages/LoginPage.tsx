@@ -22,7 +22,6 @@ const LoginPage = () => {
   const BACKEND_URL = import.meta.env.VITE_APP_API_URL;
 
   const handleGoogleLogin = () => {
-    console.log("API_URL =", import.meta.env.VITE_APP_API_URL, BACKEND_URL)
     // 1) 팝업 띄우기
     const popup = window.open(
       `${BACKEND_URL}/auth/google`,

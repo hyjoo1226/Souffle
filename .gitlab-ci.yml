@@ -30,7 +30,7 @@ build-fe:
   script:
 #    - docker-compose -f docker-compose.frontend.yml build frontend
     - echo "VITE_APP_API_URL=$VITE_APP_API_URL" > frontend/.env.production
-    - docker build --no-cache --build-arg VITE_APP_API_URL=$VITE_APP_API_URL -t frontend:ci -f frontend/Dockerfile ./frontend
+    - docker build --no-cache -t frontend:ci -f frontend/Dockerfile ./frontend
     - docker create --name frontend-builder frontend:ci
     - docker cp frontend-builder:/app/dist ./frontend/dist
     - docker rm frontend-builder
