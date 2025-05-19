@@ -4,7 +4,6 @@ import json
 from openai import OpenAI
 from pathlib import Path
 
-
 from app.core.config import settings  # settings에서 API 키를 가져오기 위해 추가
 
 # OpenAI API 키는 환경변수 OPENAI_API_KEY에 설정되어 있어야 합니다.
@@ -18,13 +17,20 @@ def analyze_studying(params:dict):
 
     report_prompt = f"""
     아래는 한 학생의 학습 분석 지표입니다. 지표는 100점 만점이며, 수치는 백분율로 해석됩니다.
-
     1. 해결 점수: {params["scores"][0]}점
     2. 참여 점수: {params["scores"][1]}점
     3. 속도 점수: {params["scores"][2]}점
     4. 개선 점수: {params["scores"][3]}점
     5. 성실 점수: {params["scores"][4]}점
     6. 되새김 점수: {params["scores"][5]}점
+
+    각 지표에 대한 설명입니다.
+    1. 해결 점수 : 맞은 문제 수 / 사용자가 푼 문제수
+    2. 참여 점수 : 사용자가 푼 문제 수*2 (100점 만점)
+    3. 속도 점수 : 평균 풀이시간보다 빨리 정답을 제출한 문제 수 / 사용자가 푼 문제 수
+    4. 되새김 점수 : 사용자가 다시 풀기를 시도한 문제 개수 / 사용자의 오답 수
+    5. 개선 점수 : 다시 풀기의 정답률 / 사용자가 다시풀기를 시도한 문제 개수
+    6. 성실 점수 : 사용자가 오답노트를 작성한 문제 수 / 사용자의 오답 수
 
     위 데이터를 종합적으로 분석하여, 아래 내용을 포함하는 자연스러운 리포트를 작성하세요.
 
@@ -33,15 +39,15 @@ def analyze_studying(params:dict):
     - 개선이 필요한 영역과 그 이유
     - 잘하고 있는 점 칭찬
     - 앞으로 실천하면 좋을 학습 전략 1~2가지
-    - 어투는 문어체이나 따뜻하고 친절한한 톤으로 작성
+    - 어투는 문어체이나 따뜻하고 친절한 톤으로 작성
 
-    호칭은 사용자로 리포트는 점수를 명시하지 말고 3~5문장 정도의 자연스러운 문장으로 구성하세요.
+    호칭을 붙이지말고 점수를 명시하지 않으면서 전체 내용을 3문장 이내의 간결한 문장으로 구성하세요.
     """
     # 맥락 유지를 위한 gpt와의 대화내역 생성
     conversation_history.extend([{"role": "system", "content": "당신은 사용자의 지난 1주일 간의 학습 지표를 바탕으로 피드백을 제공하는 분석리포트 제공 AI입니다."},
             {"role": "user", "content": report_prompt}])
 
-    # 최초 응답 요청청
+    # 최초 응답 요청
     report_response = client.chat.completions.create(
         model="gpt-4o",
         messages=conversation_history,
@@ -69,12 +75,29 @@ def analyze_studying(params:dict):
         temperature=0.3,
         max_tokens=1024
     )
+    # api docs 에 맞춰 1 2 3단계 json 형태로
     study_plan = plan_response.choices[0].message.content
 
+    # 문자열 분할 및 가공
+    lines = study_plan.split("\n")
+
+    # 리스트로 변환
+    structured_plan = []
+    for line in lines:
+        if ": " in line:
+            step_part, content = line.split(": ", 1)
+            step_num = int(''.join(filter(str.isdigit, step_part)))
+            structured_plan.append({
+                "step": step_num,
+                "content": content.strip()
+            })
+    print(structured_plan)
+    print(1235)
+
+
     return {
-        "scores" : params,
-        "ai_diagnosis": ai_diagnosis,
-        "study_plan" : study_plan
+        "ai_diagnosis": ai_diagnosis,   # str
+        "study_plan" : structured_plan  # dict
     }
 
 
@@ -104,9 +127,9 @@ prompt = f
     1. 해결 점수 : 맞은 문제 수 / 사용자가 푼 문제수
     2. 참여 점수 : 사용자가 푼 문제 수*2 (100점 만점)
     3. 속도 점수 : 평균 풀이시간보다 빨리 정답을 제출한 문제 수 / 사용자가 푼 문제 수
-    4. 개선 점수 : 사용자가 다시 풀기를 시도한 문제 개수 / 사용자의 오답 수
-    5. 성실 점수 : 사용자가 오답노트를 작성한 문제 수 / 사용자의 오답 수
-    6. 되새김 점수 : 사용자가 오답노트를 7일 이내에 추가한 개수 / 사용자의 오답 수
+    4. 되새김 점수 : 사용자가 다시 풀기를 시도한 문제 개수 / 사용자의 오답 수
+    5. 개선 점수 : 다시 풀기의 정답률 / 사용자가 다시풀기를 시도한 문제 개수
+    6. 성실 점수 : 사용자가 오답노트를 작성한 문제 수 / 사용자의 오답 수
     
     현재 수준진단(단원별 정답률 같은)
     학습 습관 분석
