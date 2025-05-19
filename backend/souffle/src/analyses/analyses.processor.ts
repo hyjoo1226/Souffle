@@ -51,15 +51,19 @@ export class AnalysisProcessor {
             submission: { id: submission_id },
             stepNumber: step.step_number,
             stepFeedback: step.step_feedback,
+            latex: step.latex,
           },
-          { isValid: step.step_valid, stepFeedback: step.step_feedback },
+          {
+            isValid: step.step_valid,
+            stepFeedback: step.step_feedback,
+            latex: step.latex,
+          },
         );
       }
 
       await this.submissionRepository.update(submission_id, {
         aiAnalysis: response.data.ai_analysis,
         weakness: response.data.weakness,
-        engineUsed: response.data.engine_used,
       });
 
       return response.data;

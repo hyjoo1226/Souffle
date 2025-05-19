@@ -27,7 +27,7 @@ class StepImageInput(BaseModel):
     step_image_url: HttpUrl  # 단계별 전체 스냅샷 이미지 URL
 
 class AnalysisOCRRequest(BaseModel):
-    problem_id: str
+    problem_id: int
     answer_image_url: HttpUrl
     steps: List[StepImageInput]
     total_solve_time: int

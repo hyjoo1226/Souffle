@@ -76,7 +76,7 @@ async def analyze_ocr_steps(request: AnalysisOCRRequest):
                 step_times.append(step.step_time)  # 단위: 초(sec)
 
         # 문제 ID 가져오기
-        problem_id = request.problem_id or "unknown_problem"
+        problem_id = str(request.problem_id)
 
         # 수식 분석 수행 - 스냅샷 분석 방식 (시간 정보도 함께 전달)
         result = await analyze_equation_steps(

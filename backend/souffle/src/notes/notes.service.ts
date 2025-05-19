@@ -82,6 +82,10 @@ export class NoteService {
       .groupBy(`up.${folderField}`)
       .getRawMany();
 
+    if (!folderIds.length) {
+      return {};
+    }
+
     return counts.reduce((acc, curr) => {
       acc[curr.folder_id] = parseInt(curr.count, 10);
       return acc;
