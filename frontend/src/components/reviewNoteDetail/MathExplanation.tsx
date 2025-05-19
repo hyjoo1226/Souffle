@@ -4,13 +4,13 @@ interface MathExplanationProps {
   text: string;
 }
 
-// \( ... \) 구간 감지
 const LATEX_REGEX = /\\\((.+?)\\\)/g;
 
 const MathExplanation = ({ text }: MathExplanationProps) => {
   const parts: (string | { latex: string })[] = [];
   let lastIndex = 0;
 
+  // 수식 분리
   text.replace(LATEX_REGEX, (match, latex, offset) => {
     if (lastIndex < offset) {
       parts.push(text.slice(lastIndex, offset));
@@ -25,14 +25,22 @@ const MathExplanation = ({ text }: MathExplanationProps) => {
   }
 
   return (
-    <div className="body-medium whitespace-pre-line text-gray-700">
-      {parts.map((part, index) =>
-        typeof part === "string" ? (
-          <span key={index}>{part}</span>
-        ) : (
-          <InlineMath key={index} math={part.latex} />
-        )
-      )}
+    <div className="body-medium text-gray-700">
+      {parts.map((part, index) => {
+        if (typeof part === "string") {
+          // \n 또는 \\n을 줄바꿈 <br />으로 치환
+          return part
+            .split(/\\n|\n/g)
+            .map((line, idx, arr) => (
+              <span key={`${index}-${idx}`}>
+                {line}
+                {idx !== arr.length - 1 && <br />}
+              </span>
+            ));
+        } else {
+          return <InlineMath key={index} math={part.latex} />;
+        }
+      })}
     </div>
   );
 };

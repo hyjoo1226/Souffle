@@ -51,7 +51,7 @@ const ConceptStudyPage = () => {
                 </div>
                 <Button onClick={() => navigate(`/problem-study/${category_id}`)}>예제 풀기</Button>
             </div>
-            <div className="mb-5 grid grid-cols-12 gap-x-4 grow overflow-hidden">
+            <div className="mb-5 grid grid-cols-12 gap-x-4 grow overflow-hidden min-h-0">
                 <nav className="py-7 justify-between col-start-1 col-span-2 -mr-30 z-0 h-full flex flex-col">
                     <div className="flex flex-col gap-y-1.5">
                         {tabs.map((tab, idx) => (

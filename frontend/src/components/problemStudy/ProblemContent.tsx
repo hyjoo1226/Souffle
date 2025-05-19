@@ -32,6 +32,22 @@ const ProblemContent = ({
     setActiveBlankIndex(0);
   }, [problem?.id]);
 
+  if (
+    !problem ||
+    !Array.isArray(problem.blanks) ||
+    !Array.isArray(problem.choices) ||
+    problem.blanks.length === 0 ||
+    problem.choices.length === 0
+  ) {
+    return (
+      <div className="col-span-9 px-4">
+        <p className="body-medium text-gray-500">
+          문제가 올바르게 구성되지 않았습니다. 관리자에게 문의해 주세요.
+        </p>
+      </div>
+    );
+  }
+
   if (!problem) {
     return (
       <div className="col-span-9 px-4">
