@@ -35,7 +35,9 @@ build-fe:
     - echo "VITE_APP_API_URL=$VITE_APP_API_URL" > frontend/.env.production
     - docker build --no-cache -t frontend:ci -f frontend/Dockerfile ./frontend
     - docker create --name frontend-builder frontend:ci
-    - docker cp frontend-builder:/app/dist ./frontend/dist
+    - rm -rf frontend/dist
+    - mkdir -p frontend/dist
+    - docker cp frontend-builder:/app/dist/. ./frontend/dist/
     - docker rm frontend-builder
 
   rules:
