@@ -28,12 +28,20 @@ const SolutionAnalysisHeader = ({
   const handleSelectUnit = () => {
     // console.log();
   };
+  const [topFavoriteFolderId, setTopFavoriteFolderId] = useState<number | null>(
+    null
+  );
 
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
 
     const favoriteFolders = folderList.filter((f) => f.type === 1);
     setFavoriteFolders(favoriteFolders);
+
+    const topFolderId = folderList.find(
+      (f) => f.type === 1 && f.parent_id === null
+    )?.id;
+    setTopFavoriteFolderId(topFolderId || null);
   };
 
   useEffect(() => {
@@ -52,6 +60,7 @@ const SolutionAnalysisHeader = ({
           setReviewNoteList={setReviewNoteList}
           handleSelectUnit={handleSelectUnit}
           setSelectedProblemIds={() => {}}
+          topFavoriteFolderId={topFavoriteFolderId}
         />
       )}
       <div className="flex items-start justify-between py-[21px]">
