@@ -27,9 +27,8 @@ const SideBar = ({
         return "/review-list";
       case "개념 학습":
         return "/select-unit";
-        return "/select-unit";
       case "내 학습 현황":
-        return "/problem-select";
+        return "/my-report";
       default:
         return "/landing";
     }
