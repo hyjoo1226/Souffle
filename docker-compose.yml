@@ -2,8 +2,8 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        VITE_APP_API_URL: "${VITE_APP_API_URL}"
+      #args:
+        #VITE_APP_API_URL: "${VITE_APP_API_URL}"
     container_name: frontend
     ports:
       - "3000:3000"
@@ -11,8 +11,8 @@ services:
     - ./frontend/.env
     networks:
       - public
-    volumes:
-      - ./frontend/dist:/app/dist
+    #volumes:
+      #- ./frontend/dist:/app/dist
     
   backend:
     build: ./backend/souffle
@@ -29,7 +29,7 @@ services:
     networks:
       - internal
     volumes:
-      - ./uploads:/app/uploads
+      - /srv/souffle/uploads:/app/uploads
 
   data:
     build: ./data
@@ -54,7 +54,7 @@ services:
       POSTGRES_PASSWORD: ssafy1234
       POSTGRES_DB: app
     volumes:
-      - ./volumes/db_data:/var/lib/postgresql/data
+      - /srv/souffle/volumes/db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
@@ -87,10 +87,9 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./volumes/caddy_data:/data
-      - ./volumes/caddy_config:/config
-      - ./uploads:/app/uploads
+      - /srv/souffle/volumes/caddy_data:/data
+      - /srv/souffle/volumes/caddy_config:/config
+      - /srv/souffle/uploads:/app/uploads
       - ./frontend/dist:/srv
       - ./static/popup-login.html:/srv/popup-login.html
     depends_on:

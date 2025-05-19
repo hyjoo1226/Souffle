@@ -9,7 +9,6 @@ stages:
   - deploy
 
 before_script:
-  - mkdir -p volumes uploads frontend/dist
   - echo "Checking static/popup-login.html..."
   - '[ -d static/popup-login.html ] && echo "Found directory instead of file. Removing it..." && rm -rf static/popup-login.html || echo "No directory to clean."'
 
@@ -33,7 +32,6 @@ build-fe:
   stage: build
   tags: [deploy]
   script:
-#    - docker-compose -f docker-compose.frontend.yml build frontend
     - echo "VITE_APP_API_URL=$VITE_APP_API_URL" > frontend/.env.production
     - docker build --no-cache -t frontend:ci -f frontend/Dockerfile ./frontend
     - docker create --name frontend-builder frontend:ci
