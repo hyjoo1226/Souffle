@@ -7,7 +7,7 @@ import { ReactComponent as Trash } from "@/assets/icons/Trash.svg";
 import { ReactComponent as Star } from "@/assets/icons/Star.svg";
 import {
   getFavoriteFoldersApi,
-  // getReviewNoteFolderApi,
+  getReviewNoteFolderApi,
   getProblemListApi,
   Folder,
   ReviewNoteList,
@@ -145,10 +145,17 @@ const ReviewNoteListPage = () => {
 
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
-    // const reviewFolderList: Folder[] = await getReviewNoteFolderApi();
-    const favoriteFolders = folderList.filter((f) => f.type === 1);
-    const noteFolders = folderList.filter((f) => f.type === 2);
-    // console.log("favoriteFolders", reviewFolderList);
+    const reviewFolderList: Folder[] = await getReviewNoteFolderApi();
+    // 즐겨찾기 폴더: type === 1, id 순 정렬
+    const favoriteFolders = folderList
+      .filter((f) => f.type === 1)
+      .sort((a, b) => a.id - b.id);
+
+    // 오답노트 폴더: type === 2, id 순 정렬
+    const noteFolders = reviewFolderList
+      .filter((f) => f.type === 2)
+      .sort((a, b) => a.id - b.id);
+    console.log("favoriteFolders", reviewFolderList);
 
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
@@ -222,6 +229,7 @@ const ReviewNoteListPage = () => {
                           reviewNoteList={reviewNoteList}
                           setReviewNoteList={setReviewNoteList}
                           handleSelectUnit={handleSelectUnit}
+                          setSelectedProblemIds={setSelectedProblemIds}
                         />
                       </div>
                     )}

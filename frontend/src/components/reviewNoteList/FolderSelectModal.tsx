@@ -13,6 +13,7 @@ interface Props {
   reviewNoteList: any[] | null;
   setReviewNoteList: (reviewNoteList: any) => void;
   handleSelectUnit: (unit: any) => void;
+  setSelectedProblemIds: (ids: number[]) => void;
 }
 
 const FolderSelectModal = ({
@@ -23,6 +24,7 @@ const FolderSelectModal = ({
   reviewNoteList,
   setReviewNoteList,
   handleSelectUnit,
+  setSelectedProblemIds,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -110,6 +112,7 @@ const FolderSelectModal = ({
         prev?.filter((item) => !selectedProblemIds.includes(item.problem_id)) ??
         null
     );
+    setSelectedProblemIds([]);
 
     await handleSelectUnit({
       chapter: "즐겨찾기",

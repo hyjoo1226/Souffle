@@ -106,6 +106,7 @@ const UnitAnalysis = () => {
         <div className="col-span-7">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
+              // layout="vertical"
               data={chartData}
               margin={{ top: 20, right: 20, left: 20, bottom: 50 }}
               barCategoryGap="15%"
