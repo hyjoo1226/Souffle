@@ -64,7 +64,6 @@ export class AnalysisProcessor {
       await this.submissionRepository.update(submission_id, {
         aiAnalysis: response.data.ai_analysis,
         weakness: response.data.weakness,
-        engineUsed: response.data.engine_used,
       });
 
       return response.data;
