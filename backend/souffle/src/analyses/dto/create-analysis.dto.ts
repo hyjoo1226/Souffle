@@ -1,4 +1,3 @@
-// analyses/dto/create-analysis.dto.ts
 import { IsInt, IsString, IsArray, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 

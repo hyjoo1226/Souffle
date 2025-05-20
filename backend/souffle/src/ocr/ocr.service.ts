@@ -1,23 +1,7 @@
 import { Injectable } from '@nestjs/common';
-// import { InjectQueue } from '@nestjs/bull';
-// import { Queue } from 'bull';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 
-// @Injectable()
-// export class OcrService {
-//   constructor(@InjectQueue('ocr-queue') private ocrQueue: Queue) {}
-
-//   async addOcrJob(data: {
-//     answer_image_url: string;
-//     submission_id: number;
-//     problem_answer: string;
-//   }) {
-//     // 큐에 작업 추가
-//     const job = await this.ocrQueue.add('ocr', { data });
-//     return { jobId: job.id };
-//   }
-// }
 @Injectable()
 export class OcrService {
   constructor(private readonly httpService: HttpService) {}
@@ -26,7 +10,6 @@ export class OcrService {
   async convertOcr(answer_image_url: string): Promise<string> {
     try {
       const response = await firstValueFrom(
-        // 데이터 서버
         this.httpService.post(
           'http://data:8000/data/api/v1/ocr/answer',
           {

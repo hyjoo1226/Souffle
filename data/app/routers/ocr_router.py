@@ -166,7 +166,8 @@ async def analyze_ocr_steps(request: AnalysisOCRRequest):
                     step_valid=s.is_valid,
                     latex=s.latex,
                     confidence=s.confidence,
-                    feedback=s.step_feedback
+                    feedback=s.step_feedback,
+                    current_latex=s.current_latex  # 현재 단계에 추가된 수식
                 )
                 for s in result.steps
             ],

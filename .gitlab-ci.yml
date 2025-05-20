@@ -53,12 +53,14 @@ backup-db:
   script:
     - mkdir -p ci-backup
     - docker exec db pg_dump -U ssafy -d app > db-backup.sql
-    - docker-compose -f docker-compose.ci.yml stop db
+
+    - docker exec db bash -c "pg_basebackup -U ssafy -Ft -z -D /tmp && mv /tmp/base.tar.gz /tmp/db-base.tar.gz"
+    - docker cp db:/tmp/db-base.tar.gz ./db-data.tar.gz
+    - docker exec db rm -f /tmp/db-base.tar.gz
+
     - tar czf db-backup.tar.gz db-backup.sql
-    - tar czf db-data.tar.gz -C /srv/souffle/volumes db_data
     - mv db-backup.tar.gz ci-backup/
     - mv db-data.tar.gz ci-backup/
-    - docker-compose -f docker-compose.ci.yml start db
   artifacts:
     paths:
       - ci-backup/db-backup.tar.gz

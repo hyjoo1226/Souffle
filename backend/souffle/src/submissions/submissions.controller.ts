@@ -9,7 +9,8 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { SubmissionService } from './submissions.service';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
   ApiOperation,
@@ -18,8 +19,7 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { UseGuards, Req } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { SubmissionService } from './submissions.service';
 
 @ApiTags('submission')
 @Controller('api/v1/submissions')

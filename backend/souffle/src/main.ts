@@ -1,8 +1,8 @@
 import * as dotenv from 'dotenv';
 import { NestFactory } from '@nestjs/core';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { AppModule } from './app.module';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import * as nodeCrypto from 'crypto';
 
 if (!globalThis.crypto) {
@@ -11,6 +11,7 @@ if (!globalThis.crypto) {
     randomUUID: () => nodeCrypto.randomUUID?.(),  // optional chaining
   };
 }
+
 dotenv.config();
 
 async function bootstrap() {

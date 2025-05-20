@@ -14,6 +14,7 @@ interface Props {
   setReviewNoteList: (reviewNoteList: any) => void;
   handleSelectUnit: (unit: any) => void;
   setSelectedProblemIds: (ids: number[]) => void;
+  topFavoriteFolderId: number | null;
 }
 
 const FolderSelectModal = ({
@@ -25,6 +26,7 @@ const FolderSelectModal = ({
   setReviewNoteList,
   handleSelectUnit,
   setSelectedProblemIds,
+  topFavoriteFolderId,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
@@ -128,17 +130,17 @@ const FolderSelectModal = ({
     const data = {
       name: folderName,
       type: 1,
-      parent_id: 18,
+      parent_id: topFavoriteFolderId,
     };
 
     const res = await createFolderApi(data);
-    const newFolderId = res.folder_id;
+    const newFolderId = res.id;
 
     const newFolder: Folder = {
       id: newFolderId,
       name: folderName,
       type: 1,
-      parent_id: 18,
+      parent_id: topFavoriteFolderId,
       children: [],
       problem_count: 0,
     };
@@ -177,11 +179,14 @@ const FolderSelectModal = ({
       alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
       return;
     }
+
+    // console.log("newFolderId", newFolderId);
     await Promise.all(
       selectedProblemIds.map((problemId) =>
         moveToFavFolderApi(problemId, newFolderId, 1)
       )
     );
+    setSelectedProblemIds([]);
 
     // 3. 선택된 폴더로 이동
     await handleSelectUnit({

@@ -1,18 +1,18 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { FileService } from 'src/files/files.service';
+import { OcrService } from 'src/ocr/ocr.service';
 import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Problem } from '../problems/entities/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
-import { FileService } from 'src/files/files.service';
-import { OcrService } from 'src/ocr/ocr.service';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AnalysisService } from 'src/analyses/analyses.service';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Injectable()
 export class SubmissionService {
@@ -44,7 +44,6 @@ export class SubmissionService {
     submissionDto: CreateSubmissionDto,
     files: Express.Multer.File[],
   ) {
-    // 유저조회 - 현재는 인증 로직 없으므로 직접 할당
     const user = await this.userRepository.findOneBy({
       id: userId,
     });
@@ -185,12 +184,6 @@ export class SubmissionService {
         userId,
       );
     }
-    // // OCR 변환 요청 큐 등록
-    // await this.ocrService.addOcrJob({
-    //   answer_image_url: savedSubmission.answerImageUrl,
-    //   submission_id: savedSubmission.id,
-    //   problem_answer: problem.answer,
-    // });
 
     // 해당 단원의 진도가 있는지 확인
     const progress = await this.userCategoryProgressRepository.findOne({

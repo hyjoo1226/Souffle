@@ -1,4 +1,3 @@
-// dto/move-problem-folder.dto.ts
 import { IsInt, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 

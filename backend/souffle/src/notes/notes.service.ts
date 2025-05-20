@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NoteFolder } from './entities/note-folder.entity';
-import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
+import { IsNull } from 'typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NoteFolder } from './entities/note-folder.entity';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteContent } from './entities/note-content.entity';
-import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { SubmissionStep } from 'src/submissions/entities/submission-step.entity';
-import { IsNull } from 'typeorm';
+import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
+import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 
 @Injectable()
 export class NoteService {
@@ -151,17 +151,17 @@ export class NoteService {
       where: { id: folderId },
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
-    // 즐겨찾기 최상위 폴더는 수정 불가
+
     if (folder.type === 1 && folder.parent_id === null) {
       throw new BadRequestException(
         '즐겨찾기 최상위 폴더는 삭제할 수 없습니다.',
       );
     }
-    // 공유 폴더(user_id가 null) 수정 방지
+
     if (folder.user_id === null) {
       throw new BadRequestException('공통 폴더의 이름은 변경할 수 없습니다.');
     }
-    // 자신의 폴더만 수정 가능하도록 추가 검증
+
     if (folder.user_id !== userId) {
       throw new BadRequestException('자신의 폴더만 수정할 수 있습니다.');
     }
@@ -176,40 +176,34 @@ export class NoteService {
     userId: number,
     sort_order: number,
   ) {
-    // 이동할 폴더 찾기
     const folder = await this.noteFolderRepository.findOne({
       where: { id: folderId },
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
-    // 즐겨찾기 최상위 폴더는 삭제 불가
+
     if (folder.type === 1 && folder.parent_id === null) {
       throw new BadRequestException(
         '즐겨찾기 최상위 폴더의 순서는 변경할 수 없습니다.',
       );
     }
-    // 공유 폴더(user_id가 null) 순서 변경 방지
+
     if (folder.user_id === null) {
       throw new BadRequestException('공통 폴더의 순서는 변경할 수 없습니다.');
     }
-    // 자신의 폴더만 순서 변경 가능하도록 추가 검증
+
     if (folder.user_id !== userId) {
       throw new BadRequestException('자신의 폴더만 순서를 변경할 수 있습니다.');
     }
 
-    // 원래 순서와 새 순서 저장
     const originalOrder = folder.sort_order;
     const newOrder = sort_order;
 
-    // 순서가 같으면 변경 없음
     if (originalOrder === newOrder) {
       return folder;
     }
-
-    // 같은 유저의 같은 부모 아래의 폴더들만 조정
     const queryBuilder = this.noteFolderRepository.createQueryBuilder();
     queryBuilder.where('user_id = :userId', { userId: folder.user_id });
 
-    // 부모 ID 조건 추가 (null 고려)
     if (folder.parent_id === null) {
       queryBuilder.andWhere('parent_id IS NULL');
     } else {
@@ -218,7 +212,6 @@ export class NoteService {
       });
     }
 
-    // 폴더를 위로 이동
     if (newOrder < originalOrder) {
       await queryBuilder
         .update(NoteFolder)
@@ -226,9 +219,7 @@ export class NoteService {
         .andWhere('sort_order >= :newOrder', { newOrder })
         .andWhere('sort_order < :originalOrder', { originalOrder })
         .execute();
-    }
-    // 폴더를 아래로 이동
-    else {
+    } else {
       await queryBuilder
         .update(NoteFolder)
         .set({ sort_order: () => 'sort_order - 1' })
@@ -236,8 +227,6 @@ export class NoteService {
         .andWhere('sort_order <= :newOrder', { newOrder })
         .execute();
     }
-
-    // 이동할 폴더의 순서 변경
     folder.sort_order = newOrder;
     return this.noteFolderRepository.save(folder);
   }
@@ -249,18 +238,16 @@ export class NoteService {
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
 
-    // 즐겨찾기 최상위 폴더는 삭제 불가
     if (folder.type === 1 && folder.parent_id === null) {
       throw new BadRequestException(
         '즐겨찾기 최상위 폴더는 삭제할 수 없습니다.',
       );
     }
-    // 공유 폴더(user_id가 null) 삭제 방지
+
     if (folder.user_id === null) {
       throw new BadRequestException('공통 폴더는 삭제할 수 없습니다.');
     }
 
-    // 자신의 폴더만 삭제 가능하도록 추가 검증
     if (folder.user_id !== userId) {
       throw new BadRequestException('자신의 폴더만 삭제할 수 있습니다.');
     }
@@ -451,7 +438,6 @@ export class NoteService {
 
   // 노트의 문제 상세 조회 API
   async getProblemDetail(userProblemId: number) {
-    // user_problem
     const userProblem = await this.userProblemRepository.findOne({
       where: { id: userProblemId },
       relations: ['problem', 'problem.book', 'problem.category'],
@@ -461,7 +447,6 @@ export class NoteService {
       throw new NotFoundException('문제 정보를 찾을 수 없습니다.');
     }
 
-    // note_content
     const noteContent = await this.noteContentRepository.findOne({
       where: { user_problem: { id: userProblemId } },
     });
@@ -471,7 +456,6 @@ export class NoteService {
       where: { id: userProblem.last_submission_id },
     });
 
-    // submission_steps
     const submissionSteps = lastSubmission
       ? await this.submissionStepRepository.find({
           where: { submission: { id: lastSubmission.id } },
@@ -550,7 +534,6 @@ export class NoteService {
       categoryId,
     ]);
 
-    // 계층 구조로 변환
     const categoryMap = new Map();
     categories.forEach((c) =>
       categoryMap.set(c.id, {
@@ -560,7 +543,6 @@ export class NoteService {
       }),
     );
 
-    // 부모-자식 관계 설정
     categories.forEach((c) => {
       if (c.parent_id && categoryMap.has(c.parent_id)) {
         const category = categoryMap.get(c.id);
@@ -568,13 +550,11 @@ export class NoteService {
       }
     });
 
-    // 루트 카테고리 반환
     return categoryMap.get(categoryId);
   }
 
-  // 새 유저를 위한 기본 노트 폴더 생성
+  // 새 유저를 위한 폴더 생성
   async createDefaultFoldersForUser(userId: number): Promise<void> {
-    // 최상위 폴더 생성
     const favoriteFolder = await this.noteFolderRepository.save({
       user: { id: userId },
       type: 1,
@@ -582,133 +562,5 @@ export class NoteService {
       parent: null,
       sort_order: 0,
     });
-
-    // const commonMath1 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '공통수학1',
-    //   parent: null,
-    //   sort_order: 0,
-    //   category: { id: 1 },
-    // });
-
-    // const commonMath2 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '공통수학2',
-    //   parent: null,
-    //   sort_order: 1,
-    //   category: { id: 14 },
-    // });
-
-    // // 중단원 폴더 생성
-    // const commonMath3 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '다항식',
-    //   parent: { id: commonMath1.id },
-    //   sort_order: 0,
-    //   category: { id: 2 },
-    // });
-
-    // const commonMath4 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '방정식과 부등식',
-    //   parent: { id: commonMath1.id },
-    //   sort_order: 1,
-    //   category: { id: 3 },
-    // });
-
-    // const commonMath5 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '경우의 수',
-    //   parent: { id: commonMath1.id },
-    //   sort_order: 2,
-    //   category: { id: 4 },
-    // });
-
-    // const commonMath6 = await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '행렬',
-    //   parent: { id: commonMath4.id },
-    //   sort_order: 3,
-    //   category: { id: 5 },
-    // });
-
-    // // 소단원 폴더 생성
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '다항식의 연산',
-    //   parent: { id: commonMath3.id },
-    //   sort_order: 0,
-    //   category: { id: 6 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '나머지정리',
-    //   parent: { id: commonMath3.id },
-    //   sort_order: 1,
-    //   category: { id: 7 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '인수분해',
-    //   parent: { id: commonMath3.id },
-    //   sort_order: 2,
-    //   category: { id: 8 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '복소수와 이차방정식',
-    //   parent: { id: commonMath4.id },
-    //   sort_order: 0,
-    //   category: { id: 9 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '이차방정식과 이차함수',
-    //   parent: { id: commonMath4.id },
-    //   sort_order: 1,
-    //   category: { id: 10 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '여러 가지 방정식과 부등식',
-    //   parent: { id: commonMath4.id },
-    //   sort_order: 2,
-    //   category: { id: 11 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '경우의 수',
-    //   parent: { id: commonMath5.id },
-    //   sort_order: 0,
-    //   category: { id: 12 },
-    // });
-
-    // await this.noteFolderRepository.save({
-    //   user: { id: userId },
-    //   type: 2,
-    //   name: '행렬과 그 연산',
-    //   parent: { id: commonMath6.id },
-    //   sort_order: 0,
-    //   category: { id: 13 },
-    // });
   }
 }

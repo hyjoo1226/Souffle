@@ -143,6 +143,10 @@ const ReviewNoteListPage = () => {
     ];
   }, [favoriteFolders, noteFolders]);
 
+  const [topFavoriteFolderId, setTopFavoriteFolderId] = useState<number | null>(
+    null
+  );
+
   const fetchFolderList = async () => {
     const folderList: Folder[] = await getFavoriteFoldersApi();
     const reviewFolderList: Folder[] = await getReviewNoteFolderApi();
@@ -155,7 +159,12 @@ const ReviewNoteListPage = () => {
     const noteFolders = reviewFolderList
       .filter((f) => f.type === 2)
       .sort((a, b) => a.id - b.id);
-    console.log("favoriteFolders", reviewFolderList);
+
+    const topFolderId = folderList.find(
+      (f) => f.type === 1 && f.parent_id === null
+    )?.id;
+    setTopFavoriteFolderId(topFolderId || null);
+    // console.log("topFavoriteFolderId", topFolderId);
 
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
@@ -180,6 +189,7 @@ const ReviewNoteListPage = () => {
                 favoriteFolders={favoriteFolders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
+
                 // onDropProblem={handleDropProblemToSection}
               />
             ))
@@ -230,6 +240,7 @@ const ReviewNoteListPage = () => {
                           setReviewNoteList={setReviewNoteList}
                           handleSelectUnit={handleSelectUnit}
                           setSelectedProblemIds={setSelectedProblemIds}
+                          topFavoriteFolderId={topFavoriteFolderId}
                         />
                       </div>
                     )}
@@ -288,10 +299,7 @@ const ReviewNoteListPage = () => {
                     </div>
                   </div>
                   <div className="col-span-6 ">
-                    <ProblemPreview
-                      selectedProblem={selectedProblem}
-                      selectedProblemId={selectedProblemIds}
-                    />
+                    <ProblemPreview selectedProblem={selectedProblem} />
                   </div>
                 </div>
               </div>

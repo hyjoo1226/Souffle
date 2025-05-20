@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { ReactComponent as Cake } from "@/assets/icons/BackgroundCake.svg";
 
 const LandingPage = () => {
   const cardItems = [
@@ -71,13 +72,13 @@ const LandingPage = () => {
   ];
 
   return (
-    <div className="min-h-screen w-full relative bg-gradient-to-b from-[#EBF2FE] to-[#FFFFFF] flex flex-col justify-center items-center">
-      <img
+    <div className="min-h-screen w-full overflow-hidden relative bg-gradient-to-b from-[#EBF2FE] to-[#FFFFFF] flex flex-col justify-center items-center">
+      {/* <img
         src="/icons/landing-back.png"
         alt="배경 이미지"
         className="absolute top-0 left-0 w-full h-full object-cover opacity-80 pointer-events-none"
-      />
-
+      /> */}
+      <Cake className="absolute top-30 left-0 overflow-hidden w-full h-full object-cover opacity-80 pointer-events-none" />
       {/* 텍스트 영역 */}
       <div className="flex flex-col gap-4 mb-10 px-6 z-10 text-center">
         <p className="headline-medium text-gray-500">
