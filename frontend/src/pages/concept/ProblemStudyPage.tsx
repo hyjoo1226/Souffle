@@ -53,7 +53,6 @@ const ProblemStudyPage = () => {
 
     const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<string[][]>([]);
-    // const [showWrongMark, setShowWrongMark] = useState(false);
     const [isChecked, setIsChecked] = useState<boolean[]>([]);
 
     useEffect(() => {
@@ -67,34 +66,15 @@ const ProblemStudyPage = () => {
         const updatedAnswers = [...userAnswers];
         updatedAnswers[currentProblemIndex][blankIndex] = choice;
         setUserAnswers(updatedAnswers);
+        setShowResultMark('none'); // 답안 변경 시 그림 숨기기
     };
 
     const handleCancelAnswer = (blankIndex: number) => {
         const updatedAnswers = [...userAnswers];
         updatedAnswers[currentProblemIndex][blankIndex] = "";
         setUserAnswers(updatedAnswers);
+        setShowResultMark('none'); // 답안 변경 시 그림 숨기기
     };
-
-    // const handleCheckAnswer = () => {
-    //     const isAllCorrect = currentProblem.correctAnswers.every(
-    //         (answer: string, idx: number) => userAnswers[currentProblemIndex][idx] === answer
-    //     );
-
-    //     if (isAllCorrect) {
-    //         const updatedChecked = [...isChecked];
-    //         updatedChecked[currentProblemIndex] = true;
-    //         setIsChecked(updatedChecked);
-
-    //         if (currentProblemIndex < problemList.length - 1) {
-    //             setCurrentProblemIndex(currentProblemIndex + 1);
-    //         } else {
-    //             navigate(`/study/${category_id}`);
-    //         }
-    //         setShowWrongMark(false);
-    //     } else {
-    //         setShowWrongMark(true);
-    //     }
-    // };
 
     const problemStatuses = problemList.map((problem, index) => ({
         title: problem.title,
@@ -117,11 +97,11 @@ const ProblemStudyPage = () => {
             const isAllCorrect = currentProblem.correctAnswers.every(
                 (answer, idx) => userAnswers[currentProblemIndex][idx] === answer
             );
-            const updatedChecked = [...isChecked];
-            updatedChecked[currentProblemIndex] = true;
-            setIsChecked(updatedChecked);
 
             if (isAllCorrect) {
+                const updatedChecked = [...isChecked];
+                updatedChecked[currentProblemIndex] = true;
+                setIsChecked(updatedChecked);
                 setShowResultMark('correct');
             } else {
                 setShowResultMark('wrong');
@@ -134,9 +114,6 @@ const ProblemStudyPage = () => {
             } else {
                 navigate(`/study/${category_id}`);
             }
-        } else {
-            // 오답인 경우엔 그림만 계속 보여주고, '다음 문제' 없음
-            setShowResultMark('none');
         }
     };
 
@@ -165,6 +142,7 @@ const ProblemStudyPage = () => {
                     onChoiceClick={handleChoiceClick}
                     onCancelAnswer={handleCancelAnswer}
                     showResultMark={showResultMark}
+                    isCorrect={showResultMark === 'correct'}
                 />
                 </>
             ) : (
