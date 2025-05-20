@@ -5,6 +5,7 @@ import { Between } from 'typeorm';
 import { NotFoundException } from '@nestjs/common';
 import { NoteService } from 'src/notes/notes.service';
 import { User } from './entities/user.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
 import { UserCategoryProgress } from './entities/user-category-progress.entity';
 import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
@@ -29,6 +30,8 @@ export class UserService {
     private userScoreStatRepository: Repository<UserScoreStat>,
     @InjectRepository(UserProblem)
     private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(Problem)
+    private problemRepository: Repository<Problem>,
     @InjectRepository(Category)
     private categoryRepository: Repository<Category>,
     @InjectRepository(Submission)
@@ -244,23 +247,36 @@ export class UserService {
     });
 
     for (const leafCategory of leafCategories) {
-      const userProblems = await this.userProblemRepository
+      const totalProblems = await this.problemRepository.count({
+        where: { category: { id: leafCategory.id } },
+      });
+
+      const solvedProblems = await this.userProblemRepository
         .createQueryBuilder('up')
         .innerJoin('up.problem', 'p')
         .where('up.user_id = :userId', { userId })
         .andWhere('p.categoryId = :categoryId', { categoryId: leafCategory.id })
-        .getMany();
+        .getCount();
 
-      const total = userProblems.length;
-      const correct = userProblems.filter((up) => up.correct_count > 0).length;
-      const solved = userProblems.filter((up) => up.try_count > 0).length;
+      const correct = await this.userProblemRepository
+        .createQueryBuilder('up')
+        .innerJoin('up.problem', 'p')
+        .where('up.user_id = :userId', { userId })
+        .andWhere('p.categoryId = :categoryId', { categoryId: leafCategory.id })
+        .andWhere('up.correct_count > 0')
+        .getCount();
+
       const categoryData = {
         id: leafCategory.id,
         name: leafCategory.name,
         type: leafCategory.type,
         avgAccuracy: leafCategory.avgAccuracy || 0,
-        accuracy_rate: total ? Math.round((correct / total) * 1000) / 10 : 0,
-        progress_rate: total ? Math.round((solved / total) * 1000) / 10 : 0,
+        accuracy_rate: solvedProblems
+          ? Math.round((correct / solvedProblems) * 1000) / 10
+          : 0,
+        progress_rate: totalProblems
+          ? Math.round((solvedProblems / totalProblems) * 1000) / 10
+          : 0,
       };
 
       const topParentId = getTopParentId(leafCategory.id);
