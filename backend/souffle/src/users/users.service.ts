@@ -175,7 +175,7 @@ export class UserService {
   async getProfile(userId: number) {
     const result = await this.userRepository
       .createQueryBuilder('user')
-      .leftJoinAndSelect('user.userAuthentications', 'auth')
+      .leftJoinAndSelect('user.authentications', 'auth')
       .where('user.id = :userId', { userId })
       .andWhere('auth.provider = :provider', { provider: 'google' }) // 필요시 provider 조건
       .select([
