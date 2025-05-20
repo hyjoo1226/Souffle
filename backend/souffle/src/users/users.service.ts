@@ -216,25 +216,14 @@ export class UserService {
     const allCategories = await this.categoryRepository.find({
       relations: ['parent'],
     });
-
     const topCategories = allCategories.filter((cat) => cat.type === 1);
     const leafCategories = allCategories.filter((cat) => cat.type === 3);
     const categoryMap = new Map(allCategories.map((cat) => [cat.id, cat]));
 
-    function getTopParentId(categoryId) {
-      let current = categoryMap.get(categoryId);
-      if (!current) return null;
-
-      let parentId = current.parent ? current.parent.id : null;
-      while (parentId) {
-        current = categoryMap.get(parentId);
-        if (!current) break;
-
-        if (current.type === 1) return current.id;
-        parentId = current.parent ? current.parent.id : null;
-      }
-      return null;
-    }
+    const progresses = await this.userCategoryRepository.find({
+      where: { userId },
+    });
+    const progressMap = new Map(progresses.map((p) => [p.categoryId, p]));
 
     const topCategoryMap = new Map();
     topCategories.forEach((cat) => {
@@ -247,46 +236,33 @@ export class UserService {
     });
 
     for (const leafCategory of leafCategories) {
-      const totalProblems = await this.problemRepository.count({
-        where: { category: { id: leafCategory.id } },
-      });
-
-      const solvedProblems = await this.userProblemRepository
-        .createQueryBuilder('up')
-        .innerJoin('up.problem', 'p')
-        .where('up.user_id = :userId', { userId })
-        .andWhere('p.categoryId = :categoryId', { categoryId: leafCategory.id })
-        .getCount();
-
-      const correct = await this.userProblemRepository
-        .createQueryBuilder('up')
-        .innerJoin('up.problem', 'p')
-        .where('up.user_id = :userId', { userId })
-        .andWhere('p.categoryId = :categoryId', { categoryId: leafCategory.id })
-        .andWhere('up.correct_count > 0')
-        .getCount();
-
+      const progress = progressMap.get(leafCategory.id);
       const categoryData = {
         id: leafCategory.id,
         name: leafCategory.name,
         type: leafCategory.type,
         avgAccuracy: leafCategory.avgAccuracy || 0,
-        accuracy_rate: solvedProblems
-          ? Math.round((correct / solvedProblems) * 1000) / 10
-          : 0,
-        progress_rate: totalProblems
-          ? Math.round((solvedProblems / totalProblems) * 1000) / 10
-          : 0,
+        accuracy_rate: progress ? progress.testAccuracy || 0 : 0,
+        progress_rate: progress ? progress.progressRate || 0 : 0,
       };
 
-      const topParentId = getTopParentId(leafCategory.id);
-      if (topParentId && topCategoryMap.has(topParentId)) {
-        topCategoryMap.get(topParentId).sub_categories.push(categoryData);
+      // 최상위 parent 찾기
+      let current: Category | undefined = leafCategory;
+      let parentId = current.parent ? current.parent.id : null;
+      while (parentId) {
+        current = categoryMap.get(parentId);
+        if (!current) break;
+        if (current.type === 1) {
+          if (topCategoryMap.has(current.id)) {
+            topCategoryMap.get(current.id).sub_categories.push(categoryData);
+          }
+          break;
+        }
+        parentId = current.parent ? current.parent.id : null;
       }
     }
 
     const result = Array.from(topCategoryMap.values());
-
     return { categories: result };
   }
 
