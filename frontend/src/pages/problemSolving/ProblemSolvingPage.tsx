@@ -56,6 +56,9 @@ const ProblemSolvingPage = () => {
 
   const goToNext = () => {
     if (problemIndex < problemList.length - 1) {
+      solutionRef.current?.resetCanvas();
+      answerRef.current?.resetCanvas();
+      setIscorrect(null);
       const next = problemIndex + 1;
       const nextProblem = problemList[next];
 
@@ -74,6 +77,9 @@ const ProblemSolvingPage = () => {
 
   const goToPrevious = () => {
     if (problemIndex > 0) {
+      solutionRef.current?.resetCanvas();
+      answerRef.current?.resetCanvas();
+      setIscorrect(null);
       const prev = problemIndex - 1;
       const prevProblem = problemList[prev];
 
