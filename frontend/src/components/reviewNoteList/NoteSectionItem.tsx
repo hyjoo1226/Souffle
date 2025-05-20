@@ -166,7 +166,7 @@ const NoteSectionItem = ({
                 }
               >
                 <p className="body-medium text-gray-600">{child.name}</p>
-                <p className="caption-medium text-primary-700">
+                <p className="caption-medium text-primary-500">
                   {child.problem_count ?? 0}
                 </p>
               </div>
