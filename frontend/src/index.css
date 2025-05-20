@@ -204,6 +204,25 @@
       display: none; /* Chrome, Safari, Opera */
     }
   }
+
+  .scrollbar-visible {
+    scrollbar-width: auto; /* Firefox */
+    -ms-overflow-style: auto; /* IE & Edge */
+  }
+  .scrollbar-visible {
+    scrollbar-width: auto !important; /* Firefox */
+    -ms-overflow-style: auto !important; /* IE & Edge */
+  }
+
+  .scrollbar-visible::-webkit-scrollbar {
+    width: 8px !important;
+    display: block !important;
+  }
+
+  .scrollbar-visible::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.4) !important;
+    border-radius: 4px;
+  }
 }
 
 body {

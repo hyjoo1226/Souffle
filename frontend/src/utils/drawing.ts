@@ -28,9 +28,9 @@ export function drawBlocksOnCanvas(canvas: HTMLCanvasElement, blocks: any[]) {
 
   for (const block of blocks) {
     for (const stroke of block.strokes) {
-      const isLong = stroke.duration > 2000;
-      ctx.strokeStyle = isLong ? "red" : "black";
-      ctx.lineWidth = isLong ? 3 : 1.5;
+      // const isLong = stroke.duration > 2000;
+      // ctx.strokeStyle = isLong ? "red" : "black";
+      // ctx.lineWidth = isLong ? 3 : 1.5;
 
       // 각 획을 그리기
       ctx.beginPath();
@@ -233,7 +233,7 @@ export async function generateAnswerImage(
   const answerBlob = await new Promise<Blob>((resolve) =>
     canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
   );
-  window.open(URL.createObjectURL(answerBlob));
+  // window.open(URL.createObjectURL(answerBlob));
   return answerBlob;
 }
 
@@ -282,7 +282,7 @@ export async function generateStepImages(
     const stepFileName = `step${String(stepNumber).padStart(2, "0")}.jpg`;
     // console.log("개수보자", snapshot.length);
 
-    window.open(URL.createObjectURL(stepBlob));
+    // window.open(URL.createObjectURL(stepBlob));
 
     steps.push({
       step_number: stepNumber,
@@ -304,7 +304,7 @@ export async function generateFullStepImage(
   const fullStepBlob = await new Promise<Blob>((resolve) =>
     canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
   );
-  window.open(URL.createObjectURL(fullStepBlob));
+  // window.open(URL.createObjectURL(fullStepBlob));
 
   return {
     file_name: "full_step.jpg",
