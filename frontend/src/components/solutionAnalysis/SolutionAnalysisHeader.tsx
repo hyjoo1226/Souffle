@@ -50,19 +50,31 @@ const SolutionAnalysisHeader = ({
 
   return (
     <>
-      {isFavoriteModalOpen && (
-        <FolderSelectModal
-          favoriteFolders={favoriteFolders || []}
-          selectedProblemIds={submissionId}
-          setFavoriteFolders={setFavoriteFolders}
-          setIsFavoriteModalOpen={setIsFavoriteModalOpen}
-          reviewNoteList={reviewNoteList}
-          setReviewNoteList={setReviewNoteList}
-          handleSelectUnit={handleSelectUnit}
-          setSelectedProblemIds={() => {}}
-          topFavoriteFolderId={topFavoriteFolderId}
-        />
-      )}
+      {
+        isFavoriteModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
+            onClick={() => setIsFavoriteModalOpen(false)}
+          >
+            <div
+              className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FolderSelectModal
+                favoriteFolders={favoriteFolders || []}
+                selectedProblemIds={submissionId}
+                setFavoriteFolders={setFavoriteFolders}
+                setIsFavoriteModalOpen={setIsFavoriteModalOpen}
+                reviewNoteList={reviewNoteList}
+                setReviewNoteList={setReviewNoteList}
+                handleSelectUnit={handleSelectUnit}
+                setSelectedProblemIds={() => {}}
+                topFavoriteFolderId={topFavoriteFolderId}
+              />
+            </div>
+          </div>
+        )
+      }
       <div className="flex items-start justify-between py-[21px]">
         <div className="">
           <p className="headline-large text-gray-700 mb-[8px]">
