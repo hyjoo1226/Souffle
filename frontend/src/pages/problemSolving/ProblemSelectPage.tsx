@@ -161,7 +161,7 @@ const ProblemSelectPage = () => {
         {/* 문제 리스트 */}
         <div className="flex flex-col h-screen overflow-y-auto">
           <div className="flex justify-end">
-            <div className="flex body-small text-gray-700 w-60">
+            <div className="flex body-small text-gray-700 w-80">
               <p
                 onClick={() => setSortType("default")}
                 className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
