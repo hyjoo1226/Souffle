@@ -143,6 +143,25 @@ export class SubmissionService {
       );
     }
 
+    // 동기 OCR 처리
+    try {
+      const answerConvert = await this.ocrService.convertOcr(
+        savedSubmission.answerImageUrl,
+      );
+      savedSubmission.answerConvert = answerConvert;
+      savedSubmission.isCorrect = answerConvert === problem.answer;
+      await this.submissionRepository.save(savedSubmission);
+    } catch (error) {
+      console.error('OCR 변환 실패로 채점 생략');
+      savedSubmission.isCorrect = null;
+      await this.submissionRepository.save(savedSubmission);
+      return this.updateStatsAndReturnResponse(
+        problem,
+        savedSubmission,
+        userId,
+      );
+    }
+
     // user_problem 테이블 생성/갱신
     await this.userProblemRepository.query(
       `
@@ -165,25 +184,6 @@ export class SubmissionService {
         noteFolder.id,
       ],
     );
-
-    // 동기 OCR 처리
-    try {
-      const answerConvert = await this.ocrService.convertOcr(
-        savedSubmission.answerImageUrl,
-      );
-      savedSubmission.answerConvert = answerConvert;
-      savedSubmission.isCorrect = answerConvert === problem.answer;
-      await this.submissionRepository.save(savedSubmission);
-    } catch (error) {
-      console.error('OCR 변환 실패로 채점 생략');
-      savedSubmission.isCorrect = null;
-      await this.submissionRepository.save(savedSubmission);
-      return this.updateStatsAndReturnResponse(
-        problem,
-        savedSubmission,
-        userId,
-      );
-    }
 
     // 해당 단원의 진도가 있는지 확인
     const progress = await this.userCategoryProgressRepository.findOne({
