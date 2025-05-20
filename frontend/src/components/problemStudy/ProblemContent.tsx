@@ -17,6 +17,7 @@ interface ProblemContentProps {
   onChoiceClick: (blankIndex: number, choice: string) => void;
   onCancelAnswer: (blankIndex: number) => void;
   showResultMark: 'none' | 'correct' | 'wrong';
+  isCorrect: boolean;
 }
 
 const ProblemContent = ({
@@ -25,6 +26,7 @@ const ProblemContent = ({
   onChoiceClick,
   onCancelAnswer,
   showResultMark,
+  isCorrect
 }: ProblemContentProps) => {
   const [activeBlankIndex, setActiveBlankIndex] = useState(0);
 
@@ -80,7 +82,7 @@ const ProblemContent = ({
             <span className="min-w-[80px] px-2 py-1 border rounded body-medium text-center block border-gray-300 text-gray-600">
               {userAnswer[i] || "_____"}
             </span>
-            {userAnswer[i] && (
+            {userAnswer[i] && !isCorrect && (
               <button
                 className="absolute -top-2 -left-1.5"
                 onClick={() => onCancelAnswer(i)}
@@ -107,8 +109,8 @@ const ProblemContent = ({
       )}
       {showResultMark === 'correct' && (
         <img
-          src="/icons/false.png"
-          alt="틀림"
+          src="/icons/true.png"
+          alt="맞음"
           className="absolute -top-10 -left-3 w-30 h-40"
         />
       )}
@@ -143,7 +145,8 @@ const ProblemContent = ({
                 className={`px-4 py-1 rounded border
                   ${activeBlankIndex === index ? "bg-primary-100 border-primary-500" : "border-gray-300"}
                   ${userAnswer[index] ? "text-primary-700 font-semibold" : "text-gray-500"}`}
-                onClick={() => setActiveBlankIndex(index)}
+                onClick={() => !isCorrect && setActiveBlankIndex(index)}
+                disabled={isCorrect}
               >
                 {index + 1}번
               </button>
@@ -159,7 +162,7 @@ const ProblemContent = ({
                   ${userAnswer[activeBlankIndex] === choice ? "bg-primary-100 border-primary-500 text-primary-700" : "border-gray-400 text-gray-500"}
                   hover:bg-primary-50`}
                 onClick={() => onChoiceClick(activeBlankIndex, choice)}
-                disabled={!!userAnswer[activeBlankIndex]}
+                disabled={!!userAnswer[activeBlankIndex] || isCorrect}
               >
                 {choice}
               </button>
