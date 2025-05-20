@@ -7,6 +7,8 @@ from app.services.ai_analysis_service import AIAnalysisService
 from app.services.result_saver import save_analysis_result
 from app.core.exceptions import OCRError, MathParsingError
 import logging
+import re
+import difflib
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -75,7 +77,8 @@ async def analyze_equation_steps(
             latex=latex_list[0],
             is_valid=True,
             confidence=confidence_list[0],
-            step_feedback="첫 단계 수식입니다."
+            step_feedback="첫 단계 수식입니다.",
+            current_latex=latex_list[0]  # 첫 단계는 전체가 새로운 수식
         ))
         
         # analysis_result["steps"]에서 각 분석 결과를 AnalyzedStep으로 변환
@@ -83,24 +86,36 @@ async def analyze_equation_steps(
             step_index = i + 1  # 0-기반 인덱스로 변환
             
             if step_index < len(latex_list):
+                # 현재 단계와 이전 단계의 수식 비교하여 추가된 부분 찾기
+                prev_latex = latex_list[step_index - 1]
+                curr_latex = latex_list[step_index]
+                current_latex = await extract_new_content(prev_latex, curr_latex)
+                
                 steps.append(AnalyzedStep(
                     step_index=step_index,
                     latex=latex_list[step_index],
                     is_valid=analysis.get("is_valid", True),
                     confidence=confidence_list[step_index] if step_index < len(confidence_list) else 0.0,
-                    step_feedback=analysis.get("step_feedback", "")
+                    step_feedback=analysis.get("step_feedback", ""),
+                    current_latex=current_latex
                 ))
         
         # 분석 결과가 없거나 스텝 수가 맞지 않는 경우, 누락된 스텝 추가
         if len(steps) < len(latex_list):
             for i in range(len(latex_list)):
                 if not any(step.step_index == i for step in steps):
+                    # 현재 단계와 이전 단계의 수식 비교하여 추가된 부분 찾기
+                    prev_latex = latex_list[i-1] if i > 0 else ""
+                    curr_latex = latex_list[i]
+                    current_latex = await extract_new_content(prev_latex, curr_latex) if i > 0 else curr_latex
+                    
                     steps.append(AnalyzedStep(
                         step_index=i,
                         latex=latex_list[i],
                         is_valid=True,  # 분석되지 않은 스텝은 유효한 것으로 간주
                         confidence=confidence_list[i] if i < len(confidence_list) else 0.0,
-                        step_feedback="분석되지 않은 스텝입니다."
+                        step_feedback="분석되지 않은 스텝입니다.",
+                        current_latex=current_latex
                     ))
         
         # 스텝 순서로 정렬
@@ -184,7 +199,7 @@ async def analyze_equation_steps(
             }
         )
         logger.info(f"분석 결과 저장 완료: {save_path}")
-
+        
         # result_schema.py에는 ai_analysis와 weakness 필드가 없지만, 클라이언트에서 필요한 체계
         # 이 분석 결과는 ocr_router에서 사용됨
         # AnalysisResult 객체에 저장하지 않고 로깅만 함
@@ -213,3 +228,218 @@ async def analyze_equation_steps(
         # 기타 예외 처리
         logger.error(f"분석 서비스 오류: {str(e)}")
         raise
+
+
+async def extract_new_content(prev_latex: str, curr_latex: str) -> str:
+    """
+    이전 수식과 현재 수식을 비교하여 추가된 내용을 LLM에게 물어 그 결과를 반환합니다.
+    
+    Args:
+        prev_latex (str): 이전 단계의 LaTeX 수식
+        curr_latex (str): 현재 단계의 LaTeX 수식
+        
+    Returns:
+        str: 현재 단계에서 새롭게 추가된 LaTeX 수식
+    """
+    from app.core.config import settings
+    from openai import AsyncOpenAI
+    import json
+    
+    # 첫 단계의 경우 전체 내용을 반환
+    if not prev_latex:
+        return curr_latex
+        
+    # 공백 처리와 기본 체크
+    prev_latex = prev_latex.strip()
+    curr_latex = curr_latex.strip()
+    
+    # 완전히 동일한 경우 빈 내용 반환
+    if prev_latex == curr_latex:
+        return ""
+    
+    try:
+        # OpenAI API 키 가져오기
+        api_key = settings.OPENAI_API_KEY
+        model = getattr(settings, "OPENAI_MODEL", "gpt-4o-mini") 
+        
+        if not api_key:
+            # API 키가 없으면 기본 로직으로 반환
+            return await fallback_extract_new_content(prev_latex, curr_latex)
+        
+        # LLM에게 수식 비교 요청
+        client = AsyncOpenAI(api_key=api_key)
+        system_prompt = """당신은 학생의 수학 풀이 과정을 분석하는 전문가입니다. 
+두 단계의 LaTeX 수식을 비교하여 현재 단계에 추가된 부분만 추출해야 합니다.
+
+이전 단계의 수식과 현재 단계의 수식을 비교하여, 오직 새로 추가된 부분만 LaTeX 형식으로 추출해 주세요.
+
+추가된 부분이 없다면 빈 문자열을 반환하세요.
+
+반드시 JSON 형식으로 다음과 같이 응답해야 합니다: {"added_content": "LaTeX 형식의 추가된 수식"}
+다른 설명이나 메시지는 포함하지 마세요. JSON만 반환하세요."""
+        
+        user_prompt = f"""이전 LaTeX 수식: {prev_latex}
+
+현재 LaTeX 수식: {curr_latex}
+
+위 두 수식을 비교해서, 현재 수식에서 이전 수식에 비해 추가된 부분만 추출해 주세요. 
+이전 수식에 없는 부분만 추출하세요."""
+        
+        response = await client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"}
+        )
+        
+        # 응답 추출
+        response_text = response.choices[0].message.content.strip()
+        
+        try:
+            response_json = json.loads(response_text)
+            added_content = response_json.get("added_content", "")
+            
+            # 추가된 내용이 지나치게 길다면, 원본 비교 방식으로 둘 수 있음
+            if len(added_content) > len(curr_latex):
+                return await fallback_extract_new_content(prev_latex, curr_latex)
+                
+            return added_content
+        except json.JSONDecodeError:
+            # JSON 파싱 오류시 텍스트 응답에서 추가된 내용 추출 시도
+            logger.warning(f"JSON 파싱 오류 발생: {response_text}")
+            return await fallback_extract_new_content(prev_latex, curr_latex)
+    
+    except Exception as e:
+        # 오류 발생시 기본 알고리즘으로 돌아감
+        logger.error(f"LLM 수식 추출 오류: {str(e)}")
+        return await fallback_extract_new_content(prev_latex, curr_latex)
+
+
+async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
+    """
+    LLM이 수식 추출에 실패할 경우 사용하는 백업 차이감지 방법
+    
+    Args:
+        prev_latex (str): 이전 단계의 LaTeX 수식
+        curr_latex (str): 현재 단계의 LaTeX 수식
+        
+    Returns:
+        str: 현재 단계에서 새롭게 추가된 LaTeX 수식
+    """
+    if not prev_latex:
+        return curr_latex
+        
+    # 공백과 줄바꿈 정규화
+    prev_latex = prev_latex.strip()
+    curr_latex = curr_latex.strip()
+    
+    # 완전히 동일한 경우 빈 내용 반환
+    if prev_latex == curr_latex:
+        return ""
+
+    # array 환경 처리 로직
+    array_content_re = re.compile(r'\\begin\{array\}(?:\{[^}]*\})?(.*?)\\end\{array\}', re.DOTALL)
+    
+    # array 환경이 있는지 확인
+    prev_has_array = '\\begin{array}' in prev_latex
+    curr_has_array = '\\begin{array}' in curr_latex
+    
+    # array 환경 내용 추출
+    if curr_has_array:
+        # 현재 array 내용 추출
+        curr_array_match = array_content_re.search(curr_latex)
+        if curr_array_match:
+            curr_array_content = curr_array_match.group(1).strip()
+            curr_lines = [line.strip() for line in curr_array_content.split('\\\\') if line.strip()]
+            
+            # 이전 내용과 비교
+            if prev_has_array:
+                # 이전 array 내용 추출
+                prev_array_match = array_content_re.search(prev_latex)
+                if prev_array_match:
+                    prev_array_content = prev_array_match.group(1).strip()
+                    prev_lines = [line.strip() for line in prev_array_content.split('\\\\') if line.strip()]
+                    
+                    # 이전에 없던 새 라인 찾기
+                    added_lines = []
+                    for line in curr_lines:
+                        if line not in prev_lines:
+                            added_lines.append(line)
+                    
+                    if added_lines:
+                        return "\n".join(added_lines)
+                    
+                    # 라인 비교해서 추가된 부분 찾기
+                    for curr_line in curr_lines:
+                        for prev_line in prev_lines:
+                            if curr_line != prev_line and prev_line in curr_line:
+                                # 기존 라인이 현재 라인에 포함되는 경우
+                                added_content = curr_line.replace(prev_line, '', 1).strip()
+                                if added_content:
+                                    return added_content
+            else:
+                # 이전에 array가 없었으므로 첫번째 줄만 반환 (일반적으로 첫번째 줄이 새로 추가된 내용)
+                if curr_lines and len(curr_lines) > 0:
+                    # 이전 내용과 비교하여 완전히 포함된 라인 제외
+                    for line in curr_lines:
+                        if prev_latex not in line and line not in prev_latex:
+                            return line
+    
+    # 비 array 환경의 처리 또는 array 특수 처리에서 결과를 못 찾은 경우
+    
+    # 줄 단위로 비교
+    prev_lines = [line.strip() for line in prev_latex.split('\n') if line.strip()]
+    curr_lines = [line.strip() for line in curr_latex.split('\n') if line.strip()]
+    
+    # 전체 개행 문자를 공백으로 변환한 단일 문자열
+    prev_single_line = ' '.join(prev_lines)
+    curr_single_line = ' '.join(curr_lines)
+    
+    # 새로운 줄이 추가된 경우
+    new_lines = []
+    for line in curr_lines:
+        if line not in prev_lines:
+            # 이미 존재하는 줄에 추가된 부분인지 확인
+            is_addition = False
+            for prev_line in prev_lines:
+                if prev_line in line and prev_line != line:
+                    # 추가된 부분 추출
+                    added_content = line.replace(prev_line, '', 1).strip()
+                    if added_content:
+                        new_lines.append(added_content)
+                        is_addition = True
+                        break
+            
+            # 기존 줄에 추가된 부분이 아니면 새 줄 그대로 추가
+            if not is_addition:
+                new_lines.append(line)
+    
+    # 새 줄이 있으면 반환
+    if new_lines:
+        return '\n'.join(new_lines)
+    
+    # 추가된 텍스트가 없는 경우 전체 문자열 레벨에서 비교
+    if prev_single_line in curr_single_line and prev_single_line != curr_single_line:
+        added_content = curr_single_line.replace(prev_single_line, '', 1).strip()
+        if added_content:
+            return added_content
+    
+    # difflib을 사용한 문자열 비교
+    matcher = difflib.SequenceMatcher(None, prev_single_line, curr_single_line)
+    diff_blocks = []
+    
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag in ('insert', 'replace'):
+            diff_part = curr_single_line[j1:j2]
+            if diff_part.strip():
+                diff_blocks.append(diff_part)
+    
+    if diff_blocks:
+        # 중복 제거 및 정렬된 차이점 반환
+        diff_content = ' '.join(diff_blocks)
+        return diff_content
+    
+    # 모든 방법으로 새 내용을 찾지 못한 경우
+    return ""
