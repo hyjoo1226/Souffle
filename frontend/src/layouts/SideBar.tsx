@@ -65,7 +65,7 @@ const SideBar = ({
         </div>
         <div className="flex gap-2.5 mb-5.5 items-center">
           <img
-            src={user?.profile_image}
+            src={user?.profileImage}
             alt="프로필 이미지"
             className="w-10 h-10 rounded-full border border-gray-200"
             referrerPolicy="no-referrer"
