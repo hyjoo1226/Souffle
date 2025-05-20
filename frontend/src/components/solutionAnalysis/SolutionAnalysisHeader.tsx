@@ -1,5 +1,5 @@
 // 풀이 분석 페이지 상단 부분
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { ReactComponent as Expand } from "@/assets/icons/Expand.svg";
 import FolderSelectModal from "../reviewNoteList/FolderSelectModal";
@@ -40,6 +40,7 @@ const SolutionAnalysisHeader = ({
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
+  const navigate = useNavigate();
 
   const handleSelectUnit = () => {
     // console.log();
@@ -63,6 +64,42 @@ const SolutionAnalysisHeader = ({
   useEffect(() => {
     fetchFolderList();
   }, []);
+
+  const goToPrevious = () => {
+    if (problemIndex > 0) {
+      const prev = problemIndex - 1;
+      const prevProblem = problemList[prev];
+
+      navigate(`/solving/${prevProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: prevProblem.inner_no, // 문제 번호 갱신
+          problemIndex: prev,
+          problemList,
+        },
+      });
+    }
+  };
+
+  const goToNext = () => {
+    if (problemIndex < problemList.length - 1) {
+      const next = problemIndex + 1;
+      const nextProblem = problemList[next];
+
+      navigate(`/solving/${nextProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: nextProblem.inner_no, // 문제 번호 갱신
+          problemIndex: next,
+          problemList,
+        },
+      });
+    }
+  };
 
   return (
     <>
@@ -102,20 +139,20 @@ const SolutionAnalysisHeader = ({
           </p>
         </div>
         <div className="flex space-x-6">
-          <Link
-            to="#"
+          <div
             className="flex items-center justify-center text-gray-500"
+            onClick={goToPrevious}
           >
             <Expand className="text-gray-500" />
             <p className="headline-small">이전 문제</p>
-          </Link>
-          <Link
-            to="#"
+          </div>
+          <div
             className="flex items-center justify-center text-gray-500"
+            onClick={goToNext}
           >
             <p className="headline-small">다음 문제</p>
             <Expand className="text-gray-500 transform -scale-x-100" />
-          </Link>
+          </div>
 
           <Link 
             to={`/solving/${problemId}`} 
