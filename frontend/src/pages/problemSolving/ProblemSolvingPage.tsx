@@ -147,15 +147,17 @@ const ProblemSolvingPage = () => {
     stepsData.forEach(({ blob, file_name }) => {
       formData.append("files", blob, file_name);
     });
-
     const used = stepMeta.reduce(
       (acc: number, s: { step_time: number }) => acc + s.step_time,
       0
     );
     const lastGap = Math.max(0, timing.solveTime - used);
 
-    // 마지막 step에 보정 적용
-    stepMeta[stepMeta.length - 1].step_time = lastGap;
+    if (stepMeta.length > 0) {
+      stepMeta[stepMeta.length - 1].step_time = lastGap;
+    }
+    // // 마지막 step에 보정 적용
+    // stepMeta[stepMeta.length - 1].step_time = lastGap;
 
     // fullStep 이미지 파일 추가
     if (fullStep?.blob) {

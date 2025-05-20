@@ -101,7 +101,7 @@ const NoteSectionItem = ({
           )}
           <Folder className="text-gray-700" />
           <p className="body-medium text-gray-700">{sectionTitle}</p>
-          <p className="caption-medium text-primary-700">{count}</p>
+          <p className="body-medium text-primary-700">{count}</p>
         </div>
 
         {type === 1 && (
@@ -166,7 +166,7 @@ const NoteSectionItem = ({
                 }
               >
                 <p className="body-medium text-gray-600">{child.name}</p>
-                <p className="body-medium text-primary-700">
+                <p className="caption-medium text-primary-700">
                   {child.problem_count ?? 0}
                 </p>
               </div>
