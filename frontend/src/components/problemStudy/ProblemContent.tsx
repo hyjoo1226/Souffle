@@ -16,7 +16,7 @@ interface ProblemContentProps {
   userAnswer: string[];
   onChoiceClick: (blankIndex: number, choice: string) => void;
   onCancelAnswer: (blankIndex: number) => void;
-  showWrongMark: boolean;
+  showResultMark: 'none' | 'correct' | 'wrong';
 }
 
 const ProblemContent = ({
@@ -24,7 +24,7 @@ const ProblemContent = ({
   userAnswer = [],
   onChoiceClick,
   onCancelAnswer,
-  showWrongMark,
+  showResultMark,
 }: ProblemContentProps) => {
   const [activeBlankIndex, setActiveBlankIndex] = useState(0);
 
@@ -98,7 +98,14 @@ const ProblemContent = ({
 
   return (
     <div className="col-span-9 px-4 relative flex flex-col justify-between">
-      {showWrongMark && (
+      {showResultMark === 'wrong' && (
+        <img
+          src="/icons/false.png"
+          alt="틀림"
+          className="absolute -top-10 -left-3 w-30 h-40"
+        />
+      )}
+      {showResultMark === 'correct' && (
         <img
           src="/icons/false.png"
           alt="틀림"

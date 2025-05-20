@@ -13,7 +13,7 @@ const ProblemStudyPage = () => {
     const navigate = useNavigate();
     const { category_id } = useParams<{ category_id: string }>();
     const [middleCategoryName, setMiddleCategoryName] = useState<string>('');
-
+    const [showResultMark, setShowResultMark] = useState<'none' | 'correct' | 'wrong'>('none');
     const [problemList, setProblemList] = useState<Problem[]>([]);
 
     useEffect(() => {
@@ -53,7 +53,7 @@ const ProblemStudyPage = () => {
 
     const [currentProblemIndex, setCurrentProblemIndex] = useState(0);
     const [userAnswers, setUserAnswers] = useState<string[][]>([]);
-    const [showWrongMark, setShowWrongMark] = useState(false);
+    // const [showWrongMark, setShowWrongMark] = useState(false);
     const [isChecked, setIsChecked] = useState<boolean[]>([]);
 
     useEffect(() => {
@@ -75,32 +75,70 @@ const ProblemStudyPage = () => {
         setUserAnswers(updatedAnswers);
     };
 
-    const handleCheckAnswer = () => {
-        const isAllCorrect = currentProblem.correctAnswers.every(
-            (answer: string, idx: number) => userAnswers[currentProblemIndex][idx] === answer
-        );
+    // const handleCheckAnswer = () => {
+    //     const isAllCorrect = currentProblem.correctAnswers.every(
+    //         (answer: string, idx: number) => userAnswers[currentProblemIndex][idx] === answer
+    //     );
 
-        if (isAllCorrect) {
-            const updatedChecked = [...isChecked];
-            updatedChecked[currentProblemIndex] = true;
-            setIsChecked(updatedChecked);
+    //     if (isAllCorrect) {
+    //         const updatedChecked = [...isChecked];
+    //         updatedChecked[currentProblemIndex] = true;
+    //         setIsChecked(updatedChecked);
 
-            if (currentProblemIndex < problemList.length - 1) {
-                setCurrentProblemIndex(currentProblemIndex + 1);
-            } else {
-                navigate(`/study/${category_id}`);
-            }
-            setShowWrongMark(false);
-        } else {
-            setShowWrongMark(true);
-        }
-    };
+    //         if (currentProblemIndex < problemList.length - 1) {
+    //             setCurrentProblemIndex(currentProblemIndex + 1);
+    //         } else {
+    //             navigate(`/study/${category_id}`);
+    //         }
+    //         setShowWrongMark(false);
+    //     } else {
+    //         setShowWrongMark(true);
+    //     }
+    // };
 
     const problemStatuses = problemList.map((problem, index) => ({
         title: problem.title,
         isDone: isChecked[index],
         current: index === currentProblemIndex,
     }));
+
+    const isAnswered = isChecked[currentProblemIndex];
+    const isCorrect = showResultMark === 'correct';
+
+    const getButtonLabel = () => {
+        if (!isAnswered || showResultMark === 'wrong') return '정답 확인';
+        return '다음 문제';
+    };
+
+    // 버튼 클릭 함수 분기
+    const handleCheckOrNext = () => {
+        if (!isAnswered) {
+            // 채점 시도
+            const isAllCorrect = currentProblem.correctAnswers.every(
+                (answer, idx) => userAnswers[currentProblemIndex][idx] === answer
+            );
+            const updatedChecked = [...isChecked];
+            updatedChecked[currentProblemIndex] = true;
+            setIsChecked(updatedChecked);
+
+            if (isAllCorrect) {
+                setShowResultMark('correct');
+            } else {
+                setShowResultMark('wrong');
+            }
+        } else if (isCorrect) {
+            // 다음 문제로 이동
+            setShowResultMark('none');
+            if (currentProblemIndex < problemList.length - 1) {
+                setCurrentProblemIndex(currentProblemIndex + 1);
+            } else {
+                navigate(`/study/${category_id}`);
+            }
+        } else {
+            // 오답인 경우엔 그림만 계속 보여주고, '다음 문제' 없음
+            setShowResultMark('none');
+        }
+    };
 
     return (
         <div className="flex flex-col bg-white w-full h-screen">
@@ -117,15 +155,16 @@ const ProblemStudyPage = () => {
                 <>
                 <SideBar
                     problems={problemStatuses}
-                    onCheckAnswer={handleCheckAnswer}
+                    onCheckAnswer={handleCheckOrNext}
                     title={middleCategoryName}
+                    buttonLabel={getButtonLabel()}
                 />
                 <ProblemContent
                     problem={currentProblem}
                     userAnswer={userAnswers[currentProblemIndex]}
                     onChoiceClick={handleChoiceClick}
                     onCancelAnswer={handleCancelAnswer}
-                    showWrongMark={showWrongMark}
+                    showResultMark={showResultMark}
                 />
                 </>
             ) : (
