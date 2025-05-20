@@ -115,7 +115,10 @@ const UnitAnalysis = () => {
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="name"
-                tick={(props) => <WrappedAxisTick {...props} width={50} />}
+                tick={(props) => {
+                  console.log(props);
+                  return <WrappedAxisTick {...props} width={50} />;
+                }}
                 interval={0}
                 angle={0}
                 tickLine={false}
