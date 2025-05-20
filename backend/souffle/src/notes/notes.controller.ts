@@ -10,9 +10,7 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { NoteService } from './notes.service';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,6 +19,8 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { NoteService } from './notes.service';
+import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import {
   UpdateNoteFolderDto,
   UpdateNoteFolderOrderDto,

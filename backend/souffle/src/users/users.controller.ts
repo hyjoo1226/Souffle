@@ -31,11 +31,6 @@ export class UserController {
     const userId = req.user.id;
     return this.usersService.getProfile(userId);
   }
-  // @UseGuards(AuthGuard('jwt'))
-  // @Get('my-profile')
-  // async getMyProfile(@Req() req) {
-  //   return req.user;
-  // }
 
   // 유저 정보 수정 API
   @ApiOperation({ summary: '유저 정보 갱신' })

@@ -1,18 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { UserCategoryProgress } from './entities/user-category-progress.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Between } from 'typeorm';
+import { NotFoundException } from '@nestjs/common';
+import { NoteService } from 'src/notes/notes.service';
 import { User } from './entities/user.entity';
+import { UserCategoryProgress } from './entities/user-category-progress.entity';
 import { UserAuthentication } from './entities/user-authentication.entity';
 import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
-import { Between } from 'typeorm';
-import { NotFoundException } from '@nestjs/common';
 import { UserProblem } from './entities/user-problem.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { NoteService } from 'src/notes/notes.service';
 
 @Injectable()
 export class UserService {
@@ -86,7 +86,6 @@ export class UserService {
     });
 
     if (!progress) {
-      // 유저 통계가 없는 경우 기본값 반환
       return {
         accuracy: null,
         progress_rate: null,

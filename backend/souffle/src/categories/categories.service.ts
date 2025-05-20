@@ -1,9 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, In } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
+import { UserService } from 'src/users/users.service';
 import { Category } from './entities/category.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
-import { UserService } from 'src/users/users.service';
 import { Concept } from 'src/concepts/entities/concept.entity';
 
 @Injectable()
@@ -96,11 +96,6 @@ export class CategoryService {
     );
     await queryRunner.release();
 
-    // // 하위 모든 단원에 속한 문제 조회
-    // const problems = await this.problemRepository.find({
-    //   where: { category: { id: In(categoryIds.map((c) => c.id)) } },
-    // });
-
     // 개념
     const concepts = await this.conceptRepository.find({
       where: { category: { id: categoryId } },
@@ -113,7 +108,7 @@ export class CategoryService {
       description: concept.description,
       order: concept.order,
       images: concept.images
-        .sort((a, b) => a.order - b.order) // 이미지 순서 정렬
+        .sort((a, b) => a.order - b.order)
         .map((image) => ({
           id: image.id,
           url: image.imageUrl,
