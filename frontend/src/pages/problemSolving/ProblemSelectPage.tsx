@@ -29,12 +29,20 @@ const ProblemSelectPage = () => {
 
   const sortedProblemList = [...problemList].sort((a, b) => {
     switch (sortType) {
-      case "accuracy-desc":
-        return b.problem_avg_accuracy - a.problem_avg_accuracy;
-      case "accuracy-asc":
-        return a.problem_avg_accuracy - b.problem_avg_accuracy;
-      case "unsolved":
-        return (a.correct_count >= 1 ? 1 : 0) - (b.correct_count >= 1 ? 1 : 0);
+      case "accuracy-desc": {
+        const diff = b.problem_avg_accuracy - a.problem_avg_accuracy;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
+      case "accuracy-asc": {
+        const diff = a.problem_avg_accuracy - b.problem_avg_accuracy;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
+      case "unsolved": {
+        const aSolved = a.correct_count >= 1 ? 1 : 0;
+        const bSolved = b.correct_count >= 1 ? 1 : 0;
+        const diff = aSolved - bSolved;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
       case "default":
       default:
         return a.inner_no - b.inner_no;
@@ -113,7 +121,7 @@ const ProblemSelectPage = () => {
               {progressRate !== null && accuracyRate !== null ? (
                 <div className="flex items-center justify-center gap-15">
                   <div className="flex flex-col gap-3 items-center">
-                    <p className="headline-small text-gray-700">단원 학습율</p>
+                    <p className="headline-small text-gray-700">단원 학습률</p>
                     <LearningStatusChart selectedData={progressRate} />
                   </div>
                   <div className="flex flex-col gap-3 items-center">
@@ -155,6 +163,16 @@ const ProblemSelectPage = () => {
           <div className="flex justify-end">
             <div className="flex body-small text-gray-700 w-60">
               <p
+                onClick={() => setSortType("default")}
+                className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
+                  sortType === "default"
+                    ? "bg-white text-primary-500 border-primary-500"
+                    : ""
+                }`}
+              >
+                번호순
+              </p>
+              <p
                 onClick={() => setSortType("accuracy-desc")}
                 className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
                   sortType === "accuracy-desc"
@@ -186,7 +204,7 @@ const ProblemSelectPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-scroll scrollbar-visible">
             {sortedProblemList.map((problem, index) => (
               <div key={index} className="flex px-4 py-4 mt-4 ">
                 <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
@@ -202,10 +220,10 @@ const ProblemSelectPage = () => {
                     className={`rounded-[8px] px-1.5 py-1 caption-small ${
                       problem.correct_count >= 1
                         ? "bg-primary-500 text-white"
-                        : "bg-unsolved text-white"
+                        : ""
                     }`}
                   >
-                    {problem.correct_count >= 1 ? "해결" : "미해결"}
+                    {problem.correct_count >= 1 ? "정답" : ""}
                   </div>
                 </div>
                 <div className="basis-2/7 flex justify-center items-center">

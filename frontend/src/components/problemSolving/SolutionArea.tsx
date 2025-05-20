@@ -269,6 +269,33 @@ const SolutionArea = forwardRef((_props, ref) => {
         })
       );
 
+      if (stepsData.length === 0 || stepMeta.length === 0) {
+        const confirm = window.confirm(
+          "풀이가 작성되지 않았습니다.\n그대로 제출하시겠습니까?"
+        );
+        if (!confirm) return null;
+
+        // ✅ 사용자가 확인한 경우 → 0초/빈 배열로 전송
+        // const now = Date.now();
+        return {
+          stepsData: [],
+          fullStep: null,
+          stepMeta: [],
+          timing: {
+            totalSolveTime: 0,
+            understandTime: 0,
+            solveTime: 0,
+            reviewTime: 0,
+          },
+          blockSnapshots: [],
+          lastSavedBlocks: [],
+        };
+      }
+
+      // console.log("stepsData:", stepsData);
+      // console.log("stepMeta:", stepMeta);
+      // console.log("stepsData.length === 0", stepsData.length === 0);
+
       const now = Date.now();
       const totalSolveTime = now - enterTime.current;
       const understandTime = Math.max(

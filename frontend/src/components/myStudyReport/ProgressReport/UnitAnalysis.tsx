@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import { useState, useEffect } from "react";
 import { getUnitData } from "@/services/api/MyStudyReport";
+import WrappedAxisTick from "./WrappedAxisTick ";
 
 type UnitData = {
   id: number;
@@ -114,7 +115,7 @@ const UnitAnalysis = () => {
               <CartesianGrid vertical={false} strokeDasharray="3 3" />
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 12, fill: "#333" }}
+                tick={(props) => <WrappedAxisTick {...props} width={50} />}
                 interval={0}
                 angle={0}
                 tickLine={false}
