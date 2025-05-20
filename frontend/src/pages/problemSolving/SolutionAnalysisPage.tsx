@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   getSolutionAnalysis,
   SubmissionResponse,
@@ -14,6 +15,17 @@ import GraphAnalysis from "@/components/solutionAnalysis/GraphAnalysis";
 const SolutionAnalysisPage = () => {
   const { submissionId } = useParams<{ submissionId: string }>();
   const [data, setData] = useState<SubmissionResponse | null>(null);
+  const location = useLocation();
+  const {
+    selectedLessonName,
+    selectedSubject,
+    selectedUnit,
+    problemNo,
+    problemIndex,
+    problemList,
+    selectedUnitId,
+    submissionId: problemId
+  } = location.state || {};
 
   useEffect(() => {
     if (submissionId) {
@@ -29,6 +41,14 @@ const SolutionAnalysisPage = () => {
     <div>
       <SolutionAnalysisHeader
         submissionId={submissionId ? [+submissionId] : []}
+        problemId={problemId}
+        selectedLessonName={selectedLessonName}
+        selectedSubject={selectedSubject}
+        selectedUnit={selectedUnit}
+        problemNo={problemNo}
+        problemIndex={problemIndex}
+        problemList={problemList}
+        selectedUnitId={selectedUnitId}
       />
       <div
         className="rounded-[12px] px-10 py-10 grid grid-cols-2 gap-x-4"

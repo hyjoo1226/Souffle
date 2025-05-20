@@ -12,10 +12,26 @@ import {
 import { getFavoriteFoldersApi } from "@/services/api/ReviewNoteList";
 interface SolutionAnalysisHeaderProps {
   submissionId: number[];
+  problemId: number;
+  selectedLessonName: string,
+  selectedSubject: string,
+  selectedUnit: string,
+  problemNo: number,
+  problemIndex: number,
+  problemList: any,
+  selectedUnitId: number,
 }
 
 const SolutionAnalysisHeader = ({
   submissionId,
+  problemId,
+  selectedLessonName,
+  selectedSubject,
+  selectedUnit,
+  problemNo,
+  problemIndex,
+  problemList,
+  selectedUnitId,
 }: SolutionAnalysisHeaderProps) => {
   //   const [isFolderSelectModalOpen, setIsFolderSelectModalOpen] = useState(false);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
@@ -101,7 +117,19 @@ const SolutionAnalysisHeader = ({
             <Expand className="text-gray-500 transform -scale-x-100" />
           </Link>
 
-          <Link to="#" className="">
+          <Link 
+            to={`/solving/${problemId}`} 
+            state={{
+              selectedLessonName,
+              selectedSubject,
+              selectedUnit,
+              problemNo,
+              problemIndex,
+              problemList,
+              selectedUnitId,
+            }}
+            className=""
+          >
             <Button variant="solid">다시 풀어보기</Button>
           </Link>
           <Button
