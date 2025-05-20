@@ -55,10 +55,13 @@ backup-db:
     - mkdir -p ci-backup
     - docker exec db pg_dump -U ssafy -d app > db-backup.sql
     - tar czf db-backup.tar.gz db-backup.sql
+    - tar czf db-data.tar.gz -C /srv/souffle/volumes db_data
     - mv db-backup.tar.gz ci-backup/
+    - mv db-data.tar.gz ci-backup/
   artifacts:
     paths:
       - ci-backup/db-backup.tar.gz
+      - ci-backup/db-data.tar.gz
     expire_in: 1 week
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
@@ -75,13 +78,14 @@ integration-test:
     - job: backup-db
   script:
     - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
+    - rm -rf /srv/souffle/volumes/db_data
     - tar xzf ci-backup/db-backup.tar.gz
+    - tar --strip-components=1 -xzf ci-backup/db-data.tar.gz -C /srv/souffle/volumes/db_data
     - docker-compose -f docker-compose.ci.yml up -d db redis
     - |
-      for i in {1..10}; do echo "db healthcheck... ($i/10)"; docker exec db pg_isready -U ssafy && break || sleep 3; done
-    - docker exec -i db psql -U ssafy -d app < db-backup.sql
-    
-    - '[ -f frontend/dist/index.html ] || (echo "? dist missing" && ls -la frontend && exit 1)'
+      for i in {1..10}; do echo "db healthcheck... ($i/10)"; docker exec db psql -U ssafy -d app -c "SELECT 1;" && break || sleep 3; done
+        
+    - '[ -f frontend/dist/index.html ] || (echo "dist missing" && ls -la frontend && exit 1)'
     - docker-compose -f docker-compose.ci.yml up -d frontend caddy
     - docker cp ./frontend/dist/. caddy:/srv/
     - docker-compose -f docker-compose.ci.yml up -d backend data

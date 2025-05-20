@@ -3,9 +3,14 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import * as crypto from 'crypto';
-(global as any).crypto = crypto;
+import * as nodeCrypto from 'crypto';
 
+if (!globalThis.crypto) {
+  (globalThis as any).crypto = {
+    getRandomValues: (array: Uint8Array) => nodeCrypto.randomFillSync(array),
+    randomUUID: () => nodeCrypto.randomUUID?.(),  // optional chaining
+  };
+}
 dotenv.config();
 
 async function bootstrap() {
