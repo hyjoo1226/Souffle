@@ -9,6 +9,7 @@ class AnalyzedStep(BaseModel):
     is_valid: bool = Field(description="해당 단계의 유효성 여부")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="OCR 결과의 신뢰도")
     step_feedback: str = Field(default="잘 풀었습니다.", description="해당 단계에 대한 피드백")
+    current_latex: str = Field(description="이번 단계에 추가된 수식")
 
 
 class AnalysisResult(BaseModel):
