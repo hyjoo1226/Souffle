@@ -1,5 +1,5 @@
 // 풀이 분석 페이지 상단 부분
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/common/Button";
 import { ReactComponent as Expand } from "@/assets/icons/Expand.svg";
 import FolderSelectModal from "../reviewNoteList/FolderSelectModal";
@@ -12,10 +12,26 @@ import {
 import { getFavoriteFoldersApi } from "@/services/api/ReviewNoteList";
 interface SolutionAnalysisHeaderProps {
   submissionId: number[];
+  problemId: number;
+  selectedLessonName: string,
+  selectedSubject: string,
+  selectedUnit: string,
+  problemNo: number,
+  problemIndex: number,
+  problemList: any,
+  selectedUnitId: number,
 }
 
 const SolutionAnalysisHeader = ({
   submissionId,
+  problemId,
+  selectedLessonName,
+  selectedSubject,
+  selectedUnit,
+  problemNo,
+  problemIndex,
+  problemList,
+  selectedUnitId,
 }: SolutionAnalysisHeaderProps) => {
   //   const [isFolderSelectModalOpen, setIsFolderSelectModalOpen] = useState(false);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
@@ -24,6 +40,7 @@ const SolutionAnalysisHeader = ({
   const [reviewNoteList, setReviewNoteList] = useState<ReviewNoteList | null>(
     null
   );
+  const navigate = useNavigate();
 
   const handleSelectUnit = () => {
     // console.log();
@@ -48,21 +65,69 @@ const SolutionAnalysisHeader = ({
     fetchFolderList();
   }, []);
 
+  const goToPrevious = () => {
+    if (problemIndex > 0) {
+      const prev = problemIndex - 1;
+      const prevProblem = problemList[prev];
+
+      navigate(`/solving/${prevProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: prevProblem.inner_no, // 문제 번호 갱신
+          problemIndex: prev,
+          problemList,
+        },
+      });
+    }
+  };
+
+  const goToNext = () => {
+    if (problemIndex < problemList.length - 1) {
+      const next = problemIndex + 1;
+      const nextProblem = problemList[next];
+
+      navigate(`/solving/${nextProblem.problem_id}`, {
+        state: {
+          selectedLessonName,
+          selectedSubject,
+          selectedUnit,
+          problemNo: nextProblem.inner_no, // 문제 번호 갱신
+          problemIndex: next,
+          problemList,
+        },
+      });
+    }
+  };
+
   return (
     <>
-      {isFavoriteModalOpen && (
-        <FolderSelectModal
-          favoriteFolders={favoriteFolders || []}
-          selectedProblemIds={submissionId}
-          setFavoriteFolders={setFavoriteFolders}
-          setIsFavoriteModalOpen={setIsFavoriteModalOpen}
-          reviewNoteList={reviewNoteList}
-          setReviewNoteList={setReviewNoteList}
-          handleSelectUnit={handleSelectUnit}
-          setSelectedProblemIds={() => {}}
-          topFavoriteFolderId={topFavoriteFolderId}
-        />
-      )}
+      {
+        isFavoriteModalOpen && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
+            onClick={() => setIsFavoriteModalOpen(false)}
+          >
+            <div
+              className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FolderSelectModal
+                favoriteFolders={favoriteFolders || []}
+                selectedProblemIds={submissionId}
+                setFavoriteFolders={setFavoriteFolders}
+                setIsFavoriteModalOpen={setIsFavoriteModalOpen}
+                reviewNoteList={reviewNoteList}
+                setReviewNoteList={setReviewNoteList}
+                handleSelectUnit={handleSelectUnit}
+                setSelectedProblemIds={() => {}}
+                topFavoriteFolderId={topFavoriteFolderId}
+              />
+            </div>
+          </div>
+        )
+      }
       <div className="flex items-start justify-between py-[21px]">
         <div className="">
           <p className="headline-large text-gray-700 mb-[8px]">
@@ -74,22 +139,34 @@ const SolutionAnalysisHeader = ({
           </p>
         </div>
         <div className="flex space-x-6">
-          <Link
-            to="#"
+          <div
             className="flex items-center justify-center text-gray-500"
+            onClick={goToPrevious}
           >
             <Expand className="text-gray-500" />
             <p className="headline-small">이전 문제</p>
-          </Link>
-          <Link
-            to="#"
+          </div>
+          <div
             className="flex items-center justify-center text-gray-500"
+            onClick={goToNext}
           >
             <p className="headline-small">다음 문제</p>
             <Expand className="text-gray-500 transform -scale-x-100" />
-          </Link>
+          </div>
 
-          <Link to="#" className="">
+          <Link 
+            to={`/solving/${problemId}`} 
+            state={{
+              selectedLessonName,
+              selectedSubject,
+              selectedUnit,
+              problemNo,
+              problemIndex,
+              problemList,
+              selectedUnitId,
+            }}
+            className=""
+          >
             <Button variant="solid">다시 풀어보기</Button>
           </Link>
           <Button

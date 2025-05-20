@@ -1,4 +1,6 @@
 // 오답노트 상세 페이지 문제 설명 영역
+import MathExplanation from "@/components/reviewNoteDetail/MathExplanation";
+
 interface ProblemProps {
   content?: string;
   innerNo?: number;
@@ -15,7 +17,7 @@ const Problem = ({ content, innerNo, bookName, categoryName, publisher, problemI
             {publisher? `${publisher} > `: ''}{bookName?`${bookName} > `:''}{categoryName? `${categoryName} `: ''}{innerNo?`> ${innerNo}번 문제`:''}
         </p>
         <p className="text-gray-700">
-            { content? content : <span className="text-gray-400">문제 본문이 없습니다.</span> }
+            { content? <MathExplanation text={content} /> : <span className="text-gray-400">문제 본문이 없습니다.</span> }
             {/* 폰트 조정 필요 */}
         </p>
         <div className="flex justify-center items-center w-full">
