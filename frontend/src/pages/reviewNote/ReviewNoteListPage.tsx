@@ -23,7 +23,7 @@ const ReviewNoteListPage = () => {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
   const [selectedProblem, setSelectedProblem] = useState<any>(null);
-  const tabs = ["정답률↑", "정답률↓", "미해결"];
+  const tabs = ["정답률↑", "정답률↓", "오답"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<number | null>(null);
@@ -32,8 +32,6 @@ const ReviewNoteListPage = () => {
   );
   const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
 
-  // const [checkedProblemList, setCheckedProblemList] = useState<number[]>([]);
-
   const handleSelectUnit = async ({
     chapter,
     section,
@@ -41,8 +39,6 @@ const ReviewNoteListPage = () => {
     unit,
     id,
   }: UnitSelectPayload) => {
-    // console.log("chapter", chapter);
-
     setSelectedChapter(chapter);
     setSelectedSection(section);
     setSelectedType(type);
@@ -81,9 +77,6 @@ const ReviewNoteListPage = () => {
   const handleClickDelete = () => {
     const confirmed = window.confirm("선택한 문제를 삭제하시겠습니까?");
     if (confirmed) {
-      // console.log("selectedProblemIds", selectedProblemIds);
-      // console.log("selectedType", selectedType);
-
       if (!reviewNoteList) return;
       if (selectedType !== null) {
         selectedProblemIds.map((selectedProblemId) => {
@@ -143,8 +136,6 @@ const ReviewNoteListPage = () => {
       (f) => f.type === 1 && f.parent_id === null
     )?.id;
     setTopFavoriteFolderId(topFolderId || null);
-    // console.log("topFavoriteFolderId", topFolderId);
-
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
   };
@@ -169,7 +160,7 @@ const ReviewNoteListPage = () => {
         return rateB - rateA;
       });
     }
-    if (selected === "미해결") {
+    if (selected === "오답") {
       return reviewNoteList.filter(
         (item) => item.user.try_count > 0 && item.user.correct_count === 0
       );
@@ -257,7 +248,7 @@ const ReviewNoteListPage = () => {
                     <button
                       key={tab}
                       onClick={() => setSelected(tab)}
-                      className={`px-9 py-2.5 body-small ${
+                      className={`px-9 py-2.5 body-small min-w-[123.09px] ${
                         selected === tab
                           ? "text-primary-500 border border-primary-500 bg-white z-10"
                           : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
