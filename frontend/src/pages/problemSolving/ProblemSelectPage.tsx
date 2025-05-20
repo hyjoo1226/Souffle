@@ -80,6 +80,7 @@ const ProblemSelectPage = () => {
         problemNo,
         problemIndex: problemNo,
         problemList: sortedProblemList,
+        selectedUnitId,
       },
     });
   };

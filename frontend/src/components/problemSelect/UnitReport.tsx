@@ -2,14 +2,14 @@ import { Button } from "@/components/common/Button";
 import { useNavigate } from "react-router-dom";
 
 const UnitReport = ({ selectedUnitId }: { selectedUnitId: number }) => {
-  console.log("selectedUnitId", selectedUnitId);
+  // console.log("selectedUnitId", selectedUnitId);
   const navigate = useNavigate();
 
   const handleGoToStudyPage = () => {
-    console.log("selectedUnitId", selectedUnitId);
+    // console.log("selectedUnitId", selectedUnitId);
     if (!selectedUnitId) return;
 
-    navigate(`/problem-study/${selectedUnitId}`);
+    navigate(`/study/${selectedUnitId}`);
   };
   return (
     <div className="flex flex-col items-center gap-2 bg-primary-100 py-13 rounded-[10px] mt-4">

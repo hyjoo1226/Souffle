@@ -10,7 +10,7 @@ import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const ProblemSolvingPage = () => {
-  const [isLeftHandedMode, setIsLeftHandedMode] = useState(true);
+  const [isLeftHandedMode, setIsLeftHandedMode] = useState(false);
   const answerRef = useRef<any>(null);
   const solutionRef = useRef<any>(null);
   const { problemId } = useParams(); // 문제 ID 추출
@@ -37,12 +37,15 @@ const ProblemSolvingPage = () => {
     problemNo,
     problemIndex,
     problemList,
+    selectedUnitId,
   } = location.state || {};
 
   const [lessonName, setLessonName] = useState(selectedLessonName);
   const [subject, setSubject] = useState(selectedSubject);
   const [unit, setUnit] = useState(selectedUnit);
   const [num, setNum] = useState(problemNo);
+  const tabs = ["왼손 모드", "오른손 모드"];
+  const [selected, setSelected] = useState("오른손 모드");
 
   useEffect(() => {
     setLessonName(location.state?.selectedLessonName);
@@ -210,13 +213,14 @@ const ProblemSolvingPage = () => {
   return (
     <div className="h-screen flex flex-col text-gray-700">
       <div className="shrink-0">
-        {problem && (
+        {problem && selectedUnitId !== null && (
           <ProblemSourceInfo
             data={problem}
             lessonName={lessonName}
             subject={subject}
             unit={unit}
             num={num}
+            selectedUnitId={selectedUnitId}
           />
         )}
       </div>
@@ -227,6 +231,25 @@ const ProblemSolvingPage = () => {
             {/* 오른쪽 풀이 영역 먼저 */}
             <div className="col-span-7 h-[calc(100vh-150px)] p-4">
               <SolutionArea ref={solutionRef} />
+              <div className="flex overflow-hidden w-fit p-4">
+                {/* 오답 리스트 정렬 버튼 */}
+                {tabs.map((tab, i) => (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      setSelected(tab),
+                        setIsLeftHandedMode(tab === "왼손 모드");
+                    }}
+                    className={`px-9 py-2.5 body-small ${
+                      selected === tab
+                        ? "text-primary-500 border border-primary-500 bg-white z-10"
+                        : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
+                    } ${i !== 0 ? "-ml-px" : ""}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* 왼쪽 문제 + 정답 영역 */}
@@ -378,6 +401,26 @@ const ProblemSolvingPage = () => {
             {/* 오른쪽 풀이 영역*/}
             <div className="col-span-7  h-[calc(100vh-150px)] p-4">
               <SolutionArea ref={solutionRef} />
+              <div className="flex justify-end">
+                <div className="flex overflow-hidden w-fit p-4">
+                  {tabs.map((tab, i) => (
+                    <button
+                      key={tab}
+                      onClick={() => {
+                        setSelected(tab);
+                        setIsLeftHandedMode(tab === "왼손 모드");
+                      }}
+                      className={`px-9 py-2.5 body-small ${
+                        selected === tab
+                          ? "text-primary-500 border border-primary-500 bg-white z-10"
+                          : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
+                      } ${i !== 0 ? "-ml-px" : ""}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </>
         )}
