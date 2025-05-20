@@ -10,6 +10,7 @@ import { sendProblemSolvingDataApi } from "@/services/api/ProblemSolving";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 
 const ProblemSolvingPage = () => {
+  const [isLeftHandedMode, setIsLeftHandedMode] = useState(false);
   const answerRef = useRef<any>(null);
   const solutionRef = useRef<any>(null);
   const { problemId } = useParams(); // 문제 ID 추출
@@ -36,12 +37,15 @@ const ProblemSolvingPage = () => {
     problemNo,
     problemIndex,
     problemList,
+    selectedUnitId,
   } = location.state || {};
 
   const [lessonName, setLessonName] = useState(selectedLessonName);
   const [subject, setSubject] = useState(selectedSubject);
   const [unit, setUnit] = useState(selectedUnit);
   const [num, setNum] = useState(problemNo);
+  const tabs = ["왼손 모드", "오른손 모드"];
+  const [selected, setSelected] = useState("오른손 모드");
 
   useEffect(() => {
     setLessonName(location.state?.selectedLessonName);
@@ -209,95 +213,219 @@ const ProblemSolvingPage = () => {
   return (
     <div className="h-screen flex flex-col text-gray-700">
       <div className="shrink-0">
-        {problem && (
+        {problem && selectedUnitId !== null && (
           <ProblemSourceInfo
             data={problem}
             lessonName={lessonName}
             subject={subject}
             unit={unit}
             num={num}
+            selectedUnitId={selectedUnitId}
           />
         )}
       </div>
 
       <div className="flex-grow min-h-0 grid grid-cols-12 gap-x-4">
-        {/* 왼쪽 영역 */}
-        <div className="col-span-5 flex flex-col overflow-hidden">
-          {/* 문제 영역*/}
-          <div className="flex-grow min-h-0 p-3 overflow-y-auto relative">
-            {isCorrect !== null && isCorrect !== undefined && (
-              <img
-                src={
-                  isCorrect === true ? "/icons/correct.png" : "/icons/false.png"
-                }
-                alt={isCorrect ? "correct" : "false"}
-                className="absolute top-0 left-0 w-40 h-40 z-10"
-              />
-            )}
+        {isLeftHandedMode ? (
+          <>
+            {/* 오른쪽 풀이 영역 먼저 */}
+            <div className="col-span-7 h-[calc(100vh-150px)] p-4">
+              <SolutionArea ref={solutionRef} />
+              <div className="flex overflow-hidden w-fit p-4">
+                {/* 오답 리스트 정렬 버튼 */}
+                {tabs.map((tab, i) => (
+                  <button
+                    key={tab}
+                    onClick={() => {
+                      setSelected(tab),
+                        setIsLeftHandedMode(tab === "왼손 모드");
+                    }}
+                    className={`px-9 py-2.5 body-small ${
+                      selected === tab
+                        ? "text-primary-500 border border-primary-500 bg-white z-10"
+                        : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
+                    } ${i !== 0 ? "-ml-px" : ""}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-            {problem && (
-              <ProblemBox
-                data={{
-                  content: problem.content || "No content available",
-                  problem_image_url: problem.image_url || null, // Provide a default or actual URL if available
-                  avg_accuracy: problem.avg_accuracy || null, // Provide a default or actual value if available
-                }}
-              />
-            )}
-          </div>
+            {/* 왼쪽 문제 + 정답 영역 */}
+            <div className="col-span-5 flex flex-col overflow-hidden">
+              {/* 문제 영역 */}
+              <div className="flex-grow min-h-0 p-3 overflow-y-auto relative">
+                {isCorrect !== null && isCorrect !== undefined && (
+                  <img
+                    src={
+                      isCorrect === true
+                        ? "/icons/correct.png"
+                        : "/icons/false.png"
+                    }
+                    alt={isCorrect ? "correct" : "false"}
+                    className="absolute top-0 left-0 w-40 h-40 z-10"
+                  />
+                )}
 
-          {/* 정답 작성 영역*/}
-          <div className="shrink-0 p-4">
-            <AnswerArea ref={answerRef} />
-          </div>
+                {problem && (
+                  <ProblemBox
+                    data={{
+                      content: problem.content || "No content available",
+                      problem_image_url: problem.image_url || null,
+                      avg_accuracy: problem.avg_accuracy || null,
+                    }}
+                  />
+                )}
+              </div>
 
-          {/* 버튼 영역*/}
-          <div className="shrink-0 flex items-center justify-center gap-3 p-4">
-            <Button
-              variant="outline"
-              size="md"
-              onClick={goToPrevious}
-              disabled={problemIndex === 0}
-              className={
-                problemIndex === 0
-                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : ""
-              }
-            >
-              이전 문제
-            </Button>
-            <Button
-              variant="outline"
-              size="md"
-              onClick={goToNext}
-              disabled={problemIndex === problemList.length - 1}
-              className={
-                problemIndex === problemList.length - 1
-                  ? "bg-gray-200 border !border-gray-400 text-gray-400 cursor-not-allowed"
-                  : ""
-              }
-            >
-              다음 문제
-            </Button>
-            {isCorrect == null ? (
-              <Button variant="solid" size="md" onClick={handleSubmit}>
-                채점 하기
-              </Button>
-            ) : (
-              <Button variant="solid" size="md" onClick={handleAnalyze}>
-                풀이 분석하기
-              </Button>
-            )}
-          </div>
-        </div>
+              {/* 정답 작성 */}
+              <div className="shrink-0 p-4">
+                <AnswerArea ref={answerRef} />
+              </div>
 
-        {/* 오른쪽 풀이 영역*/}
-        <div className="col-span-7  h-[calc(100vh-150px)] p-4">
-          <SolutionArea ref={solutionRef} />
-        </div>
+              {/* 버튼 */}
+              <div className="shrink-0 flex items-center justify-center gap-3 p-4">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={goToPrevious}
+                  disabled={problemIndex === 0}
+                  className={
+                    problemIndex === 0
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  이전 문제
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={goToNext}
+                  disabled={problemIndex === problemList.length - 1}
+                  className={
+                    problemIndex === problemList.length - 1
+                      ? "bg-gray-200 border !border-gray-400 text-gray-400 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  다음 문제
+                </Button>
+                {isCorrect == null ? (
+                  <Button variant="solid" size="md" onClick={handleSubmit}>
+                    채점 하기
+                  </Button>
+                ) : (
+                  <Button variant="solid" size="md" onClick={handleAnalyze}>
+                    풀이 분석하기
+                  </Button>
+                )}
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {/* 왼쪽 영역 */}
+            <div className="col-span-5 flex flex-col overflow-hidden">
+              {/* 문제 영역*/}
+              <div className="flex-grow min-h-0 p-3 overflow-y-auto relative">
+                {isCorrect !== null && isCorrect !== undefined && (
+                  <img
+                    src={
+                      isCorrect === true
+                        ? "/icons/correct.png"
+                        : "/icons/false.png"
+                    }
+                    alt={isCorrect ? "correct" : "false"}
+                    className="absolute top-0 left-0 w-40 h-40 z-10"
+                  />
+                )}
+
+                {problem && (
+                  <ProblemBox
+                    data={{
+                      content: problem.content || "No content available",
+                      problem_image_url: problem.image_url || null, // Provide a default or actual URL if available
+                      avg_accuracy: problem.avg_accuracy || null, // Provide a default or actual value if available
+                    }}
+                  />
+                )}
+              </div>
+
+              {/* 정답 작성 영역*/}
+              <div className="shrink-0 p-4">
+                <AnswerArea ref={answerRef} />
+              </div>
+
+              {/* 버튼 영역*/}
+              <div className="shrink-0 flex items-center justify-center gap-3 p-4">
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={goToPrevious}
+                  disabled={problemIndex === 0}
+                  className={
+                    problemIndex === 0
+                      ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  이전 문제
+                </Button>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={goToNext}
+                  disabled={problemIndex === problemList.length - 1}
+                  className={
+                    problemIndex === problemList.length - 1
+                      ? "bg-gray-200 border !border-gray-400 text-gray-400 cursor-not-allowed"
+                      : ""
+                  }
+                >
+                  다음 문제
+                </Button>
+                {isCorrect == null ? (
+                  <Button variant="solid" size="md" onClick={handleSubmit}>
+                    채점 하기
+                  </Button>
+                ) : (
+                  <Button variant="solid" size="md" onClick={handleAnalyze}>
+                    풀이 분석하기
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* 오른쪽 풀이 영역*/}
+            <div className="col-span-7  h-[calc(100vh-150px)] p-4">
+              <SolutionArea ref={solutionRef} />
+              <div className="flex justify-end">
+                <div className="flex overflow-hidden w-fit p-4">
+                  {tabs.map((tab, i) => (
+                    <button
+                      key={tab}
+                      onClick={() => {
+                        setSelected(tab);
+                        setIsLeftHandedMode(tab === "왼손 모드");
+                      }}
+                      className={`px-9 py-2.5 body-small ${
+                        selected === tab
+                          ? "text-primary-500 border border-primary-500 bg-white z-10"
+                          : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
+                      } ${i !== 0 ? "-ml-px" : ""}`}
+                    >
+                      {tab}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
 };
-
 export default ProblemSolvingPage;
