@@ -11,6 +11,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
+import { NoteContent } from 'src/notes/entities/note-content.entity';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { NoteFolder } from 'src/notes/entities/note-folder.entity';
       Problem,
       SubmissionStep,
       NoteFolder,
+      NoteContent,
     ]),
     FileModule,
     OcrModule,

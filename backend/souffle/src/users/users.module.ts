@@ -11,6 +11,7 @@ import { UserReport } from './entities/user-report.entity';
 import { UserScoreStat } from './entities/user-score-stat.entity';
 import { Category } from 'src/categories/entities/category.entity';
 import { Submission } from 'src/submissions/entities/submission.entity';
+import { Problem } from 'src/problems/entities/problem.entity';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Submission } from 'src/submissions/entities/submission.entity';
       UserScoreStat,
       Category,
       Submission,
+      Problem,
     ]),
     NoteModule,
   ],

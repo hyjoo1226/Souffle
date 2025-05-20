@@ -12,6 +12,7 @@ import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { NoteContent } from 'src/notes/entities/note-content.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Injectable()
@@ -23,6 +24,8 @@ export class SubmissionService {
     private userRepository: Repository<User>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
+    @InjectRepository(NoteContent)
+    private noteContentRepository: Repository<NoteContent>,
     @InjectRepository(SubmissionStep)
     private submissionStepRepository: Repository<SubmissionStep>,
     @InjectRepository(UserProblem)
@@ -143,6 +146,25 @@ export class SubmissionService {
       );
     }
 
+    // 동기 OCR 처리
+    try {
+      const answerConvert = await this.ocrService.convertOcr(
+        savedSubmission.answerImageUrl,
+      );
+      savedSubmission.answerConvert = answerConvert;
+      savedSubmission.isCorrect = answerConvert === problem.answer;
+      await this.submissionRepository.save(savedSubmission);
+    } catch (error) {
+      console.error('OCR 변환 실패로 채점 생략');
+      savedSubmission.isCorrect = null;
+      await this.submissionRepository.save(savedSubmission);
+      return this.updateStatsAndReturnResponse(
+        problem,
+        savedSubmission,
+        userId,
+      );
+    }
+
     // user_problem 테이블 생성/갱신
     await this.userProblemRepository.query(
       `
@@ -166,23 +188,26 @@ export class SubmissionService {
       ],
     );
 
-    // 동기 OCR 처리
-    try {
-      const answerConvert = await this.ocrService.convertOcr(
-        savedSubmission.answerImageUrl,
-      );
-      savedSubmission.answerConvert = answerConvert;
-      savedSubmission.isCorrect = answerConvert === problem.answer;
-      await this.submissionRepository.save(savedSubmission);
-    } catch (error) {
-      console.error('OCR 변환 실패로 채점 생략');
-      savedSubmission.isCorrect = null;
-      await this.submissionRepository.save(savedSubmission);
-      return this.updateStatsAndReturnResponse(
-        problem,
-        savedSubmission,
-        userId,
-      );
+    const userProblem = await this.userProblemRepository.findOne({
+      where: {
+        user: { id: submissionDto.user_id },
+        problem: { id: submissionDto.problem_id },
+      },
+    });
+    if (!userProblem) {
+      throw new NotFoundException('user_problem이 생성되지 않았습니다.');
+    }
+    // note Content 없으면 생성
+    const existingContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblem.id } },
+    });
+    if (!existingContent) {
+      const newContent = this.noteContentRepository.create({
+        user_problem: userProblem,
+        solution_strokes: [],
+        concept_strokes: [],
+      });
+      await this.noteContentRepository.save(newContent);
     }
 
     // 해당 단원의 진도가 있는지 확인

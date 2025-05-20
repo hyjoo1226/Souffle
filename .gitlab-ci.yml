@@ -81,9 +81,9 @@ integration-test:
     - job: backup-db
   script:
     - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
-    - rm -rf /srv/souffle/volumes/db_data
+    - sudo rm -rf /srv/souffle/volumes/db_data
     - tar xzf ci-backup/db-backup.tar.gz
-    - tar --strip-components=1 -xzf ci-backup/db-data.tar.gz -C /srv/souffle/volumes/db_data
+    - sudo tar --strip-components=1 -xzf ci-backup/db-data.tar.gz -C /srv/souffle/volumes/db_data
     - docker-compose -f docker-compose.ci.yml up -d db redis
     - |
       for i in {1..10}; do echo "db healthcheck... ($i/10)"; docker exec db psql -U ssafy -d app -c "SELECT 1;" && break || sleep 3; done
