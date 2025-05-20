@@ -208,6 +208,13 @@ const ProblemSolvingPage = () => {
         avg_understand_time: result?.avg_understand_time,
         is_correct: result?.is_correct,
         submissionId: problemId,
+        selectedLessonName,
+        selectedSubject,
+        selectedUnit,
+        problemNo,
+        problemIndex,
+        problemList,
+        selectedUnitId,
       },
     });
   };

@@ -12,9 +12,10 @@ interface SideBarProps {
   problems: ProblemStatus[];
   onCheckAnswer: () => void;
   title: string;
+  buttonLabel: string;
 }
 
-const Sidebar = ({ title, problems, onCheckAnswer }: SideBarProps) => {
+const Sidebar = ({ title, problems, onCheckAnswer, buttonLabel }: SideBarProps) => {
   const total = problems.length;
   const done = problems.filter((p) => p.isDone).length;
   const progressPercent = Math.round((done / total) * 100);
@@ -63,7 +64,7 @@ const Sidebar = ({ title, problems, onCheckAnswer }: SideBarProps) => {
         </p>
         <div className="w-full flex justify-center">
           <Button variant="solid" onClick={onCheckAnswer}>
-            정답 확인
+            {buttonLabel}
           </Button>
         </div>
       </div>

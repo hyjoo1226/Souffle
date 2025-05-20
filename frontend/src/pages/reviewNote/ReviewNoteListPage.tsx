@@ -48,12 +48,6 @@ const ReviewNoteListPage = () => {
     setSelectedType(type);
     setSelectedUnit(unit);
 
-    // console.log("chapter", selectedChapter);
-    // console.log("section", section);
-    // console.log("type", type);
-    // console.log("unit", unit);
-    // console.log("id", id);
-
     if (type == 1) {
       // const res = mockType1ListData;
       const res = await getProblemListApi(1, id);
@@ -82,8 +76,6 @@ const ReviewNoteListPage = () => {
     const found =
       reviewNoteList?.find((p) => p.problem_id === problemId) || null;
     setSelectedProblem(found);
-
-    // console.log("🔍 선택된 문제:", selectedProblem);
   };
 
   const handleClickDelete = () => {
@@ -111,20 +103,7 @@ const ReviewNoteListPage = () => {
   const handleClickFolderChange = () => {
     setIsFavoriteModalOpen(!isFavoriteModalOpen);
   };
-  // const handleClickFolderChange = () => {
-  //   selectedProblemIds.map((selectedProblemId)=> {
 
-  //   })
-  // }
-
-  // const handleDropProblemToSection = (targetSection: string) => {
-  //   // console.log("이동할 문제들:", selectedProblemIds);
-  //   // console.log("타겟 소단원:", targetSection);
-  //   // 일단 드래그 앤 드랍으로 문제 이동하는 기능은 구현했으나 태블릿 환경에 적합한지는 의문
-  //   // 고도화 할 기회가 있다면 논의 후 폴더 이동 버튼 구현
-  //   // TODO: 여기에 백엔드 요청 붙이면 됨
-  //   // ex: axios.post("/api/move", { problemIds: selectedProblemIds, target: targetSection })
-  // };
   const [noteFolders, setNoteFolders] = useState<Folder[] | null>(null);
   const [favoriteFolders, setFavoriteFolders] = useState<Folder[] | null>(null);
 
@@ -173,6 +152,31 @@ const ReviewNoteListPage = () => {
   useEffect(() => {
     fetchFolderList();
   }, []);
+
+  const sortedReviewNoteList = useMemo(() => {
+    if (!reviewNoteList) return [];
+    if (selected === "정답률↑") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
+        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        return rateA - rateB;
+      });
+    }
+    if (selected === "정답률↓") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
+        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        return rateB - rateA;
+      });
+    }
+    if (selected === "미해결") {
+      return reviewNoteList.filter(
+        (item) => item.user.try_count > 0 && item.user.correct_count === 0
+      );
+    }
+    return reviewNoteList;
+  }, [reviewNoteList, selected]);
+
 
   return (
     <>
@@ -282,7 +286,7 @@ const ReviewNoteListPage = () => {
                     style={{ maxHeight: "calc(100vh - 230px)" }}
                   >
                     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 justify-start">
-                      {reviewNoteList?.map((problem) => (
+                      {sortedReviewNoteList.map((problem) => (
                         <ReviewNoteItem
                           key={problem.problem_id}
                           problem={problem}
