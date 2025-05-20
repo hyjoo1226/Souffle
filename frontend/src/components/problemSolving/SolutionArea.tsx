@@ -245,8 +245,8 @@ const SolutionArea = forwardRef((_props, ref) => {
   // 채점(제출) 핸들러 - 이미지와 JSON 생성
   useImperativeHandle(ref, () => ({
     getStepData: async () => {
-      if (!canvasRef.current) return null;
-      if (!blockSnapshotsRef.current) return null;
+      // if (!canvasRef.current) return null;
+      // if (!blockSnapshotsRef.current) return null;
       const latestSnapshot = blockSnapshotsRef.current.at(-1);
       const currentFinal = JSON.parse(JSON.stringify(blocks));
 
@@ -256,10 +256,10 @@ const SolutionArea = forwardRef((_props, ref) => {
 
       const stepsData = await generateStepImages(
         blockSnapshotsRef.current,
-        canvasRef.current,
+        canvasRef.current!,
         blocks
       );
-      const fullStep = await generateFullStepImage(canvasRef.current, blocks);
+      const fullStep = await generateFullStepImage(canvasRef.current!, blocks);
 
       const stepMeta = stepsData.map(
         ({ step_number, step_time, file_name }) => ({
@@ -275,11 +275,14 @@ const SolutionArea = forwardRef((_props, ref) => {
         );
         if (!confirm) return null;
 
-        // ✅ 사용자가 확인한 경우 → 0초/빈 배열로 전송
-        // const now = Date.now();
+        const fullStep = await generateFullStepImage(
+          canvasRef.current!,
+          blocks
+        );
+
         return {
           stepsData: [],
-          fullStep: null,
+          fullStep,
           stepMeta: [],
           timing: {
             totalSolveTime: 0,
