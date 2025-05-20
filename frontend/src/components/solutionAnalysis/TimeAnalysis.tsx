@@ -19,6 +19,12 @@ type TimeData = {
 
 type Props = {
   times: TimeData;
+  avgTimes: {
+    avg_review_time?: number;
+    avg_solve_time?: number;
+    avg_total_solve_time?: number;
+    avg_understand_time?: number;
+  };
 };
 
 const formatSeconds = (seconds: number) => {
@@ -27,7 +33,7 @@ const formatSeconds = (seconds: number) => {
   return `00:${m}:${s}`;
 };
 
-const TimeAnalysis = ({ times }: Props) => {
+const TimeAnalysis = ({ times, avgTimes }: Props) => {
   const {
     total_solve_time,
     understand_time,
@@ -35,26 +41,33 @@ const TimeAnalysis = ({ times }: Props) => {
     review_time,
   } = times;
 
+  const {
+    avg_review_time,
+    avg_solve_time,
+    avg_total_solve_time,
+    avg_understand_time
+  } = avgTimes;
+
   const userTimeData = [
     {
       name: "문제 이해",
       나: understand_time,
-      평균: 90,
+      평균: avg_review_time,
     },
     {
       name: "문제 풀이",
       나: solve_time,
-      평균: 270,
+      평균: avg_solve_time,
     },
     {
       name: "검산",
       나: review_time,
-      평균: 23,
+      평균: avg_total_solve_time,
     },
     {
       name: "총 소요 시간",
       나: total_solve_time,
-      평균: 383,
+      평균: avg_understand_time,
     },
   ];
 

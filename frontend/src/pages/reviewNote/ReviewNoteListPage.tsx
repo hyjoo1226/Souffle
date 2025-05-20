@@ -76,8 +76,6 @@ const ReviewNoteListPage = () => {
     const found =
       reviewNoteList?.find((p) => p.problem_id === problemId) || null;
     setSelectedProblem(found);
-
-    // console.log("🔍 선택된 문제:", selectedProblem);
   };
 
   const handleClickDelete = () => {
@@ -154,6 +152,31 @@ const ReviewNoteListPage = () => {
   useEffect(() => {
     fetchFolderList();
   }, []);
+
+  const sortedReviewNoteList = useMemo(() => {
+    if (!reviewNoteList) return [];
+    if (selected === "정답률↑") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
+        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        return rateA - rateB;
+      });
+    }
+    if (selected === "정답률↓") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
+        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        return rateB - rateA;
+      });
+    }
+    if (selected === "미해결") {
+      return reviewNoteList.filter(
+        (item) => item.user.try_count > 0 && item.user.correct_count === 0
+      );
+    }
+    return reviewNoteList;
+  }, [reviewNoteList, selected]);
+
 
   return (
     <>
@@ -263,7 +286,7 @@ const ReviewNoteListPage = () => {
                     style={{ maxHeight: "calc(100vh - 230px)" }}
                   >
                     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 justify-start">
-                      {reviewNoteList?.map((problem) => (
+                      {sortedReviewNoteList.map((problem) => (
                         <ReviewNoteItem
                           key={problem.problem_id}
                           problem={problem}
