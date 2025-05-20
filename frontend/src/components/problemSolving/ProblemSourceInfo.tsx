@@ -1,4 +1,5 @@
 import { Button } from "../common/Button";
+import { useNavigate } from "react-router-dom";
 
 interface ProblemSourceInfoProps {
   data?: {
@@ -11,6 +12,7 @@ interface ProblemSourceInfoProps {
   subject?: string;
   unit?: string;
   num?: number;
+  selectedUnitId?: number;
 }
 
 const ProblemSourceInfo = ({
@@ -19,8 +21,17 @@ const ProblemSourceInfo = ({
   subject,
   unit,
   num,
+  selectedUnitId,
 }: ProblemSourceInfoProps) => {
   const book_name = data?.book?.book_name;
+  const navigate = useNavigate();
+  const handleGoToStudyPage = () => {
+    console.log("클릭됨");
+    console.log("selectedUnitId", selectedUnitId);
+    if (!selectedUnitId) return;
+
+    navigate(`/study/${selectedUnitId}`);
+  };
   // console.log("book_name", data);
 
   return (
@@ -31,7 +42,13 @@ const ProblemSourceInfo = ({
           {subject}&gt;{unit}&gt;{lessonName} {num}번 문제
         </p>
       </div>
-      <Button variant="sub" size="sm">
+      <Button
+        variant="sub"
+        size="sm"
+        onClick={() => {
+          handleGoToStudyPage();
+        }}
+      >
         개념 학습하기
       </Button>
     </div>
