@@ -149,10 +149,15 @@ const NoteFolder = ({
               key={section.id}
               draggable={selectedFolderId !== section.id}
               onDragStart={() => {
+                if (type !== 1) return;
                 setDraggedIndex(index), setDraggedId(section.id);
               }}
-              onDragOver={(e) => e.preventDefault()}
+              onDragOver={(e) => {
+                if (type !== 1) return;
+                e.preventDefault();
+              }}
               onDrop={async () => {
+                if (type !== 1) return;
                 if (draggedIndex === null || draggedIndex === index) return;
 
                 const newSections = [...sections];
@@ -177,7 +182,7 @@ const NoteFolder = ({
               }}
               className="pl-8"
               style={{
-                opacity: draggedIndex === index ? 0.5 : 1,
+                // opacity: draggedIndex === index ? 0.5 : 1,
                 cursor: selectedFolderId === section.id ? "default" : "move",
               }}
             >

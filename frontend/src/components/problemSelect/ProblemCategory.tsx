@@ -39,7 +39,7 @@ const ProblemCategory = ({
         <img src="/icons/down.png" alt="" className="w-9 h-9" />
       </div>
       {/* 아코디언 */}
-      <div className="absolute z-50  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
+      <div className="absolute z-10  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
         {categoryOpen && (
           <AccordianList
             categoryOpen={categoryOpen}

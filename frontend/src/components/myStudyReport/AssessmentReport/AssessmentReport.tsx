@@ -11,7 +11,7 @@ type StudyPlanItem = {
   content: string;
 };
 
-const AssessmentReport = () => {
+const AssessmentReport = ({ userName }: { userName: string }) => {
   const [aiDiagnosis, setAiDiagnosis] = useState<string>("");
   const [studyPlan, setStudyPlan] = useState<StudyPlanItem[]>([]);
   // const [isModalOpen, setIsModalOpen] = useState(false);
@@ -32,9 +32,9 @@ const AssessmentReport = () => {
       <div className="flex flex-col gap-20 w-full max-w-[82%]">
         <div className="flex justify-center">
           <p className="text-gray-700 headline-large">
-            퉁퉁퉁퉁 이승주 님의{" "}
-            <span className="text-primary-700">학습 데이터</span>를 기반으로
-            분석한 <span className="text-primary-700">총 리포트</span>입니다.
+            {userName}님의 <span className="text-primary-700">학습 데이터</span>
+            를 기반으로 분석한{" "}
+            <span className="text-primary-700">총 리포트</span>입니다.
           </p>
         </div>
         <AssessmentRadar />

@@ -26,8 +26,8 @@ const ProblemSourceInfo = ({
   const book_name = data?.book?.book_name;
   const navigate = useNavigate();
   const handleGoToStudyPage = () => {
-    console.log("클릭됨");
-    console.log("selectedUnitId", selectedUnitId);
+    // console.log("클릭됨");
+    // console.log("selectedUnitId", selectedUnitId);
     if (!selectedUnitId) return;
 
     navigate(`/study/${selectedUnitId}`);

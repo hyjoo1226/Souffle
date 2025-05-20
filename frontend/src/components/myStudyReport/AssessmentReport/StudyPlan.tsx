@@ -13,14 +13,20 @@ const StudyPlan = ({ studyPlan }: StudyPlanProps) => {
         SOUFFLE가 제안하는 <span className="text-primary-600">학습 플랜</span>
       </p>
       <div className="flex flex-col gap-3 px-4">
-        {studyPlan?.map((item) => (
-          <div key={item.step} className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-7 h-7 bg-primary-700 rounded-full">
-              <p className="text-white headline-medium">{item.step}</p>
+        {studyPlan && studyPlan.length > 0 ? (
+          studyPlan.map((item) => (
+            <div key={item.step} className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-7 h-7 bg-primary-700 rounded-full">
+                <p className="text-white headline-medium">{item.step}</p>
+              </div>
+              <p className="text-gray-700 body-medium">{item.content}</p>
             </div>
-            <p className="text-gray-700 body-medium">{item.content}</p>
-          </div>
-        ))}
+          ))
+        ) : (
+          <p className="text-gray-400 text-center body-medium">
+            학습을 먼저 진행해주세요.
+          </p>
+        )}
       </div>
     </div>
   );

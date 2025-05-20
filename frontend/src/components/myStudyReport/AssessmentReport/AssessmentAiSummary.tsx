@@ -8,7 +8,9 @@ const AssessmentAiSummary = ({ aiDiagnosis }: { aiDiagnosis: string }) => {
       </p>
       <div className="px-4">
         <div className="text-gray-700 body-medium whitespace-pre-wrap">
-          {parsedText}
+          {parsedText && parsedText.trim() !== ""
+            ? parsedText
+            : "학습을 먼저 진행해주세요."}
         </div>
       </div>
     </div>
