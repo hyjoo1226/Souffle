@@ -12,6 +12,7 @@ const WrappedAxisTick = ({ x, y, payload, width }: any) => {
           display: "-webkit-box",
           WebkitLineClamp: 2, // 두 줄로 제한
           WebkitBoxOrient: "vertical",
+          color: "#1b1d1b",
         }}
       >
         {payload.value}

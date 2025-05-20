@@ -230,9 +230,11 @@ const ProblemSelectPage = () => {
                   <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
                 </div>
                 <div className="basis-1/7 flex justify-center items-center">
-                  <p className="body-medium text-gray-700">{`${
-                    problem.problem_avg_accuracy * 100
-                  }%`}</p>
+                  <p className="body-medium text-gray-700">
+                    {problem.problem_avg_accuracy != null
+                      ? `${problem.problem_avg_accuracy}%`
+                      : "0%"}
+                  </p>
                 </div>
               </div>
             ))}
