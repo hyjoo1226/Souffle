@@ -51,13 +51,14 @@ backup-db:
   stage: backup
   tags: [deploy]
   script:
-  script:
     - mkdir -p ci-backup
     - docker exec db pg_dump -U ssafy -d app > db-backup.sql
+    - docker-compose -f docker-compose.ci.yml stop db
     - tar czf db-backup.tar.gz db-backup.sql
     - tar czf db-data.tar.gz -C /srv/souffle/volumes db_data
     - mv db-backup.tar.gz ci-backup/
     - mv db-data.tar.gz ci-backup/
+    - docker-compose -f docker-compose.ci.yml start db
   artifacts:
     paths:
       - ci-backup/db-backup.tar.gz
