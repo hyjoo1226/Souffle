@@ -64,9 +64,12 @@ const MyStudyReportPage = () => {
         {userInfo && (
           <div className="flex flex-col gap-3 items-center mb-30">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center">
-                <img src={userInfo.profile_image} alt="유저 프로필 이미지" className="w-6 h-6" referrerPolicy="no-referrer" />
-              </div>
+                <img 
+                  src={userInfo.profile_image} 
+                  alt="유저 프로필 이미지" 
+                  className="w-10 h-10 rounded-full border border-gray-200" 
+                  referrerPolicy="no-referrer" 
+                />
               <div className="flex gap-1 text-gray-700">
                 {isEditing ? (
                   <div className="flex gap-2 items-center">

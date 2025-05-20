@@ -111,7 +111,7 @@ const ProblemContent = ({
         <img
           src="/icons/true.png"
           alt="맞음"
-          className="absolute -top-10 -left-3 w-30 h-40"
+          className="absolute -top-10 -left-10 w-40 h-40"
         />
       )}
       <div>
