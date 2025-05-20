@@ -204,6 +204,35 @@ const AnswerArea = forwardRef((_props, ref) => {
       lastStrokeEndTime: lastStrokeEndTime.current,
     }),
     getBlocks: () => blocks,
+    resetCanvas: () => {
+      setStrokes([]);
+      setBlocks([]);
+      setCurrentStroke([]);
+      setDrawing(false);
+      setEraseMode(false);
+      setLastStrokeTime(null);
+      setLastBlockId(null);
+      setLastPoint(null);
+      setIsPencilActive(true);
+      setIsEraserActive(false);
+      setShowEraseModal(false);
+      setEraseOption(null);
+
+      firstStrokeTime.current = null;
+      lastStrokeEndTime.current = null;
+      enterTime.current = Date.now();
+
+      blockSnapshotsRef.current = [];
+      lastSavedBlocksRef.current = [];
+      // erasedStrokesRef.current = new Set();
+      currentStrokeRef.current = [];
+
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    },
   }));
 
   return (
