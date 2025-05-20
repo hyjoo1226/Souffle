@@ -291,19 +291,7 @@ export class NoteService {
       throw new BadRequestException('유효하지 않은 폴더 유형입니다.');
     }
 
-    // note_content 생성 (없는 경우)
     const savedUserProblem = await this.userProblemRepository.save(userProblem);
-    const existingContent = await this.noteContentRepository.findOne({
-      where: { user_problem: { id: savedUserProblem.id } },
-    });
-    if (!existingContent) {
-      const newContent = this.noteContentRepository.create({
-        user_problem: savedUserProblem,
-        solution_strokes: [],
-        concept_strokes: [],
-      });
-      await this.noteContentRepository.save(newContent);
-    }
 
     return savedUserProblem;
   }

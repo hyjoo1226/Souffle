@@ -12,6 +12,7 @@ import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
 import { Category } from 'src/categories/entities/category.entity';
+import { NoteContent } from 'src/notes/entities/note-content.entity';
 import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Injectable()
@@ -23,6 +24,8 @@ export class SubmissionService {
     private userRepository: Repository<User>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
+    @InjectRepository(NoteContent)
+    private noteContentRepository: Repository<NoteContent>,
     @InjectRepository(SubmissionStep)
     private submissionStepRepository: Repository<SubmissionStep>,
     @InjectRepository(UserProblem)
@@ -184,6 +187,28 @@ export class SubmissionService {
         noteFolder.id,
       ],
     );
+
+    const userProblem = await this.userProblemRepository.findOne({
+      where: {
+        user: { id: submissionDto.user_id },
+        problem: { id: submissionDto.problem_id },
+      },
+    });
+    if (!userProblem) {
+      throw new NotFoundException('user_problem이 생성되지 않았습니다.');
+    }
+    // note Content 없으면 생성
+    const existingContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblem.id } },
+    });
+    if (!existingContent) {
+      const newContent = this.noteContentRepository.create({
+        user_problem: userProblem,
+        solution_strokes: [],
+        concept_strokes: [],
+      });
+      await this.noteContentRepository.save(newContent);
+    }
 
     // 해당 단원의 진도가 있는지 확인
     const progress = await this.userCategoryProgressRepository.findOne({
