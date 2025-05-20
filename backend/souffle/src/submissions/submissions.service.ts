@@ -271,11 +271,11 @@ export class SubmissionService {
       .where('submission.problemId = :problemId', { problemId })
       .getRawOne();
 
+    await this.problemRepository.query(
+      `UPDATE problems SET "avgAccuracy" = $1 WHERE id = $2`,
+      [Math.round(Number(stats.avgAccuracy) * 10) / 10, problemId],
+    );
     await this.problemRepository.update(problemId, {
-      avgAccuracy:
-        stats.avgAccuracy !== null && !isNaN(Number(stats.avgAccuracy))
-          ? Math.round(Number(stats.avgAccuracy) * 10) / 10
-          : 0,
       avgTotalSolveTime:
         stats.avgTotalSolveTime !== null &&
         !isNaN(Number(stats.avgTotalSolveTime))
