@@ -41,6 +41,7 @@ class StepValidationResult(BaseModel):
     latex: str = Field(description="수식 이미지를 LaTeX로 변경한 문자열")
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="OCR 결과의 신뢰도")
     feedback: str = Field(default="잘 풀었습니다.", description="변경 사항에 대한 피드백")
+    current_latex: str = Field(default="", description="이번 단계에 추가된 수식")
 
 class AnalysisOCRResponse(BaseModel):
     steps: List[StepValidationResult] = Field(description="분석된 풀이 단계 목록")
