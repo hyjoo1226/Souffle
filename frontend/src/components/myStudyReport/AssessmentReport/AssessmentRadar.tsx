@@ -176,14 +176,14 @@ const AssessmentRadar = () => {
             <div>
               <span className="text-primary-600">복습 점수</span>
               <p className="text-gray-600">
-                : 틀린 문제 중에서 오답노트를 얼마나 잘 작성했는지를 보여줘요.
+                : 틀린 문제 중에서 복습노트를 얼마나 잘 작성했는지를 보여줘요.
                 복습 습관을 평가할 수 있어요.
               </p>
             </div>
             <div>
               <span className="text-primary-600">성실 점수</span>
               <p className="text-gray-600">
-                : 오답노트를 얼마나 빠른 시일 내에 작성했는지를 다른 친구들과
+                : 복습노트를 얼마나 빠른 시일 내에 작성했는지를 다른 친구들과
                 비교해요. 빠를수록 점수가 높아요.
               </p>
             </div>
