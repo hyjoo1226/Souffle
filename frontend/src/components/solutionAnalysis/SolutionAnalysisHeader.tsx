@@ -13,17 +13,16 @@ import { getFavoriteFoldersApi } from "@/services/api/ReviewNoteList";
 interface SolutionAnalysisHeaderProps {
   submissionId: number[];
   problemId: number;
-  selectedLessonName: string,
-  selectedSubject: string,
-  selectedUnit: string,
-  problemNo: number,
-  problemIndex: number,
-  problemList: any,
-  selectedUnitId: number,
+  selectedLessonName: string;
+  selectedSubject: string;
+  selectedUnit: string;
+  problemNo: number;
+  problemIndex: number;
+  problemList: any;
+  selectedUnitId: number;
 }
 
 const SolutionAnalysisHeader = ({
-  submissionId,
   problemId,
   selectedLessonName,
   selectedSubject,
@@ -103,31 +102,29 @@ const SolutionAnalysisHeader = ({
 
   return (
     <>
-      {
-        isFavoriteModalOpen && (
+      {isFavoriteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
+          onClick={() => setIsFavoriteModalOpen(false)}
+        >
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
-            onClick={() => setIsFavoriteModalOpen(false)}
+            className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FolderSelectModal
-                favoriteFolders={favoriteFolders || []}
-                selectedProblemIds={submissionId}
-                setFavoriteFolders={setFavoriteFolders}
-                setIsFavoriteModalOpen={setIsFavoriteModalOpen}
-                reviewNoteList={reviewNoteList}
-                setReviewNoteList={setReviewNoteList}
-                handleSelectUnit={handleSelectUnit}
-                setSelectedProblemIds={() => {}}
-                topFavoriteFolderId={topFavoriteFolderId}
-              />
-            </div>
+            <FolderSelectModal
+              favoriteFolders={favoriteFolders || []}
+              selectedProblemIds={[problemId]}
+              setFavoriteFolders={setFavoriteFolders}
+              setIsFavoriteModalOpen={setIsFavoriteModalOpen}
+              reviewNoteList={reviewNoteList}
+              setReviewNoteList={setReviewNoteList}
+              handleSelectUnit={handleSelectUnit}
+              setSelectedProblemIds={() => {}}
+              topFavoriteFolderId={topFavoriteFolderId}
+            />
           </div>
-        )
-      }
+        </div>
+      )}
       <div className="flex items-start justify-between py-[21px]">
         <div className="">
           <p className="headline-large text-gray-700 mb-[8px]">
@@ -154,8 +151,8 @@ const SolutionAnalysisHeader = ({
             <Expand className="text-gray-500 transform -scale-x-100" />
           </div>
 
-          <Link 
-            to={`/solving/${problemId}`} 
+          <Link
+            to={`/solving/${problemId}`}
             state={{
               selectedLessonName,
               selectedSubject,
@@ -165,16 +162,17 @@ const SolutionAnalysisHeader = ({
               problemList,
               selectedUnitId,
             }}
-            className="min-w-33.75"
           >
-            <Button variant="solid">다시 풀어보기</Button>
+            <Button variant="outline" className="min-w-35">
+              다시 풀어보기
+            </Button>
           </Link>
           <Button
             variant="solid"
             onClick={() => {
               setIsFavoriteModalOpen(!isFavoriteModalOpen);
             }}
-            className="min-w-33.75"
+            className="min-w-35"
           >
             즐겨찾기 추가
           </Button>

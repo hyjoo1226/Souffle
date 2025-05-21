@@ -1,13 +1,13 @@
 export interface CategoryProps {
   categoryData: CategoryData[];
   selectedLessonId: number | null; // 선택된 소단원 ID
-  setSelectedLessonId: (lessonId: number) => void; // 선택된 소단원 ID를 설정하는 함수
+  setSelectedLessonId: (lessonId: number | null) => void; // 선택된 소단원 ID를 설정하는 함수
   selectedLessonName: string | null;
-  setSelectedLessonName: (lessonName: string) => void; // 선택된 소단원 이름을 설정하는 함수
+  setSelectedLessonName: (lessonName: string | null) => void; // 선택된 소단원 이름을 설정하는 함수
   selectedSubject: string | null;
-  setSelectedSubject: (selectedSubject: string) => void;
+  setSelectedSubject: (selectedSubject: string | null) => void;
   selectedUnit: string | null;
-  setSelectedUnit: (selectedUnit: string) => void;
+  setSelectedUnit: (selectedUnit: string | null) => void;
   setSelectedUnitId: (selectedUnitId: number) => void;
 }
 
