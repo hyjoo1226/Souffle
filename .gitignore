@@ -1,0 +1,4 @@
+volumes/
+uploads/
+frontend/dist/
+pg_raw_backup_*.tar.gz
