@@ -132,9 +132,8 @@ export class ReportService {
       .having('COUNT(s."problemId") > 1')
       .getCount();
 
-    const reflectionScore = totalProblems.length
-      ? (retriedProblems / totalProblems.length) * 100
-      : 0;
+    const reflectionScore =
+      retriedProblems >= 20 ? 100 : Math.round((retriedProblems / 20) * 100);
 
     return {
       correct_score: correctScore ?? 0,
@@ -147,7 +146,7 @@ export class ReportService {
   }
 
   // 자정마다 모든 유저 리포트 생성
-  @Cron('11 2 * * *')
+  @Cron('26 2 * * *')
   async scheduledReportGeneration() {
     const allUsers = await this.userRepository.find();
 
