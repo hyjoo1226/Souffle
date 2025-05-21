@@ -77,7 +77,7 @@ const ProblemPreview = ({ selectedProblem }: ProblemPreviewProps) => {
               size="md"
               onClick={() => handleGoToReviewNote()}
             >
-              오답 정리하기
+              복습하기
             </Button>
           </div>
         </div>
@@ -95,7 +95,7 @@ const ProblemPreview = ({ selectedProblem }: ProblemPreviewProps) => {
               size="md"
               className="!bg-gray-100 text-gray-300"
             >
-              오답 정리하기
+              복습하기
             </Button>
           </div>
         </div>

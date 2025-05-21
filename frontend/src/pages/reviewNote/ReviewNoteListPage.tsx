@@ -23,7 +23,7 @@ const ReviewNoteListPage = () => {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
   const [selectedProblem, setSelectedProblem] = useState<any>(null);
-  const tabs = ["정답률↑", "정답률↓", "오답"];
+  const tabs = ["정답률↑", "정답률↓", "복습"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<number | null>(null);
@@ -127,7 +127,7 @@ const ReviewNoteListPage = () => {
       .filter((f) => f.type === 1)
       .sort((a, b) => a.id - b.id);
 
-    // 오답노트 폴더: type === 2, id 순 정렬
+    // 복습노트 폴더: type === 2, id 순 정렬
     const noteFolders = reviewFolderList
       .filter((f) => f.type === 2)
       .sort((a, b) => a.id - b.id);
@@ -180,7 +180,7 @@ const ReviewNoteListPage = () => {
         return rateB - rateA;
       });
     }
-    if (selected === "오답") {
+    if (selected === "복습") {
       return reviewNoteList.filter(
         (item) => item.user.try_count > 0 && item.user.correct_count === 0
       );
@@ -263,7 +263,7 @@ const ReviewNoteListPage = () => {
                 </div>
 
                 <div className="flex overflow-hidden w-fit">
-                  {/* 오답 리스트 정렬 버튼 */}
+                  {/* 복습 리스트 정렬 버튼 */}
                   {tabs.map((tab, i) => (
                     <button
                       key={tab}

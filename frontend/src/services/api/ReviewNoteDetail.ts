@@ -1,8 +1,8 @@
 import { api } from "@/services/api/Api";
 import { Stroke } from "@/types/ReviewNoteDetail";
 /**
- * 오답노트 문제 상세 조회 API
- * @param userProblemId - 오답노트 문제 고유 ID
+ * 복습노트 문제 상세 조회 API
+ * @param userProblemId - 복습노트 문제 고유 ID
  * @returns 문제 상세 데이터
  */
 export const getReviewNoteDetailApi = async (userProblemId: number) => {
@@ -18,8 +18,8 @@ export const getReviewNoteDetailApi = async (userProblemId: number) => {
 };
 
 /**
- * 오답노트 필기 내용 저장 API
- * @param userProblemId - 오답노트 문제 고유 ID
+ * 복습노트 필기 내용 저장 API
+ * @param userProblemId - 복습노트 문제 고유 ID
  * @param solutionStrokes - 풀이 영역 스트로크
  * @param conceptStrokes - 개념 영역 스트로크
  */

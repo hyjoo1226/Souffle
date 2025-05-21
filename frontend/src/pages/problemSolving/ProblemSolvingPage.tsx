@@ -247,7 +247,7 @@ const ProblemSolvingPage = () => {
             <div className="col-span-7 h-[calc(100vh-150px)] p-4">
               <SolutionArea ref={solutionRef} />
               <div className="flex overflow-hidden w-fit p-4">
-                {/* 오답 리스트 정렬 버튼 */}
+                {/* 복습 리스트 정렬 버튼 */}
                 {tabs.map((tab, i) => (
                   <button
                     key={tab}

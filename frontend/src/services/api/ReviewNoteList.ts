@@ -48,7 +48,7 @@ export const getFavoriteFoldersApi = async () => {
   return response.data;
 };
 
-// 오답 노트 폴더 조회
+// 복습 노트 폴더 조회
 export const getReviewNoteFolderApi = async () => {
   const response = await api.get("/notes/folder", {
     params: {

@@ -1,4 +1,4 @@
-// 오답노트 상세 페이지 상단 부분
+// 복습노트 상세 페이지 상단 부분
 import { Link } from "react-router-dom";
 
 import { ReactComponent as ExpandSlim } from '@/assets/icons/ExpandSlim.svg';
@@ -16,7 +16,7 @@ const ReviewNoteDetailHeader = ({ totalSoloveTime }: HeaderProps) => {
     <div className="flex justify-between py-[clamp(16px,2.33vh,28px)]">
         <div className='flex items-center justify-center'>
             <ExpandSlim className='text-gray-500' />
-            <Link to="/review-list" className="caption-medium text-gray-500">오답노트 리스트</Link>
+            <Link to="/review-list" className="caption-medium text-gray-500">복습노트 리스트</Link>
         </div>
         <div className='flex items-center justify-center'>
             <p className='caption-medium text-gray-500'>

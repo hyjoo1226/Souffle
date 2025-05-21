@@ -1,4 +1,4 @@
-// 오답노트 상세 페이지 문제 설명 영역
+// 복습노트 상세 페이지 문제 설명 영역
 import MathExplanation from "@/components/reviewNoteDetail/MathExplanation";
 
 interface ProblemProps {
