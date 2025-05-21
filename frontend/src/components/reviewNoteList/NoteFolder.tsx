@@ -1,5 +1,5 @@
 // 중단원 하나 + 그 안의 소단원들
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ReactComponent as ExpandSlim } from "@/assets/icons/ExpandSlim.svg";
 import { ReactComponent as FolderAdd } from "@/assets/icons/FolderAdd.svg";
 import NoteSectionItem from "./NoteSectionItem";
@@ -21,6 +21,7 @@ interface Props {
   setFavoriteFolders: (folders: Folder[]) => void;
   onSelectUnit: ({ section, type, unit, id }: UnitSelectPayload) => void;
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
+  defaultOpenSectionId?: number;
 }
 
 const NoteFolder = ({
@@ -32,6 +33,7 @@ const NoteFolder = ({
   setFavoriteFolders,
   onSelectUnit,
   onDropProblem,
+  defaultOpenSectionId,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const handleToggle = () => {
@@ -112,6 +114,17 @@ const NoteFolder = ({
       })) ?? [];
     setFavoriteFolders(updated);
   };
+
+  useEffect(() => {
+    if (
+      defaultOpenSectionId &&
+      sections.some((section) =>
+        section.children?.some((child) => child.id === defaultOpenSectionId)
+      )
+    ) {
+      setIsOpen(true);
+    }
+  }, [sections, defaultOpenSectionId]);
   return (
     <div className="w-full flex flex-col gap-y-2.5">
       {/* 중단원 상단 */}
@@ -223,6 +236,7 @@ const NoteFolder = ({
                     onDropProblem?.(targetSection, problemIds)
                   }
                   onDeleteFolder={handleDeleteFolder}
+                  defaultOpenUnitId={7}
                 />
               )}
             </div>

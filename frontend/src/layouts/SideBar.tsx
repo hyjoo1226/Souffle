@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 
@@ -45,6 +45,12 @@ const SideBar = ({
     window.location.href = "/";
   };
 
+  useEffect(() => {
+    if (!isSideBarOpen) {
+      setSelectedMenu(null);
+    }
+  }, [isSideBarOpen]);
+
   return (
     <div
       className={`flex flex-col fixed top-0 left-0 w-1/4 min-w-80 h-full bg-white shadow-lg z-50 transition-transform duration-300 ${
@@ -71,8 +77,12 @@ const SideBar = ({
             referrerPolicy="no-referrer"
           />
           <div className="flex-col">
-            <p className="text-gray-700 body-medium-bold">{user?.nickname || "등록된 닉네임이 없습니다."}</p>
-            <p className="text-gray-500 body-small">{user?.email ? user?.email : "등록된 이메일이 없습니다."}</p>
+            <p className="text-gray-700 body-medium-bold">
+              {user?.nickname || "등록된 닉네임이 없습니다."}
+            </p>
+            <p className="text-gray-500 body-small">
+              {user?.email ? user?.email : "등록된 이메일이 없습니다."}
+            </p>
           </div>
         </div>
         <div className="flex justify-center">

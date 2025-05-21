@@ -21,7 +21,7 @@ const AnswerArea = forwardRef((_props, ref) => {
 
   // 현재 그리고 있는 획을 담을 임시 저장소입니다.
   const currentStrokeRef = useRef<any[]>([]);
-
+  const erasedStrokesRef = useRef<Set<number>>(new Set());
   // 전체 획, 블록, 그리고 기타 상태들입니다.
   const [strokes, setStrokes] = useState<any[]>([]);
   const [blocks, setBlocks] = useState<any[]>([]);
@@ -95,12 +95,14 @@ const AnswerArea = forwardRef((_props, ref) => {
     // 그리기 시작
     const handlePointerDown = (e: PointerEvent) => {
       if (!hasStarted) setHasStarted(true);
+      if (e.pressure === 0) return;
       if (!firstStrokeTime.current) {
         firstStrokeTime.current = Date.now();
       }
       if (e.pointerType === "touch") return;
 
       if (eraseMode) {
+        erasedStrokesRef.current.clear();
         const { x, y } = getRelativePointerPosition(e, canvas);
         const nearStrokeId = findStrokeNearPointer({
           x,
@@ -111,6 +113,7 @@ const AnswerArea = forwardRef((_props, ref) => {
         });
 
         if (nearStrokeId !== null) {
+          erasedStrokesRef.current.add(nearStrokeId);
           const { updatedStrokes, updatedBlocks } = eraseStrokeById({
             nearStrokeId,
             strokes,
@@ -143,6 +146,46 @@ const AnswerArea = forwardRef((_props, ref) => {
 
     // 선 그리기 중
     const handlePointerMove = (e: PointerEvent) => {
+      if (e.pressure === 0) return;
+      if (eraseMode) {
+        const { x, y } = getRelativePointerPosition(e, canvas);
+        const nearStrokeId = findStrokeNearPointer({
+          x,
+          y,
+          blocks,
+          strokes,
+          useBlock: true,
+        });
+
+        if (
+          nearStrokeId !== null &&
+          !erasedStrokesRef.current.has(nearStrokeId)
+        ) {
+          erasedStrokesRef.current.add(nearStrokeId);
+
+          const { updatedStrokes, updatedBlocks } = eraseStrokeById({
+            nearStrokeId,
+            strokes,
+            blocks,
+            setStrokes,
+            setBlocks,
+            canvas,
+            useBlock: true,
+          });
+
+          updateLastStrokeMetaAfterErase({
+            updatedStrokes,
+            blocks: updatedBlocks,
+            setLastPoint,
+            setLastStrokeTime,
+            setLastBlockId,
+            useBlock: true,
+          });
+        }
+
+        return;
+      }
+
       if (!drawing || eraseMode) return;
       const point = { x: e.offsetX, y: e.offsetY, time: Date.now() };
       currentStrokeRef.current.push(point);
