@@ -107,6 +107,7 @@ const FolderSelectModal = ({
         moveToFavFolderApi(problemId, folder.id, 1)
       )
     );
+    alert("새 폴더에 저장되었습니다.");
     // console.log("선택된문제ID", selectedProblemIds);
 
     setReviewNoteList(
