@@ -23,6 +23,7 @@ interface Props {
 
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
   onDeleteFolder: (folderId: number) => void;
+  defaultOpenUnitId?: number;
 }
 
 const NoteSectionItem = ({
@@ -39,6 +40,7 @@ const NoteSectionItem = ({
 
   onDropProblem,
   onDeleteFolder,
+  defaultOpenUnitId,
 }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +60,15 @@ const NoteSectionItem = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (
+      defaultOpenUnitId &&
+      subUnit?.some((unit) => unit.id === defaultOpenUnitId)
+    ) {
+      setIsOpen(true);
+    }
+  }, [subUnit, defaultOpenUnitId]);
 
   return (
     <div
@@ -101,7 +112,7 @@ const NoteSectionItem = ({
           )}
           <Folder className="text-gray-700" />
           <p className="body-medium text-gray-700">{sectionTitle}</p>
-          <p className="caption-medium text-primary-700">{count}</p>
+          <p className="body-medium text-primary-700">{count}</p>
         </div>
 
         {type === 1 && (
@@ -166,7 +177,7 @@ const NoteSectionItem = ({
                 }
               >
                 <p className="body-medium text-gray-600">{child.name}</p>
-                <p className="body-medium text-primary-700">
+                <p className="caption-medium text-primary-500">
                   {child.problem_count ?? 0}
                 </p>
               </div>

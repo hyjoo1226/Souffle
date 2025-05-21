@@ -6,10 +6,12 @@ import { User } from "@/types/User";
 import { useUser } from "@/contexts/UserContext";
 
 const MyStudyReportPage = () => {
-  const [selectedTab, setSelectedTab] = useState<"learning" | "assessment">("learning");
+  const [selectedTab, setSelectedTab] = useState<"learning" | "assessment">(
+    "learning"
+  );
   const [userInfo, setUserInfo] = useState<User>();
   const [isEditing, setIsEditing] = useState(false); // 닉네임 수정 중 여부
-  const [editedNickname, setEditedNickname] = useState("") // 입력 값
+  const [editedNickname, setEditedNickname] = useState(""); // 입력 값
   const { setUser, user } = useUser();
 
   useEffect(() => {
@@ -17,7 +19,6 @@ const MyStudyReportPage = () => {
       setUserInfo(user);
     }
   }, [user]);
-
 
   const getDaysSince = (createdAt: string): number => {
     const createdDate = new Date(createdAt);
@@ -37,9 +38,11 @@ const MyStudyReportPage = () => {
 
     try {
       await patchRemakeNicknameApi(editedNickname);
-      setUserInfo((prev) => prev ? { ...prev, nickname: editedNickname } : prev);
+      setUserInfo((prev) =>
+        prev ? { ...prev, nickname: editedNickname } : prev
+      );
 
-      setUser((prev) => prev ? { ...prev, nickname: editedNickname } : prev);
+      setUser((prev) => (prev ? { ...prev, nickname: editedNickname } : prev));
 
       setIsEditing(false);
     } catch (error) {
@@ -56,17 +59,23 @@ const MyStudyReportPage = () => {
     <div className="grid grid-cols-12 gap-x-4 h-screen ">
       <div className="sticky top-0 col-span-5 sm:col-span-3 py-5 border-r border-gray-200 flex flex-col items-center">
         <p className="body-small text-gray-700 mb-11">
-          수플래와 함께 <span className="text-primary-500">{getDaysSince(userInfo?.created_at)+1}</span>일째 성장
-          중!
+          수플래와 함께{" "}
+          <span className="text-primary-500">
+            {getDaysSince(userInfo?.createdAt) + 1}
+          </span>
+          일째 성장 중!
         </p>
 
         {/* 내 정보 */}
         {userInfo && (
           <div className="flex flex-col gap-3 items-center mb-30">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center">
-                <img src={userInfo.profile_image} alt="유저 프로필 이미지" className="w-6 h-6" referrerPolicy="no-referrer" />
-              </div>
+                <img 
+                  src={userInfo.profileImage} 
+                  alt="유저 프로필 이미지" 
+                  className="w-10 h-10 rounded-full border border-gray-200" 
+                  referrerPolicy="no-referrer" 
+                />
               <div className="flex gap-1 text-gray-700">
                 {isEditing ? (
                   <div className="flex gap-2 items-center">
@@ -149,7 +158,9 @@ const MyStudyReportPage = () => {
 
       <div className="col-span-7 sm:col-span-9 flex flex-col items-center">
         {selectedTab === "learning" && <ProgressReport />}
-        {selectedTab === "assessment" && <AssessmentReport />}
+        {selectedTab === "assessment" && (
+          <AssessmentReport userName={userInfo.nickname} />
+        )}
       </div>
     </div>
   );

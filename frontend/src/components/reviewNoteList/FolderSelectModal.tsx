@@ -107,6 +107,7 @@ const FolderSelectModal = ({
         moveToFavFolderApi(problemId, folder.id, 1)
       )
     );
+    alert("새 폴더에 저장되었습니다.");
     // console.log("선택된문제ID", selectedProblemIds);
 
     setReviewNoteList(
@@ -134,7 +135,8 @@ const FolderSelectModal = ({
     };
 
     const res = await createFolderApi(data);
-    const newFolderId = res.id;
+    // console.log("newFolderId", res.folder_id);
+    const newFolderId = res.folder_id;
 
     const newFolder: Folder = {
       id: newFolderId,
@@ -175,12 +177,16 @@ const FolderSelectModal = ({
       setFavoriteFolders(updatedFolders);
     }
 
-    if (!newFolderId || isNaN(newFolderId)) {
-      alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
-      return;
-    }
+    // if (!newFolderId || isNaN(newFolderId)) {
+    //   alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
+    //   return;
+    // }
 
-    // console.log("newFolderId", newFolderId);
+    console.log("newFolderId", newFolderId);
+    console.log("typeof newFolderId", typeof newFolderId);
+    console.log("selectedProblemIds", selectedProblemIds);
+    console.log("typeof selectedProblemIds", typeof selectedProblemIds);
+
     await Promise.all(
       selectedProblemIds.map((problemId) =>
         moveToFavFolderApi(problemId, newFolderId, 1)
@@ -196,6 +202,8 @@ const FolderSelectModal = ({
       type: 1,
       id: newFolderId,
     });
+
+    alert("새 폴더에 저장되었습니다.");
 
     // 4. 모달 닫기
     setIsCreatingFolder(false);

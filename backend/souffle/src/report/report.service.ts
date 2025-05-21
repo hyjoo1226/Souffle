@@ -33,17 +33,17 @@ export class ReportService {
     // correctScore
     const correctProblems = await this.submissionRepository
       .createQueryBuilder('s')
-      .select('DISTINCT s.problem_id', 'problemId')
-      .where('s.user_id = :userId', { userId })
-      .andWhere('s.is_correct = true')
-      .andWhere('s.created_at >= :oneWeekAgo', { oneWeekAgo })
+      .select('DISTINCT s."problemId"', 'problemId')
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."isCorrect" = true')
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getRawMany();
 
     const totalProblems = await this.submissionRepository
       .createQueryBuilder('s')
-      .select('DISTINCT s.problem_id', 'problemId')
-      .where('s.user_id = :userId', { userId })
-      .andWhere('s.created_at >= :oneWeekAgo', { oneWeekAgo })
+      .select('DISTINCT s."problemId"', 'problemId')
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getRawMany();
 
     const correctScore = totalProblems.length
@@ -56,12 +56,12 @@ export class ReportService {
     // Speed Score
     const speedProblems = await this.submissionRepository
       .createQueryBuilder('s')
-      .innerJoin('s.problem', 'p')
-      .select('s.id', 'submissionId')
-      .where('s.user_id = :userId', { userId })
-      .andWhere('s.is_correct = true')
-      .andWhere('s.solve_time < p.avg_solve_time')
-      .andWhere('s.created_at >= :oneWeekAgo', { oneWeekAgo })
+      .innerJoin('problems', 'p', 's."problemId" = p."id"')
+      .select('s."id"', 'submissionId')
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."isCorrect" = true')
+      .andWhere('s."solveTime" < p."avgSolveTime"')
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getCount();
 
     const speedScore = totalProblems.length
@@ -76,17 +76,18 @@ export class ReportService {
           qb
             .subQuery()
             .from(Submission, 'fs')
-            .select('MIN(fs.id)', 'firstId')
-            .where('fs.user_id = :userId')
-            .andWhere('fs.created_at >= :oneWeekAgo')
-            .groupBy('fs.problem_id'),
+            .select('MIN(fs."id")', 'firstId')
+            .addSelect('fs."problemId"', 'problemId')
+            .where('fs."userId" = :userId')
+            .andWhere('fs."createdAt" >= :oneWeekAgo')
+            .groupBy('fs."problemId"'),
         'first',
-        's.id != first.firstId AND s.problem_id = first.problem_id',
+        's."id" != first."firstId" AND s."problemId" = first."problemId"',
       )
       .setParameter('userId', userId)
       .setParameter('oneWeekAgo', oneWeekAgo)
-      .where('s.user_id = :userId', { userId })
-      .andWhere('s.created_at >= :oneWeekAgo', { oneWeekAgo })
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getCount();
 
     const correctResubmissions = await this.submissionRepository
@@ -95,15 +96,16 @@ export class ReportService {
         (qb) =>
           qb
             .from(Submission, 'fs')
-            .select('MIN(fs.id)', 'firstId')
-            .groupBy('fs.problemId'),
+            .select('MIN(fs."id")', 'firstId')
+            .groupBy('fs."problemId"'),
         'first',
-        's.id != first.firstId',
+        's."id" != first."firstId"',
       )
-      .where('s.userId = :userId', { userId })
-      .andWhere('s.isCorrect = true')
-      .andWhere('s.createdAt >= :oneWeekAgo', { oneWeekAgo })
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."isCorrect" = true')
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getCount();
+
     const reviewScore = resubmissions
       ? (correctResubmissions / resubmissions) * 100
       : 0;
@@ -112,8 +114,8 @@ export class ReportService {
     const notedProblems = await this.userProblemRepository
       .createQueryBuilder('up')
       .innerJoin('up.noteContents', 'nc')
-      .where('up.user_id = :userId', { userId })
-      .andWhere('nc.created_at >= :oneWeekAgo', { oneWeekAgo })
+      .where('up."user_id" = :userId', { userId })
+      .andWhere('nc."createdAt" >= :oneWeekAgo', { oneWeekAgo })
       .getCount();
 
     const sincerityScore = totalProblems.length
@@ -123,29 +125,28 @@ export class ReportService {
     // Reflection Score
     const retriedProblems = await this.submissionRepository
       .createQueryBuilder('s')
-      .select('s.problem_id', 'problemId')
-      .where('s.user_id = :userId', { userId })
-      .andWhere('s.created_at >= :oneWeekAgo', { oneWeekAgo })
-      .groupBy('s.problem_id')
-      .having('COUNT(s.problem_id) > 1')
+      .select('s."problemId"', 'problemId')
+      .where('s."userId" = :userId', { userId })
+      .andWhere('s."createdAt" >= :oneWeekAgo', { oneWeekAgo })
+      .groupBy('s."problemId"')
+      .having('COUNT(s."problemId") > 1')
       .getCount();
 
-    const reflectionScore = totalProblems.length
-      ? (retriedProblems / totalProblems.length) * 100
-      : 0;
+    const reflectionScore =
+      retriedProblems >= 20 ? 100 : Math.round((retriedProblems / 20) * 100);
 
     return {
-      correctScore,
-      participationScore,
-      speedScore,
-      reviewScore,
-      sincerityScore,
-      reflectionScore,
+      correct_score: correctScore ?? 0,
+      participation_score: participationScore ?? 0,
+      speed_score: speedScore ?? 0,
+      review_score: reviewScore ?? 0,
+      sincerity_score: sincerityScore ?? 0,
+      reflection_score: reflectionScore ?? 0,
     };
   }
 
   // 자정마다 모든 유저 리포트 생성
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron('0 15 * * *')
   async scheduledReportGeneration() {
     const allUsers = await this.userRepository.find();
 
@@ -153,11 +154,15 @@ export class ReportService {
       const scores = await this.calculateUserScores(user.id);
 
       // 유저 지표 저장
-      const newScoreStat = this.userScoreStatRepository.create({
+      await this.userScoreStatRepository.save({
         userId: user.id,
-        ...scores,
+        correctScore: scores.correct_score ?? 0,
+        participationScore: scores.participation_score ?? 0,
+        speedScore: scores.speed_score ?? 0,
+        reviewScore: scores.review_score ?? 0,
+        sincerityScore: scores.sincerity_score ?? 0,
+        reflectionScore: scores.reflection_score ?? 0,
       });
-      await this.userScoreStatRepository.save(newScoreStat);
 
       // 리포트 생성
       await this.createReport(user.id, scores);

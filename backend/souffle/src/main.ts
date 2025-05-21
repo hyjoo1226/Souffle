@@ -3,12 +3,13 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as express from 'express';
 import * as nodeCrypto from 'crypto';
 
 if (!globalThis.crypto) {
   (globalThis as any).crypto = {
     getRandomValues: (array: Uint8Array) => nodeCrypto.randomFillSync(array),
-    randomUUID: () => nodeCrypto.randomUUID?.(),  // optional chaining
+    randomUUID: () => nodeCrypto.randomUUID?.(), // optional chaining
   };
 }
 
@@ -16,6 +17,9 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

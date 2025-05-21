@@ -23,18 +23,6 @@ const convertToRadarData = (
   weekAgoStats: any | {}
 ): RadarData[] => [
   {
-    subject: "해결 점수",
-    today: todayStats.correctScore ?? 0,
-    previous: previousStats.correctScore ?? 0,
-    past: weekAgoStats.correctScore ?? 0,
-  },
-  {
-    subject: "참여 점수",
-    today: todayStats.participationScore ?? 0,
-    previous: previousStats.participationScore ?? 0,
-    past: weekAgoStats.participationScore ?? 0,
-  },
-  {
     subject: "속도 점수",
     today: todayStats.speedScore ?? 0,
     previous: previousStats.speedScore ?? 0,
@@ -57,6 +45,18 @@ const convertToRadarData = (
     today: todayStats.sincerityScore ?? 0,
     previous: previousStats.sincerityScore ?? 0,
     past: weekAgoStats.sincerityScore ?? 0,
+  },
+  {
+    subject: "해결 점수",
+    today: todayStats.correctScore ?? 0,
+    previous: previousStats.correctScore ?? 0,
+    past: weekAgoStats.correctScore ?? 0,
+  },
+  {
+    subject: "참여 점수",
+    today: todayStats.participationScore ?? 0,
+    previous: previousStats.participationScore ?? 0,
+    past: weekAgoStats.participationScore ?? 0,
   },
 ];
 
@@ -128,6 +128,15 @@ const AssessmentRadar = () => {
           <Legend />
         </RadarChart>
       </ResponsiveContainer>
+      <div
+        className="absolute  bottom-0 left-1/2 w-[2px] bg-gray-400 z-20"
+        style={{
+          top: "10%",
+          bottom: "10%",
+          transform: "translateX(-50%)",
+        }}
+      />
+
       <div className="group">
         <img
           src="/icons/question.png"
@@ -167,14 +176,14 @@ const AssessmentRadar = () => {
             <div>
               <span className="text-primary-600">복습 점수</span>
               <p className="text-gray-600">
-                : 틀린 문제 중에서 오답노트를 얼마나 잘 작성했는지를 보여줘요.
+                : 틀린 문제 중에서 복습노트를 얼마나 잘 작성했는지를 보여줘요.
                 복습 습관을 평가할 수 있어요.
               </p>
             </div>
             <div>
               <span className="text-primary-600">성실 점수</span>
               <p className="text-gray-600">
-                : 오답노트를 얼마나 빠른 시일 내에 작성했는지를 다른 친구들과
+                : 복습노트를 얼마나 빠른 시일 내에 작성했는지를 다른 친구들과
                 비교해요. 빠를수록 점수가 높아요.
               </p>
             </div>

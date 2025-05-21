@@ -111,7 +111,7 @@ const ProblemContent = ({
         <img
           src="/icons/true.png"
           alt="맞음"
-          className="absolute -top-10 -left-3 w-30 h-40"
+          className="absolute -top-10 -left-10 w-40 h-40"
         />
       )}
       <div>
@@ -162,7 +162,8 @@ const ProblemContent = ({
                   ${userAnswer[activeBlankIndex] === choice ? "bg-primary-100 border-primary-500 text-primary-700" : "border-gray-400 text-gray-500"}
                   hover:bg-primary-50`}
                 onClick={() => onChoiceClick(activeBlankIndex, choice)}
-                disabled={!!userAnswer[activeBlankIndex] || isCorrect}
+                // disabled={!!userAnswer[activeBlankIndex] || isCorrect}
+                disabled={isCorrect}
               >
                 {choice}
               </button>
