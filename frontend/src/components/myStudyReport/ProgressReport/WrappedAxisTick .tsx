@@ -2,6 +2,7 @@ const WrappedAxisTick = ({ x, y, payload, width }: any) => {
   return (
     <foreignObject x={x - width / 2} y={y + 8} width={width} height={40}>
       <div
+        title={payload.value}
         style={{
           width: "100%",
           fontSize: 12,
