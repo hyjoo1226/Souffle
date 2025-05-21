@@ -147,7 +147,7 @@ export class ReportService {
   }
 
   // 자정마다 모든 유저 리포트 생성
-  @Cron('3 2 * * *')
+  @Cron('11 2 * * *')
   async scheduledReportGeneration() {
     const allUsers = await this.userRepository.find();
 
@@ -155,11 +155,15 @@ export class ReportService {
       const scores = await this.calculateUserScores(user.id);
 
       // 유저 지표 저장
-      const newScoreStat = this.userScoreStatRepository.create({
+      await this.userScoreStatRepository.save({
         userId: user.id,
-        ...scores,
+        correctScore: scores.correct_score ?? 0,
+        participationScore: scores.participation_score ?? 0,
+        speedScore: scores.speed_score ?? 0,
+        reviewScore: scores.review_score ?? 0,
+        sincerityScore: scores.sincerity_score ?? 0,
+        reflectionScore: scores.reflection_score ?? 0,
       });
-      await this.userScoreStatRepository.save(newScoreStat);
 
       // 리포트 생성
       await this.createReport(user.id, scores);
