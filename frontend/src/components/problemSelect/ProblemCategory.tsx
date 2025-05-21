@@ -19,6 +19,10 @@ const ProblemCategory = ({
   // console.log(categoryData);
   const handleCategoryClick = () => {
     setCategoryOpen(!categoryOpen); // 카테고리 열기 상태 토글
+    setSelectedUnit(null);
+    setSelectedUnit(null);
+    setSelectedLessonName(null);
+    setSelectedLessonId(null);
   };
   return (
     <div className="relative flex flex-col gap-5">
