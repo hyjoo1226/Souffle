@@ -23,18 +23,6 @@ const convertToRadarData = (
   weekAgoStats: any | {}
 ): RadarData[] => [
   {
-    subject: "해결 점수",
-    today: todayStats.correctScore ?? 0,
-    previous: previousStats.correctScore ?? 0,
-    past: weekAgoStats.correctScore ?? 0,
-  },
-  {
-    subject: "참여 점수",
-    today: todayStats.participationScore ?? 0,
-    previous: previousStats.participationScore ?? 0,
-    past: weekAgoStats.participationScore ?? 0,
-  },
-  {
     subject: "속도 점수",
     today: todayStats.speedScore ?? 0,
     previous: previousStats.speedScore ?? 0,
@@ -57,6 +45,18 @@ const convertToRadarData = (
     today: todayStats.sincerityScore ?? 0,
     previous: previousStats.sincerityScore ?? 0,
     past: weekAgoStats.sincerityScore ?? 0,
+  },
+  {
+    subject: "해결 점수",
+    today: todayStats.correctScore ?? 0,
+    previous: previousStats.correctScore ?? 0,
+    past: weekAgoStats.correctScore ?? 0,
+  },
+  {
+    subject: "참여 점수",
+    today: todayStats.participationScore ?? 0,
+    previous: previousStats.participationScore ?? 0,
+    past: weekAgoStats.participationScore ?? 0,
   },
 ];
 
@@ -128,6 +128,15 @@ const AssessmentRadar = () => {
           <Legend />
         </RadarChart>
       </ResponsiveContainer>
+      <div
+        className="absolute  bottom-0 left-1/2 w-[2px] bg-gray-400 z-20"
+        style={{
+          top: "10%",
+          bottom: "10%",
+          transform: "translateX(-50%)",
+        }}
+      />
+
       <div className="group">
         <img
           src="/icons/question.png"

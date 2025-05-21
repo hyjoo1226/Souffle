@@ -205,39 +205,48 @@ const ProblemSelectPage = () => {
             </div>
           </div>
           <div className="flex-1 overflow-y-scroll scrollbar-visible">
-            {sortedProblemList.map((problem, index) => (
-              <div key={index} className="flex px-4 py-4 mt-4 ">
-                <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
-                  <p
-                    className="body-medium text-gray-700"
-                    onClick={() => {
-                      handleProblemClick(problem.problem_id, problem.inner_no);
-                    }}
-                  >
-                    {`${selectedLessonName} ${problem.inner_no}번 문제`}
-                  </p>
-                  <div
-                    className={`rounded-[8px] px-1.5 py-1 caption-small ${
-                      problem.correct_count >= 1
-                        ? "bg-primary-500 text-white"
-                        : ""
-                    }`}
-                  >
-                    {problem.correct_count >= 1 ? "정답" : ""}
+            {selectedLessonId === null ? (
+              <div className="flex justify-center items-center h-full w-full text-gray-400 body-medium">
+                단원을 선택해주세요.
+              </div>
+            ) : (
+              sortedProblemList.map((problem, index) => (
+                <div key={index} className="flex px-4 py-4 mt-4 ">
+                  <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
+                    <p
+                      className="body-medium text-gray-700"
+                      onClick={() => {
+                        handleProblemClick(
+                          problem.problem_id,
+                          problem.inner_no
+                        );
+                      }}
+                    >
+                      {`${selectedLessonName} ${problem.inner_no}번 문제`}
+                    </p>
+                    <div
+                      className={`rounded-[8px] px-1.5 py-1 caption-small ${
+                        problem.correct_count >= 1
+                          ? "bg-primary-500 text-white"
+                          : ""
+                      }`}
+                    >
+                      {problem.correct_count >= 1 ? "정답" : ""}
+                    </div>
+                  </div>
+                  <div className="basis-2/7 flex justify-center items-center">
+                    <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
+                  </div>
+                  <div className="basis-1/7 flex justify-center items-center">
+                    <p className="body-medium text-gray-700">
+                      {problem.problem_avg_accuracy != null
+                        ? `${problem.problem_avg_accuracy}%`
+                        : "0%"}
+                    </p>
                   </div>
                 </div>
-                <div className="basis-2/7 flex justify-center items-center">
-                  <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
-                </div>
-                <div className="basis-1/7 flex justify-center items-center">
-                  <p className="body-medium text-gray-700">
-                    {problem.problem_avg_accuracy != null
-                      ? `${problem.problem_avg_accuracy}%`
-                      : "0%"}
-                  </p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

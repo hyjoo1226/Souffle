@@ -197,6 +197,8 @@ const FolderSelectModal = ({
       id: newFolderId,
     });
 
+    alert("새 폴더에 저장되었습니다.");
+
     // 4. 모달 닫기
     setIsCreatingFolder(false);
     setIsOpen(false);
