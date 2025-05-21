@@ -133,21 +133,21 @@ const SolutionAnalysisHeader = ({
           <p className="headline-large text-gray-700 mb-[8px]">
             문제 풀이 분석 결과
           </p>
-          <p className="body-small text-gray-300">
+          <p className="body-small text-gray-300 hidden md:block">
             AI가 풀이 과정을 분석해 사고 흐름과 이해도를 평가하고, 잘한 점과
             보완할 부분을 구체적으로 안내해드립니다.
           </p>
         </div>
         <div className="flex space-x-6">
           <div
-            className="flex items-center justify-center text-gray-500"
+            className="flex items-center justify-center text-gray-500 min-w-25"
             onClick={goToPrevious}
           >
             <Expand className="text-gray-500" />
             <p className="headline-small">이전 문제</p>
           </div>
           <div
-            className="flex items-center justify-center text-gray-500"
+            className="flex items-center justify-center text-gray-500 min-w-25"
             onClick={goToNext}
           >
             <p className="headline-small">다음 문제</p>
@@ -165,7 +165,7 @@ const SolutionAnalysisHeader = ({
               problemList,
               selectedUnitId,
             }}
-            className=""
+            className="min-w-33.75"
           >
             <Button variant="solid">다시 풀어보기</Button>
           </Link>
@@ -174,6 +174,7 @@ const SolutionAnalysisHeader = ({
             onClick={() => {
               setIsFavoriteModalOpen(!isFavoriteModalOpen);
             }}
+            className="min-w-33.75"
           >
             즐겨찾기 추가
           </Button>

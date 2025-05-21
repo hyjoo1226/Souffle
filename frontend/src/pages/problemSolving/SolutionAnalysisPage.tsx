@@ -150,7 +150,7 @@ const SolutionAnalysisPage = () => {
         </div>
       </div>
       {/* 분석 중 안내 메시지 또는 스피너 */}
-      {isAnalyzing && (
+      {/* {isAnalyzing && ( */}
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* 반투명 오버레이 */}
           <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />
@@ -161,13 +161,13 @@ const SolutionAnalysisPage = () => {
               alt="로딩 중"
               className="w-16 h-16 mb-4"
             />
-            <span className="text-gray-700 font-semibold text-lg">
+            <span className="text-gray-700 body-medium">
               AI 풀이 분석이 진행 중입니다<br />잠시만 기다려주세요!
             </span>
             <span className="mt-2 text-gray-400 caption-medium">최대 1분 정도 소요될 수 있습니다</span>
           </div>
         </div>
-      )}
+      {/* )} */}
     </div>
   );
 };

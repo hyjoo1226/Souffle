@@ -43,6 +43,6 @@ export interface ProblemData {
   full_step_image_url: string | null;
   is_correct: boolean | null;
   ai_analysis: string | null;
-  weekness: string | null;
+  weakness: string | null;
   submission_steps: SubmissionStep[];
 }
