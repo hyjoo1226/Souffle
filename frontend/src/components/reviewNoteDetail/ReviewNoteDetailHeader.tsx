@@ -2,7 +2,7 @@
 import { Link } from "react-router-dom";
 
 import { ReactComponent as ExpandSlim } from '@/assets/icons/ExpandSlim.svg';
-import { ReactComponent as Export_light } from '@/assets/icons/Export_light.svg';
+// import { ReactComponent as Export_light } from '@/assets/icons/Export_light.svg';
 
 interface HeaderProps {
   totalSoloveTime?: number;
@@ -20,13 +20,13 @@ const ReviewNoteDetailHeader = ({ totalSoloveTime }: HeaderProps) => {
         </div>
         <div className='flex items-center justify-center'>
             <p className='caption-medium text-gray-500'>
-              {totalSoloveTime ? `${minute}:${sec.toString().padStart(2, '0')}` : '시간 정보 없음'}
+              풀이 시간 {totalSoloveTime ? `${minute}:${sec.toString().padStart(2, '0')}` : '시간 정보 없음'}
             </p>
         </div>
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
             <Export_light className='text-gray-500' />
             <p className='caption-medium text-gray-500'>PDF 저장</p>
-        </div>
+        </div> */}
     </div>
   );
 };
