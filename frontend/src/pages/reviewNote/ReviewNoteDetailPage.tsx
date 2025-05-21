@@ -68,7 +68,7 @@ const ReviewNoteDetailPage = () => {
       />
       <SolutionNote
         aiAnalysis={problemData?.ai_analysis ?? undefined}
-        weekness={problemData?.weekness ?? undefined}
+        weekness={problemData?.weakness ?? undefined}
         submissionSteps={problemData?.submission_steps ?? []}
         conceptStrokes={problemData?.concept_strokes}
         solutionStrokes={problemData?.solution_strokes}

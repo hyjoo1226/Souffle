@@ -59,15 +59,15 @@ const SideBar = ({
     >
       {/* 상단 */}
       <div className="w-full bg-primary-100 pt-4 pb-5 px-4">
-        <div className="flex justify-end mb-4">
-          <div className="flex gap-1 w-fit h-fit border border-primary-500 px-2 py-1.5 rounded-[10px]">
+        <div className="flex justify-end mb-10">
+          {/* <div className="flex gap-1 w-fit h-fit border border-primary-500 px-2 py-1.5 rounded-[10px]">
             <p className="body-medium text-primary-500">1학년</p>
             <img
               src="/icons/down.png"
               alt="드롭다운 화살표"
               className="w-6 h-6"
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex gap-2.5 mb-5.5 items-center">
           <img

@@ -52,7 +52,7 @@ const TimeAnalysis = ({ times, avgTimes }: Props) => {
     {
       name: "문제 이해",
       나: understand_time,
-      평균: avg_review_time,
+      평균: avg_understand_time,
     },
     {
       name: "문제 풀이",
@@ -62,12 +62,12 @@ const TimeAnalysis = ({ times, avgTimes }: Props) => {
     {
       name: "검산",
       나: review_time,
-      평균: avg_total_solve_time,
+      평균: avg_review_time,
     },
     {
       name: "총 소요 시간",
       나: total_solve_time,
-      평균: avg_understand_time,
+      평균: avg_total_solve_time,
     },
   ];
 
