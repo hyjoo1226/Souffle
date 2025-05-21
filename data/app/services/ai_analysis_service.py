@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 class AIAnalysisService:
     def __init__(self):
         self.openai_api_key = settings.OPENAI_API_KEY
-        self.model = getattr(settings, "OPENAI_MODEL", "gpt-4o-mini")
+        self.model = getattr(settings, "OPENAI_MODEL", "gpt-4o")
         
     async def generate_comprehensive_analysis(
         self, 
@@ -145,7 +145,7 @@ class AIAnalysisService:
 
 다음 내용을 포함하여 ai_analysis를 작성해주세요:
 1. 총 몇 개의 단계에서 몇 번째 단계에서 첫 오류가 발생했는지
-2. 발생한 오류가 계산 실수, 개념 적용 오류, 부호 오류 등 어떤 유형의 오류인지 분석
+2. 가장 오래 걸린 단계가 무엇이고 어떻게 신경 쓰는게 좋을지?
 3. 학생이 이해하기 쉽도록 명확하게 작성
 
 간결하게 200자 이내로 작성해주세요.

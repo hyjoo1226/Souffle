@@ -1,6 +1,6 @@
 # app/models/ocr_schema.py
 from pydantic import BaseModel, HttpUrl, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 
 # 정답 이미지 OCR 요청/응답
@@ -42,6 +42,24 @@ class StepValidationResult(BaseModel):
     confidence: float = Field(default=0.0, ge=0.0, le=1.0, description="OCR 결과의 신뢰도")
     feedback: str = Field(default="잘 풀었습니다.", description="변경 사항에 대한 피드백")
     current_latex: str = Field(default="", description="이번 단계에 추가된 수식")
+
+# OpenAI 기반 분석 V2 요청/응답
+class AnalysisV2Request(BaseModel):
+    problem_id: str
+    answer_image_url: Optional[HttpUrl] = None
+    steps: List[StepValidationResult]
+    total_solve_time: Optional[int] = None
+    understand_time: Optional[int] = None
+    solve_time: Optional[int] = None
+    review_time: Optional[int] = None
+    first_error_step: Optional[int] = None
+    
+class AnalysisV2Response(BaseModel):
+    steps: List[StepValidationResult]
+    ai_analysis: str = Field(default="분석 결과가 없습니다.", description="OpenAI 기반 풀이 분석 결과")
+    weakness: str = Field(default="약점 분석 정보가 없습니다.", description="OpenAI 기반 약점 분석 결과")
+    first_error_step: int = Field(default=0, description="처음 오류가 발생한 step_number 없다면 0")
+    metadata: Optional[Dict[str, Any]] = None
 
 class AnalysisOCRResponse(BaseModel):
     steps: List[StepValidationResult] = Field(description="분석된 풀이 단계 목록")

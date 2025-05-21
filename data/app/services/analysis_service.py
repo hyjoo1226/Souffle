@@ -1,5 +1,5 @@
 # app/services/analysis_service.py
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from app.models.result_schema import AnalysisResult, AnalyzedStep
 from app.services.ocr import get_ocr_engine
 from app.services.snapshot_feedback_service import SnapshotFeedbackService
@@ -18,6 +18,7 @@ async def analyze_equation_steps(
     image_paths: List[str], 
     grade: str = "grade_1",  # 모든 고등학교 수학은 grade_1로 통일
     problem_id: Optional[str] = None,  # 문제 ID 추가 (RAG용)
+    problem_data: Optional[Dict[str, Any]] = None,  # 문제 데이터 추가
     step_times: Optional[List[int]] = None,  # 각 단계별 소요 시간 (밀리초)
     total_solve_time: Optional[int] = None,  # 총 풀이 시간 (밀리초)
     understand_time: Optional[int] = None,  # 문제 이해 시간 (밀리초)
@@ -60,13 +61,26 @@ async def analyze_equation_steps(
         # 스냅샷 피드백 서비스 초기화
         feedback_service = SnapshotFeedbackService()
         
+        # 문제 데이터 로그 기록
+        if problem_data:
+            logger.info(f"문제 ID {problem_id}의 데이터를 분석에 포함합니다.")
+            logger.debug(f"문제 내용: {problem_data.get('content', '내용 없음')}")
+            logger.debug(f"문제 정답: {problem_data.get('answer', '정답 없음')}")
+        else:
+            logger.info(f"문제 ID {problem_id}에 대한 문제 데이터가 없습니다.")
+        
         # 스냅샷 간 반복적 분석 수행
         logger.info(f"스냅샷 분석 시작: {len(latex_list)} 개 스냅샷")
         analysis_result = await feedback_service.analyze_snapshots(
             latex_list, 
             grade,
-            problem_id
+            problem_id,
+            problem_data
         )
+        
+        # 분석 결과 로그
+        logger.info(f"분석 결과 steps 확인: {analysis_result.get('steps', [])}")
+        logger.info(f"첫 번째 오류 단계: {analysis_result.get('first_error_step')}")
         
         # 분석 결과를 AnalyzedStep 목록으로 변환
         steps = []
@@ -85,11 +99,19 @@ async def analyze_equation_steps(
         for i, analysis in enumerate(analysis_result.get("steps", [])):
             step_index = i + 1  # 0-기반 인덱스로 변환
             
+            try:
+                logger.info(f"분석 결과 처리: step_index={i}, is_valid={analysis.get('is_valid')}")
+            except Exception as e:
+                logger.error(f"분석 결과 처리 중 오류: {str(e)}")
+                
             if step_index < len(latex_list):
                 # 현재 단계와 이전 단계의 수식 비교하여 추가된 부분 찾기
                 prev_latex = latex_list[step_index - 1]
                 curr_latex = latex_list[step_index]
-                current_latex = await extract_new_content(prev_latex, curr_latex)
+                
+                # Fallback 메서드 사용 (비동기 함수를 제거하여 문제 해결)
+                current_latex = fallback_extract_new_content(prev_latex, curr_latex)
+                logger.info(f"추출된 내용: {current_latex}")
                 
                 steps.append(AnalyzedStep(
                     step_index=step_index,
@@ -107,7 +129,7 @@ async def analyze_equation_steps(
                     # 현재 단계와 이전 단계의 수식 비교하여 추가된 부분 찾기
                     prev_latex = latex_list[i-1] if i > 0 else ""
                     curr_latex = latex_list[i]
-                    current_latex = await extract_new_content(prev_latex, curr_latex) if i > 0 else curr_latex
+                    current_latex = fallback_extract_new_content(prev_latex, curr_latex) if i > 0 else curr_latex
                     
                     steps.append(AnalyzedStep(
                         step_index=i,
@@ -230,9 +252,9 @@ async def analyze_equation_steps(
         raise
 
 
-async def extract_new_content(prev_latex: str, curr_latex: str) -> str:
+def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
     """
-    이전 수식과 현재 수식을 비교하여 추가된 내용을 LLM에게 물어 그 결과를 반환합니다.
+    이전 수식과 현재 수식을 비교하여 추가된 내용을 추출합니다.
     
     Args:
         prev_latex (str): 이전 단계의 LaTeX 수식
@@ -241,97 +263,11 @@ async def extract_new_content(prev_latex: str, curr_latex: str) -> str:
     Returns:
         str: 현재 단계에서 새롭게 추가된 LaTeX 수식
     """
-    from app.core.config import settings
-    from openai import AsyncOpenAI
-    import json
-    
     # 첫 단계의 경우 전체 내용을 반환
     if not prev_latex:
         return curr_latex
         
     # 공백 처리와 기본 체크
-    prev_latex = prev_latex.strip()
-    curr_latex = curr_latex.strip()
-    
-    # 완전히 동일한 경우 빈 내용 반환
-    if prev_latex == curr_latex:
-        return ""
-    
-    try:
-        # OpenAI API 키 가져오기
-        api_key = settings.OPENAI_API_KEY
-        model = getattr(settings, "OPENAI_MODEL", "gpt-4o-mini") 
-        
-        if not api_key:
-            # API 키가 없으면 기본 로직으로 반환
-            return await fallback_extract_new_content(prev_latex, curr_latex)
-        
-        # LLM에게 수식 비교 요청
-        client = AsyncOpenAI(api_key=api_key)
-        system_prompt = """당신은 학생의 수학 풀이 과정을 분석하는 전문가입니다. 
-두 단계의 LaTeX 수식을 비교하여 현재 단계에 추가된 부분만 추출해야 합니다.
-
-이전 단계의 수식과 현재 단계의 수식을 비교하여, 오직 새로 추가된 부분만 LaTeX 형식으로 추출해 주세요.
-
-추가된 부분이 없다면 빈 문자열을 반환하세요.
-
-반드시 JSON 형식으로 다음과 같이 응답해야 합니다: {"added_content": "LaTeX 형식의 추가된 수식"}
-다른 설명이나 메시지는 포함하지 마세요. JSON만 반환하세요."""
-        
-        user_prompt = f"""이전 LaTeX 수식: {prev_latex}
-
-현재 LaTeX 수식: {curr_latex}
-
-위 두 수식을 비교해서, 현재 수식에서 이전 수식에 비해 추가된 부분만 추출해 주세요. 
-이전 수식에 없는 부분만 추출하세요."""
-        
-        response = await client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            response_format={"type": "json_object"}
-        )
-        
-        # 응답 추출
-        response_text = response.choices[0].message.content.strip()
-        
-        try:
-            response_json = json.loads(response_text)
-            added_content = response_json.get("added_content", "")
-            
-            # 추가된 내용이 지나치게 길다면, 원본 비교 방식으로 둘 수 있음
-            if len(added_content) > len(curr_latex):
-                return await fallback_extract_new_content(prev_latex, curr_latex)
-                
-            return added_content
-        except json.JSONDecodeError:
-            # JSON 파싱 오류시 텍스트 응답에서 추가된 내용 추출 시도
-            logger.warning(f"JSON 파싱 오류 발생: {response_text}")
-            return await fallback_extract_new_content(prev_latex, curr_latex)
-    
-    except Exception as e:
-        # 오류 발생시 기본 알고리즘으로 돌아감
-        logger.error(f"LLM 수식 추출 오류: {str(e)}")
-        return await fallback_extract_new_content(prev_latex, curr_latex)
-
-
-async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
-    """
-    LLM이 수식 추출에 실패할 경우 사용하는 백업 차이감지 방법
-    
-    Args:
-        prev_latex (str): 이전 단계의 LaTeX 수식
-        curr_latex (str): 현재 단계의 LaTeX 수식
-        
-    Returns:
-        str: 현재 단계에서 새롭게 추가된 LaTeX 수식
-    """
-    if not prev_latex:
-        return curr_latex
-        
-    # 공백과 줄바꿈 정규화
     prev_latex = prev_latex.strip()
     curr_latex = curr_latex.strip()
     
@@ -346,6 +282,8 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
     prev_has_array = '\\begin{array}' in prev_latex
     curr_has_array = '\\begin{array}' in curr_latex
     
+    logger.info(f"array 환경 확인: prev={prev_has_array}, curr={curr_has_array}")
+    
     # array 환경 내용 추출
     if curr_has_array:
         # 현재 array 내용 추출
@@ -353,6 +291,8 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
         if curr_array_match:
             curr_array_content = curr_array_match.group(1).strip()
             curr_lines = [line.strip() for line in curr_array_content.split('\\\\') if line.strip()]
+            
+            logger.info(f"현재 array 라인들: {curr_lines}")
             
             # 이전 내용과 비교
             if prev_has_array:
@@ -362,6 +302,8 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
                     prev_array_content = prev_array_match.group(1).strip()
                     prev_lines = [line.strip() for line in prev_array_content.split('\\\\') if line.strip()]
                     
+                    logger.info(f"이전 array 라인들: {prev_lines}")
+                    
                     # 이전에 없던 새 라인 찾기
                     added_lines = []
                     for line in curr_lines:
@@ -369,7 +311,9 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
                             added_lines.append(line)
                     
                     if added_lines:
-                        return "\n".join(added_lines)
+                        result = "\n".join(added_lines)
+                        logger.info(f"Array에서 추가된 라인: {result}")
+                        return result
                     
                     # 라인 비교해서 추가된 부분 찾기
                     for curr_line in curr_lines:
@@ -378,6 +322,7 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
                                 # 기존 라인이 현재 라인에 포함되는 경우
                                 added_content = curr_line.replace(prev_line, '', 1).strip()
                                 if added_content:
+                                    logger.info(f"Array 라인 변경 감지: {added_content}")
                                     return added_content
             else:
                 # 이전에 array가 없었으므로 첫번째 줄만 반환 (일반적으로 첫번째 줄이 새로 추가된 내용)
@@ -385,17 +330,15 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
                     # 이전 내용과 비교하여 완전히 포함된 라인 제외
                     for line in curr_lines:
                         if prev_latex not in line and line not in prev_latex:
+                            logger.info(f"새 array 첫번째 라인 반환: {line}")
                             return line
     
     # 비 array 환경의 처리 또는 array 특수 처리에서 결과를 못 찾은 경우
+    logger.info("일반 텍스트 비교 방식으로 전환")
     
     # 줄 단위로 비교
     prev_lines = [line.strip() for line in prev_latex.split('\n') if line.strip()]
     curr_lines = [line.strip() for line in curr_latex.split('\n') if line.strip()]
-    
-    # 전체 개행 문자를 공백으로 변환한 단일 문자열
-    prev_single_line = ' '.join(prev_lines)
-    curr_single_line = ' '.join(curr_lines)
     
     # 새로운 줄이 추가된 경우
     new_lines = []
@@ -418,28 +361,49 @@ async def fallback_extract_new_content(prev_latex: str, curr_latex: str) -> str:
     
     # 새 줄이 있으면 반환
     if new_lines:
-        return '\n'.join(new_lines)
+        result = '\n'.join(new_lines)
+        logger.info(f"줄 단위 비교 결과: {result}")
+        return result
     
-    # 추가된 텍스트가 없는 경우 전체 문자열 레벨에서 비교
-    if prev_single_line in curr_single_line and prev_single_line != curr_single_line:
-        added_content = curr_single_line.replace(prev_single_line, '', 1).strip()
-        if added_content:
-            return added_content
+    # 특별 처리: 줄 단위로 비교해서 변화가 없지만 전체적으로 문자열이 다른 경우
+    if prev_latex != curr_latex:
+        # 문자열 전체 차이 기반 추출
+        if len(prev_latex) < len(curr_latex):
+            # 현재 문자열이 더 길면 추가된 내용 있음
+            common_prefix_length = 0
+            for i, (p, c) in enumerate(zip(prev_latex, curr_latex)):
+                if p != c:
+                    break
+                common_prefix_length = i + 1
+                
+            common_suffix_length = 0
+            for i, (p, c) in enumerate(zip(reversed(prev_latex), reversed(curr_latex))):
+                if p != c:
+                    break
+                common_suffix_length = i + 1
+                
+            if common_prefix_length + common_suffix_length < len(curr_latex):
+                added_part = curr_latex[common_prefix_length:len(curr_latex)-common_suffix_length]
+                if added_part.strip():
+                    logger.info(f"문자열 비교 결과 (prefix/suffix): {added_part}")
+                    return added_part.strip()
     
     # difflib을 사용한 문자열 비교
-    matcher = difflib.SequenceMatcher(None, prev_single_line, curr_single_line)
+    matcher = difflib.SequenceMatcher(None, prev_latex, curr_latex)
     diff_blocks = []
     
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
         if tag in ('insert', 'replace'):
-            diff_part = curr_single_line[j1:j2]
+            diff_part = curr_latex[j1:j2]
             if diff_part.strip():
                 diff_blocks.append(diff_part)
     
     if diff_blocks:
         # 중복 제거 및 정렬된 차이점 반환
         diff_content = ' '.join(diff_blocks)
+        logger.info(f"Difflib 비교 결과: {diff_content}")
         return diff_content
     
     # 모든 방법으로 새 내용을 찾지 못한 경우
+    logger.warning("추가된 내용을 찾지 못함")
     return ""
