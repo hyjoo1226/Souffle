@@ -150,7 +150,7 @@ const SolutionAnalysisPage = () => {
         </div>
       </div>
       {/* 분석 중 안내 메시지 또는 스피너 */}
-      {/* {isAnalyzing && ( */}
+      {isAnalyzing && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           {/* 반투명 오버레이 */}
           <div className="absolute inset-0 bg-black/10 backdrop-blur-sm" />
@@ -167,7 +167,7 @@ const SolutionAnalysisPage = () => {
             <span className="mt-2 text-gray-400 caption-medium">최대 1분 정도 소요될 수 있습니다</span>
           </div>
         </div>
-      {/* )} */}
+      )}
     </div>
   );
 };
