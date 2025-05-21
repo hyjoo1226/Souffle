@@ -23,6 +23,7 @@ interface Props {
 
   onDropProblem?: (targetSection: string, problemIds: number[]) => void;
   onDeleteFolder: (folderId: number) => void;
+  defaultOpenUnitId?: number;
 }
 
 const NoteSectionItem = ({
@@ -39,6 +40,7 @@ const NoteSectionItem = ({
 
   onDropProblem,
   onDeleteFolder,
+  defaultOpenUnitId,
 }: Props) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +60,15 @@ const NoteSectionItem = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (
+      defaultOpenUnitId &&
+      subUnit?.some((unit) => unit.id === defaultOpenUnitId)
+    ) {
+      setIsOpen(true);
+    }
+  }, [subUnit, defaultOpenUnitId]);
 
   return (
     <div

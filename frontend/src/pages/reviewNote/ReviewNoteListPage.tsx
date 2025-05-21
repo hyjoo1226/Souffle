@@ -144,19 +144,39 @@ const ReviewNoteListPage = () => {
     fetchFolderList();
   }, []);
 
+  useEffect(() => {
+    fetchFolderList();
+
+    handleSelectUnit({
+      chapter: "공통수학1",
+      section: "다항식",
+      unit: "다항식의 연산",
+      type: 2,
+      id: 7, // 실제 단원 ID로 교체
+    });
+  }, []);
+
   const sortedReviewNoteList = useMemo(() => {
     if (!reviewNoteList) return [];
     if (selected === "정답률↑") {
       return [...reviewNoteList].sort((a, b) => {
-        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
-        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        const rateA = a.user.try_count
+          ? a.user.correct_count / a.user.try_count
+          : 0;
+        const rateB = b.user.try_count
+          ? b.user.correct_count / b.user.try_count
+          : 0;
         return rateA - rateB;
       });
     }
     if (selected === "정답률↓") {
       return [...reviewNoteList].sort((a, b) => {
-        const rateA = a.user.try_count ? a.user.correct_count / a.user.try_count : 0;
-        const rateB = b.user.try_count ? b.user.correct_count / b.user.try_count : 0;
+        const rateA = a.user.try_count
+          ? a.user.correct_count / a.user.try_count
+          : 0;
+        const rateB = b.user.try_count
+          ? b.user.correct_count / b.user.try_count
+          : 0;
         return rateB - rateA;
       });
     }
@@ -167,7 +187,6 @@ const ReviewNoteListPage = () => {
     }
     return reviewNoteList;
   }, [reviewNoteList, selected]);
-
 
   return (
     <>
@@ -184,6 +203,7 @@ const ReviewNoteListPage = () => {
                 favoriteFolders={favoriteFolders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
+                defaultOpenSectionId={7}
 
                 // onDropProblem={handleDropProblemToSection}
               />

@@ -12,13 +12,15 @@ import { useNavigate } from "react-router-dom";
 
 const ProblemSelectPage = () => {
   const [categoryData, setCategoryData] = useState<any[]>([]); // 카테고리 데이터 상태
-  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(6);
   const [selectedLessonName, setSelectedLessonName] = useState<string | null>(
-    null
+    "다항식의 연산"
   );
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(
+    "공통수학1"
+  );
+  const [selectedUnit, setSelectedUnit] = useState<string | null>("다항식");
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(2);
   // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
   const [progressRate, setProgressRate] = useState<number | null>(null); // 진도율 상태
@@ -96,6 +98,14 @@ const ProblemSelectPage = () => {
   useEffect(() => {
     handleCategoryClick();
   }, []); // 컴포넌트 마운트 시 카테고리 데이터 요청
+
+  useEffect(() => {
+    if (selectedLessonId === null) {
+      setProblemList([]);
+    } else {
+      fetchProblemList();
+    }
+  }, [selectedLessonId]);
 
   return (
     <div className="h-screen grid grid-cols-12 py-5 gap-x-4 ">
