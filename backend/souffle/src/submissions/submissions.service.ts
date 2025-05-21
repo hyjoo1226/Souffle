@@ -263,10 +263,10 @@ export class SubmissionService {
       .createQueryBuilder('submission')
       .select([
         'AVG(CAST(CASE WHEN submission.isCorrect IS NOT NULL THEN submission.isCorrect ELSE NULL END AS integer)) * 100 AS "avgAccuracy"',
-        'AVG(submission.totalSolveTime) AS avgTotalSolveTime',
-        'AVG(submission.understandTime) AS avgUnderstandTime',
-        'AVG(submission.solveTime) AS avgSolveTime',
-        'AVG(submission.reviewTime) AS avgReviewTime',
+        'AVG(submission.totalSolveTime) AS "avgTotalSolveTime"',
+        'AVG(submission.understandTime) AS "avgUnderstandTime"',
+        'AVG(submission.solveTime) AS "avgSolveTime"',
+        'AVG(submission.reviewTime) AS "avgReviewTime"',
       ])
       .where('submission.problemId = :problemId', { problemId })
       .getRawOne();
