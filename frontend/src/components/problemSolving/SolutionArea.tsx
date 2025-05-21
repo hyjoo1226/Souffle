@@ -156,6 +156,7 @@ const SolutionArea = forwardRef((_props, ref) => {
 
     // 선 그리기 중
     const handlePointerMove = (e: PointerEvent) => {
+      if (e.pressure === 0) return;
       if (eraseMode) {
         const { x, y } = getRelativePointerPosition(e, canvas);
         const nearStrokeId = findStrokeNearPointer({
