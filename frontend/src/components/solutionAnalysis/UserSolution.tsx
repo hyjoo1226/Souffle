@@ -24,15 +24,15 @@ const UserSolution = ({fullStepImageUrl, steps}: Props) => {
             <Toggle isOn={isToggleOn} onToggle={setIsToggleOn} />
         </div>
 
-        <div className="overflow-y-auto scrollbar-none h-full flex flex-col">
+        <div className="overflow-y-auto scrollbar-none h-full flex flex-col p-4 gap-y-4">
           {isToggleOn ? (
             sortedSteps.map((step, idx) => (
-              <div key={idx} className="relative flex flex-col items-center">
+              <div key={idx} className="relative flex flex-col items-center border-1 border-gray-500 rounded-[10px]">
                 <img
                   key={idx}
                   src={step.step_image_url}
                   alt={`풀이 단계 ${step.step_number}`}
-                  className="max-w-full h-auto object-contain mx-auto"
+                  className="max-w-full h-auto object-contain mx-auto rounded-[10px]"
                 />
                 <div className="absolute top-3 left-3 caption-medium text-gray-500 flex flex-col items-start">
                   <span>풀이 시간: {step.step_time}초</span>

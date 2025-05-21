@@ -72,13 +72,13 @@ const SolutionNote = ({ weekness, aiAnalysis, submissionSteps, conceptStrokes, s
 
             {/* 이전 풀이 분석 영역: 마찬가지로 hidden 토글 */}
             <div className={selected === '이전 풀이 분석' ? 'flex w-full' : 'hidden'}>
-                <div className="w-1/2 h-full overflow-auto space-y-4 p-8">
+                <div className="w-1/2 h-full overflow-auto space-y-4 p-4">
                     {/* step별 풀이 분석 */}
                     {submissionSteps && submissionSteps.length > 0 ? (
                         submissionSteps.map((step) => (
                             <div
                                 key={step.step_number}
-                                className="relative"
+                                className="relative border-1 border-gray-500 rounded-[10px] p-4"
                             >
                                 <p className="body-medium text-gray-700 mb-2 absolute top-4 right-4">
                                     Step {step.step_number}
@@ -86,7 +86,7 @@ const SolutionNote = ({ weekness, aiAnalysis, submissionSteps, conceptStrokes, s
                                 <img
                                     src={step.step_image_url ?? undefined}
                                     alt={`step ${step.step_number}`}
-                                    className="w-full mb-2"
+                                    className="w-full h-auto rounded-[10px]"
                                 />
                                 <div className='absolute bottom-4 right-4'>
                                     <p className={`caption-medium ${step.step_valid ? 'text-green-600' : 'text-red-500'}`}>

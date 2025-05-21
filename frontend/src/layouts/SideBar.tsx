@@ -13,7 +13,7 @@ const SideBar = ({
   const menuItems = [
     "메인",
     "문제 풀이",
-    "오답 노트",
+    "복습 노트",
     "개념 학습",
     "내 학습 현황",
   ];
@@ -23,7 +23,7 @@ const SideBar = ({
         return "/landing";
       case "문제 풀이":
         return "/problem-select";
-      case "오답 노트":
+      case "복습 노트":
         return "/review-list";
       case "개념 학습":
         return "/select-unit";

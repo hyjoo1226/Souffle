@@ -1,4 +1,4 @@
-// SolutionNote.tsx(오답노트)에 들어가는 필기 영역을 구현한 컴포넌트
+// SolutionNote.tsx(복습노트)에 들어가는 필기 영역을 구현한 컴포넌트
 import { useState, useEffect, useRef } from 'react';
 import { ReactComponent as Eraser } from "@/assets/icons/Eraser.svg";
 import { ReactComponent as Pencil } from "@/assets/icons/Pencil.svg";

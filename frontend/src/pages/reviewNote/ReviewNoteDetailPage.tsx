@@ -1,4 +1,4 @@
-// 오답노트 상세 페이지
+// 복습노트 상세 페이지
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import {

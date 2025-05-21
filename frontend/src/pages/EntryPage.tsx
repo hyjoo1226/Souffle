@@ -12,11 +12,11 @@ const EntryPage = () => {
         <Link to="/problem-select/">문제 선택</Link>
 
         {/* 임시로 submissionId 1번으로 넣어놨어요 */}
-        <Link to="/review">오답노트</Link>
-        <Link to="/review-list">오답노트 리스트</Link>
+        <Link to="/review">복습노트</Link>
+        <Link to="/review-list">복습노트 리스트</Link>
 
         {/* 임시로 submissionId 1번으로 넣어놨어요 */}
-        <Link to="/review">오답노트</Link>
+        <Link to="/review">복습노트</Link>
         <Link to="/landing">랜딩</Link>
         <Link to="/my-report">마이페이지</Link>
         <Link to="/select-unit">개념학습</Link>

@@ -81,12 +81,6 @@ const SolutionAnalysisPage = () => {
     }
   }, [data]);
 
-  // useEffect(() => {
-  //   if (submissionId) {
-  //     getSolutionAnalysis(+submissionId).then(setData).catch(console.error);
-  //   }
-  // }, [submissionId]);
-
   useEffect(() => {
     console.log('받아온 데이터', data)
   }, [data])

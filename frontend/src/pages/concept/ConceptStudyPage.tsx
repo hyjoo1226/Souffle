@@ -51,7 +51,7 @@ const ConceptStudyPage = () => {
                 </div>
                 <Button onClick={() => navigate(`/problem-study/${category_id}`)}>예제 풀기</Button>
             </div>
-            <div className="mb-5 grid grid-cols-12 gap-x-4 grow overflow-hidden min-h-0">
+            <div className="mb-5 grid grid-cols-12 gap-x-4 grow min-h-0">
                 <nav className="py-7 justify-between col-start-1 col-span-2 -mr-30 z-0 h-full flex flex-col">
                     <div className="flex flex-col gap-y-1.5">
                         {tabs.map((tab, idx) => (
@@ -75,18 +75,11 @@ const ConceptStudyPage = () => {
 
                 <div className="col-start-3 col-span-10 border-1 border-gray-500 p-7 bg-white z-10 h-full overflow-y-auto">
                     <p className="headline-large text-gray-700">{selected}</p>
-                    <div className="mt-4 flex flex-col items-center gap-y-4">
-                        {selectedConcept?.images.map((img) => (
-                        <img
-                            key={img.id}
-                            src={img.url}
-                            alt={`개념 이미지 ${img.id}`}
-                            className="rounded-xl border border-gray-200 max-w-[600px] w-full h-auto"
-                        />
-                        ))}
-                    </div>
                     <p className="body-medium text-gray-600 whitespace-pre-line">
-                        <MathExplanation text={selectedConcept?.description || '설명이 없습니다.'} />
+                        <MathExplanation 
+                            text={selectedConcept?.description || '설명이 없습니다.'} 
+                            images={selectedConcept?.images ?? []}
+                        />
                     </p>
                 </div>
             </div>
