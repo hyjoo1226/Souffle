@@ -99,6 +99,14 @@ const ProblemSelectPage = () => {
     handleCategoryClick();
   }, []); // 컴포넌트 마운트 시 카테고리 데이터 요청
 
+  useEffect(() => {
+    if (selectedLessonId === null) {
+      setProblemList([]);
+    } else {
+      fetchProblemList();
+    }
+  }, [selectedLessonId]);
+
   return (
     <div className="h-screen grid grid-cols-12 py-5 gap-x-4 ">
       <div className="col-span-5 flex flex-col gap-4 h-full">
