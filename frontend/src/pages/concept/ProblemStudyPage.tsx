@@ -124,7 +124,7 @@ const ProblemStudyPage = () => {
                 <ExpandSlim className='text-gray-700' />
                 <p className='body-medium text-gray-700' onClick={() => navigate("/select-unit")}>단원 선택</p>
             </div>
-            <Button onClick={() => navigate(`/study/${category_id}`)}>개념 학습</Button>
+                <Button onClick={() => navigate(`/study/${category_id}`)}>개념 학습</Button>
             </div>
 
             <div className="flex-grow mb-5 grid grid-cols-12 gap-x-4">
