@@ -109,6 +109,7 @@ const SolutionArea = forwardRef((_props, ref) => {
         firstStrokeTime.current = Date.now();
       }
       if (e.pointerType === "touch") return;
+      if (e.pressure === 0) return;
 
       if (eraseMode) {
         erasedStrokesRef.current.clear();
