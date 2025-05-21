@@ -137,17 +137,17 @@ export class ReportService {
       : 0;
 
     return {
-      correct_score: correctScore,
-      participation_score: participationScore,
-      speed_score: speedScore,
-      review_score: reviewScore,
-      sincerity_score: sincerityScore,
-      reflection_score: reflectionScore,
+      correct_score: correctScore ?? 0,
+      participation_score: participationScore ?? 0,
+      speed_score: speedScore ?? 0,
+      review_score: reviewScore ?? 0,
+      sincerity_score: sincerityScore ?? 0,
+      reflection_score: reflectionScore ?? 0,
     };
   }
 
   // 자정마다 모든 유저 리포트 생성
-  @Cron('45 1 * * *')
+  @Cron('3 2 * * *')
   async scheduledReportGeneration() {
     const allUsers = await this.userRepository.find();
 
