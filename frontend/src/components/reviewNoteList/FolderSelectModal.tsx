@@ -134,6 +134,7 @@ const FolderSelectModal = ({
     };
 
     const res = await createFolderApi(data);
+    // console.log("newFolderId", res.folder_id);
     const newFolderId = res.folder_id;
 
     const newFolder: Folder = {
@@ -175,10 +176,10 @@ const FolderSelectModal = ({
       setFavoriteFolders(updatedFolders);
     }
 
-    if (!newFolderId || isNaN(newFolderId)) {
-      alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
-      return;
-    }
+    // if (!newFolderId || isNaN(newFolderId)) {
+    //   alert("❗폴더 생성에 실패했거나 ID가 잘못되었습니다.");
+    //   return;
+    // }
 
     console.log("newFolderId", newFolderId);
     console.log("typeof newFolderId", typeof newFolderId);
