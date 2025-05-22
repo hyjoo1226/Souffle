@@ -86,6 +86,9 @@ REDIS_PORT=6379
 ### ERD
 docs/ERD.png
 ### Main tables
+<details>
+<summary>Tables</summary>
+<div markdown="1">
 - `user` : 서비스를 이용하는 회원
     - **id** : 기본키, 유저의 id로 중복을 허용하지 않는다. (`not null` / `int` )
     - **nickname** : 유저의 닉네임을 저장한다. (`not null` / `unique` / `varchar` )
@@ -152,6 +155,8 @@ docs/ERD.png
         - 문제 풀이마다 갱신
     - **created_at**: 생성 시간 (`datetime`)
     - **updated_at**: 갱신 시간 (`datetime`)
+</div>
+</details>
 
 ### Schema
 exec/schema.sql
@@ -161,3 +166,10 @@ exec/schema.sql
 - DB_USERNAME=ssafy
 - DB_PASSWORD=ssafy1234
 - DB_DATABASE=app
+
+## Presentation Scenario
+1. 문제풀이 및 채점 시연
+2. 기존 풀이 및 노트 불러오기
+3. 개념 정리 기능 활용
+4. 개념 예제 문제로 이동
+5. 평가 리포트 확인 및 마무리
