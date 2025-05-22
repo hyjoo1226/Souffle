@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     DB_DATABASE: str
     REDIS_HOST: str
     REDIS_PORT: str
+    
+    # 임베딩 관련 설정
+    EMBEDDING_MODEL: str = "text-embedding-3-small"
+    USE_SIMILARITY_ANALYSIS: bool = True
+    ALWAYS_USE_LLM: bool = False
 
     class Config:
         env_file = ".env"
