@@ -1,22 +1,18 @@
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
     container_name: frontend
     ports:
       - "3000:3000"
-    restart: always
-    environment:
-      VITE_APP_API_URL: ${VITE_APP_API_URL}
     networks:
       - public
-
 
   backend:
     build: ./backend/souffle
     container_name: backend
     ports:
       - "4000:4000"
-    restart: always
     depends_on:
       db:
         condition: service_healthy
@@ -50,14 +46,13 @@ services:
     networks:
       - internal
     volumes:
-      - ./uploads:/app/uploads
+      - /srv/souffle/uploads:/app/uploads
   data:
     build:
       context: ./data
     container_name: data
     ports:
       - "8000:8000"
-    restart: always
     depends_on:
       - redis
       - db
@@ -89,13 +84,13 @@ services:
       POSTGRES_PASSWORD: ssafy1234
       POSTGRES_DB: app
     volumes:
-      - ./volumes/db_data:/var/lib/postgresql/data
+      - /srv/souffle/volumes/db_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ssafy"]
-      interval: 10s
-      timeout: 5s
+      interval: 3s
+      timeout: 1s
       retries: 5
     networks:
       - internal
@@ -109,8 +104,8 @@ services:
       - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
+      interval: 3s
+      timeout: 1s
       retries: 5
     networks:
       - internal
@@ -125,10 +120,11 @@ services:
       - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./volumes/caddy_data:/data
-      - ./volumes/caddy_config:/config
-      - ./uploads:/app/uploads
-      - ./frontend/dist:/srv
+      - /srv/souffle/volumes/caddy_data:/data
+      - /srv/souffle/volumes/caddy_config:/config
+      - /srv/souffle/uploads:/app/uploads
+      #- ./frontend/dist:/srv
+      - ./static/popup-login.html:/srv/popup-login.html
     depends_on:
       - frontend
       - backend
@@ -136,7 +132,6 @@ services:
     networks:
       - public
       - internal
-
 
 networks:
   public:
