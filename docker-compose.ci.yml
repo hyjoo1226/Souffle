@@ -123,7 +123,6 @@ services:
       - /srv/souffle/volumes/caddy_data:/data
       - /srv/souffle/volumes/caddy_config:/config
       - /srv/souffle/uploads:/app/uploads
-      #- ./frontend/dist:/srv
       - ./static/popup-login.html:/srv/popup-login.html
     depends_on:
       - frontend
