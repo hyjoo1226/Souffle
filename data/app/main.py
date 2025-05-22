@@ -2,13 +2,17 @@
 from fastapi import FastAPI, APIRouter, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from app.routers import ocr_router, health_router, report_router
-from app.core.logger import setup_logging
+from app.core.logging import setup_logging
 from app.core.exceptions import error_to_http_exception
 import logging
 
 # 로깅 설정
-setup_logging(log_level=logging.INFO)
+setup_logging(log_level=logging.DEBUG)  # DEBUG 레벨로 변경
 logger = logging.getLogger(__name__)
+
+# 임베딩 관련 로그 설정
+logging.getLogger("app.services.embedding_service").setLevel(logging.DEBUG)
+logging.getLogger("app.services.snapshot_feedback_service").setLevel(logging.DEBUG)
 
 # API 라우터 설정
 api_router = APIRouter(prefix="/data/api/v1")
