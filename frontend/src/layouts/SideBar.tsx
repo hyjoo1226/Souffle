@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
 
@@ -13,7 +13,7 @@ const SideBar = ({
   const menuItems = [
     "메인",
     "문제 풀이",
-    "오답 노트",
+    "복습 노트",
     "개념 학습",
     "내 학습 현황",
   ];
@@ -23,7 +23,7 @@ const SideBar = ({
         return "/landing";
       case "문제 풀이":
         return "/problem-select";
-      case "오답 노트":
+      case "복습 노트":
         return "/review-list";
       case "개념 학습":
         return "/select-unit";
@@ -45,6 +45,12 @@ const SideBar = ({
     window.location.href = "/";
   };
 
+  useEffect(() => {
+    if (!isSideBarOpen) {
+      setSelectedMenu(null);
+    }
+  }, [isSideBarOpen]);
+
   return (
     <div
       className={`flex flex-col fixed top-0 left-0 w-1/4 min-w-80 h-full bg-white shadow-lg z-50 transition-transform duration-300 ${
@@ -53,26 +59,30 @@ const SideBar = ({
     >
       {/* 상단 */}
       <div className="w-full bg-primary-100 pt-4 pb-5 px-4">
-        <div className="flex justify-end mb-4">
-          <div className="flex gap-1 w-fit h-fit border border-primary-500 px-2 py-1.5 rounded-[10px]">
+        <div className="flex justify-end mb-10">
+          {/* <div className="flex gap-1 w-fit h-fit border border-primary-500 px-2 py-1.5 rounded-[10px]">
             <p className="body-medium text-primary-500">1학년</p>
             <img
               src="/icons/down.png"
               alt="드롭다운 화살표"
               className="w-6 h-6"
             />
-          </div>
+          </div> */}
         </div>
         <div className="flex gap-2.5 mb-5.5 items-center">
           <img
-            src={user?.profile_image}
+            src={user?.profileImage}
             alt="프로필 이미지"
             className="w-10 h-10 rounded-full border border-gray-200"
             referrerPolicy="no-referrer"
           />
           <div className="flex-col">
-            <p className="text-gray-700 body-medium-bold">{user?.nickname || "등록된 닉네임이 없습니다."}</p>
-            <p className="text-gray-500 body-small">{user?.email ? user?.email : "등록된 이메일이 없습니다."}</p>
+            <p className="text-gray-700 body-medium-bold">
+              {user?.nickname || "등록된 닉네임이 없습니다."}
+            </p>
+            <p className="text-gray-500 body-small">
+              {user?.email ? user?.email : "등록된 이메일이 없습니다."}
+            </p>
           </div>
         </div>
         <div className="flex justify-center">

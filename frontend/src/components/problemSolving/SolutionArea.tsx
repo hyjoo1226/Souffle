@@ -109,6 +109,7 @@ const SolutionArea = forwardRef((_props, ref) => {
         firstStrokeTime.current = Date.now();
       }
       if (e.pointerType === "touch") return;
+      if (e.pressure === 0) return;
 
       if (eraseMode) {
         erasedStrokesRef.current.clear();
@@ -155,6 +156,7 @@ const SolutionArea = forwardRef((_props, ref) => {
 
     // 선 그리기 중
     const handlePointerMove = (e: PointerEvent) => {
+      if (e.pressure === 0) return;
       if (eraseMode) {
         const { x, y } = getRelativePointerPosition(e, canvas);
         const nearStrokeId = findStrokeNearPointer({
@@ -245,8 +247,8 @@ const SolutionArea = forwardRef((_props, ref) => {
   // 채점(제출) 핸들러 - 이미지와 JSON 생성
   useImperativeHandle(ref, () => ({
     getStepData: async () => {
-      if (!canvasRef.current) return null;
-      if (!blockSnapshotsRef.current) return null;
+      // if (!canvasRef.current) return null;
+      // if (!blockSnapshotsRef.current) return null;
       const latestSnapshot = blockSnapshotsRef.current.at(-1);
       const currentFinal = JSON.parse(JSON.stringify(blocks));
 
@@ -256,10 +258,10 @@ const SolutionArea = forwardRef((_props, ref) => {
 
       const stepsData = await generateStepImages(
         blockSnapshotsRef.current,
-        canvasRef.current,
+        canvasRef.current!,
         blocks
       );
-      const fullStep = await generateFullStepImage(canvasRef.current, blocks);
+      const fullStep = await generateFullStepImage(canvasRef.current!, blocks);
 
       const stepMeta = stepsData.map(
         ({ step_number, step_time, file_name }) => ({
@@ -268,6 +270,36 @@ const SolutionArea = forwardRef((_props, ref) => {
           file_name,
         })
       );
+
+      if (stepsData.length === 0 || stepMeta.length === 0) {
+        const confirm = window.confirm(
+          "풀이가 작성되지 않았습니다.\n그대로 제출하시겠습니까?"
+        );
+        if (!confirm) return null;
+
+        const fullStep = await generateFullStepImage(
+          canvasRef.current!,
+          blocks
+        );
+
+        return {
+          stepsData: [],
+          fullStep,
+          stepMeta: [],
+          timing: {
+            totalSolveTime: 0,
+            understandTime: 0,
+            solveTime: 0,
+            reviewTime: 0,
+          },
+          blockSnapshots: [],
+          lastSavedBlocks: [],
+        };
+      }
+
+      // console.log("stepsData:", stepsData);
+      // console.log("stepMeta:", stepMeta);
+      // console.log("stepsData.length === 0", stepsData.length === 0);
 
       const now = Date.now();
       const totalSolveTime = now - enterTime.current;
@@ -301,6 +333,35 @@ const SolutionArea = forwardRef((_props, ref) => {
         blockSnapshots: blockSnapshotsRef.current,
         lastSavedBlocks: lastSavedBlocksRef.current,
       };
+    },
+    resetCanvas: () => {
+      setStrokes([]);
+      setBlocks([]);
+      setCurrentStroke([]);
+      setDrawing(false);
+      setEraseMode(false);
+      setLastStrokeTime(null);
+      setLastBlockId(null);
+      setLastPoint(null);
+      setIsPencilActive(true);
+      setIsEraserActive(false);
+      setShowEraseModal(false);
+      setEraseOption(null);
+
+      firstStrokeTime.current = null;
+      lastStrokeEndTime.current = null;
+      enterTime.current = Date.now();
+
+      blockSnapshotsRef.current = [];
+      lastSavedBlocksRef.current = [];
+      erasedStrokesRef.current = new Set();
+      currentStrokeRef.current = [];
+
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext("2d");
+        ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      }
     },
   }));
 

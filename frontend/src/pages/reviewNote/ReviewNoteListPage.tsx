@@ -23,7 +23,7 @@ const ReviewNoteListPage = () => {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const [selectedProblemIds, setSelectedProblemIds] = useState<number[]>([]);
   const [selectedProblem, setSelectedProblem] = useState<any>(null);
-  const tabs = ["정답률↑", "정답률↓", "미해결"];
+  const tabs = ["정답률↑", "정답률↓", "복습"];
   const [selected, setSelected] = useState("정답률↑");
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<number | null>(null);
@@ -32,8 +32,6 @@ const ReviewNoteListPage = () => {
   );
   const [isFavoriteModalOpen, setIsFavoriteModalOpen] = useState(false);
 
-  // const [checkedProblemList, setCheckedProblemList] = useState<number[]>([]);
-
   const handleSelectUnit = async ({
     chapter,
     section,
@@ -41,8 +39,6 @@ const ReviewNoteListPage = () => {
     unit,
     id,
   }: UnitSelectPayload) => {
-    // console.log("chapter", chapter);
-
     setSelectedChapter(chapter);
     setSelectedSection(section);
     setSelectedType(type);
@@ -76,16 +72,11 @@ const ReviewNoteListPage = () => {
     const found =
       reviewNoteList?.find((p) => p.problem_id === problemId) || null;
     setSelectedProblem(found);
-
-    // console.log("🔍 선택된 문제:", selectedProblem);
   };
 
   const handleClickDelete = () => {
     const confirmed = window.confirm("선택한 문제를 삭제하시겠습니까?");
     if (confirmed) {
-      // console.log("selectedProblemIds", selectedProblemIds);
-      // console.log("selectedType", selectedType);
-
       if (!reviewNoteList) return;
       if (selectedType !== null) {
         selectedProblemIds.map((selectedProblemId) => {
@@ -136,7 +127,7 @@ const ReviewNoteListPage = () => {
       .filter((f) => f.type === 1)
       .sort((a, b) => a.id - b.id);
 
-    // 오답노트 폴더: type === 2, id 순 정렬
+    // 복습노트 폴더: type === 2, id 순 정렬
     const noteFolders = reviewFolderList
       .filter((f) => f.type === 2)
       .sort((a, b) => a.id - b.id);
@@ -145,8 +136,6 @@ const ReviewNoteListPage = () => {
       (f) => f.type === 1 && f.parent_id === null
     )?.id;
     setTopFavoriteFolderId(topFolderId || null);
-    // console.log("topFavoriteFolderId", topFolderId);
-
     setFavoriteFolders(favoriteFolders);
     setNoteFolders(noteFolders);
   };
@@ -154,6 +143,50 @@ const ReviewNoteListPage = () => {
   useEffect(() => {
     fetchFolderList();
   }, []);
+
+  useEffect(() => {
+    fetchFolderList();
+
+    handleSelectUnit({
+      chapter: "공통수학1",
+      section: "다항식",
+      unit: "다항식의 연산",
+      type: 2,
+      id: 7, // 실제 단원 ID로 교체
+    });
+  }, []);
+
+  const sortedReviewNoteList = useMemo(() => {
+    if (!reviewNoteList) return [];
+    if (selected === "정답률↑") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count
+          ? a.user.correct_count / a.user.try_count
+          : 0;
+        const rateB = b.user.try_count
+          ? b.user.correct_count / b.user.try_count
+          : 0;
+        return rateA - rateB;
+      });
+    }
+    if (selected === "정답률↓") {
+      return [...reviewNoteList].sort((a, b) => {
+        const rateA = a.user.try_count
+          ? a.user.correct_count / a.user.try_count
+          : 0;
+        const rateB = b.user.try_count
+          ? b.user.correct_count / b.user.try_count
+          : 0;
+        return rateB - rateA;
+      });
+    }
+    if (selected === "복습") {
+      return reviewNoteList.filter(
+        (item) => item.user.try_count > 0 && item.user.correct_count === 0
+      );
+    }
+    return reviewNoteList;
+  }, [reviewNoteList, selected]);
 
   return (
     <>
@@ -170,6 +203,7 @@ const ReviewNoteListPage = () => {
                 favoriteFolders={favoriteFolders}
                 setFavoriteFolders={setFolders}
                 onSelectUnit={handleSelectUnit}
+                defaultOpenSectionId={7}
 
                 // onDropProblem={handleDropProblemToSection}
               />
@@ -229,12 +263,12 @@ const ReviewNoteListPage = () => {
                 </div>
 
                 <div className="flex overflow-hidden w-fit">
-                  {/* 오답 리스트 정렬 버튼 */}
+                  {/* 복습 리스트 정렬 버튼 */}
                   {tabs.map((tab, i) => (
                     <button
                       key={tab}
                       onClick={() => setSelected(tab)}
-                      className={`px-9 py-2.5 body-small ${
+                      className={`px-9 py-2.5 body-small min-w-[123.09px] ${
                         selected === tab
                           ? "text-primary-500 border border-primary-500 bg-white z-10"
                           : "text-gray-200 border border-gray-200 bg-gray-100 z-0"
@@ -263,7 +297,7 @@ const ReviewNoteListPage = () => {
                     style={{ maxHeight: "calc(100vh - 230px)" }}
                   >
                     <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-5 justify-start">
-                      {reviewNoteList?.map((problem) => (
+                      {sortedReviewNoteList.map((problem) => (
                         <ReviewNoteItem
                           key={problem.problem_id}
                           problem={problem}

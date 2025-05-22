@@ -12,7 +12,7 @@ const UnitReport = ({ selectedUnitId }: { selectedUnitId: number }) => {
     navigate(`/study/${selectedUnitId}`);
   };
   return (
-    <div className="flex flex-col items-center gap-2 bg-primary-100 py-13 rounded-[10px] mt-4">
+    <div className="flex flex-col items-center gap-2 bg-primary-100 py-13 rounded-[10px] my-4">
       <p className="body-medium text-gray-700">
         해당 단원에 대한 개념학습과 나의 수준을 진단받을 수 있어요!
       </p>

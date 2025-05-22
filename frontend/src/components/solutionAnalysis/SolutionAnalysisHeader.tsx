@@ -13,17 +13,16 @@ import { getFavoriteFoldersApi } from "@/services/api/ReviewNoteList";
 interface SolutionAnalysisHeaderProps {
   submissionId: number[];
   problemId: number;
-  selectedLessonName: string,
-  selectedSubject: string,
-  selectedUnit: string,
-  problemNo: number,
-  problemIndex: number,
-  problemList: any,
-  selectedUnitId: number,
+  selectedLessonName: string;
+  selectedSubject: string;
+  selectedUnit: string;
+  problemNo: number;
+  problemIndex: number;
+  problemList: any;
+  selectedUnitId: number;
 }
 
 const SolutionAnalysisHeader = ({
-  submissionId,
   problemId,
   selectedLessonName,
   selectedSubject,
@@ -103,59 +102,57 @@ const SolutionAnalysisHeader = ({
 
   return (
     <>
-      {
-        isFavoriteModalOpen && (
+      {isFavoriteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
+          onClick={() => setIsFavoriteModalOpen(false)}
+        >
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/40"
-            onClick={() => setIsFavoriteModalOpen(false)}
+            className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
+            onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="min-w-[320px] max-w-lg w-full flex justify-center items-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <FolderSelectModal
-                favoriteFolders={favoriteFolders || []}
-                selectedProblemIds={submissionId}
-                setFavoriteFolders={setFavoriteFolders}
-                setIsFavoriteModalOpen={setIsFavoriteModalOpen}
-                reviewNoteList={reviewNoteList}
-                setReviewNoteList={setReviewNoteList}
-                handleSelectUnit={handleSelectUnit}
-                setSelectedProblemIds={() => {}}
-                topFavoriteFolderId={topFavoriteFolderId}
-              />
-            </div>
+            <FolderSelectModal
+              favoriteFolders={favoriteFolders || []}
+              selectedProblemIds={[problemId]}
+              setFavoriteFolders={setFavoriteFolders}
+              setIsFavoriteModalOpen={setIsFavoriteModalOpen}
+              reviewNoteList={reviewNoteList}
+              setReviewNoteList={setReviewNoteList}
+              handleSelectUnit={handleSelectUnit}
+              setSelectedProblemIds={() => {}}
+              topFavoriteFolderId={topFavoriteFolderId}
+            />
           </div>
-        )
-      }
+        </div>
+      )}
       <div className="flex items-start justify-between py-[21px]">
         <div className="">
           <p className="headline-large text-gray-700 mb-[8px]">
             문제 풀이 분석 결과
           </p>
-          <p className="body-small text-gray-300">
+          <p className="body-small text-gray-300 hidden md:block">
             AI가 풀이 과정을 분석해 사고 흐름과 이해도를 평가하고, 잘한 점과
             보완할 부분을 구체적으로 안내해드립니다.
           </p>
         </div>
         <div className="flex space-x-6">
           <div
-            className="flex items-center justify-center text-gray-500"
+            className="flex items-center justify-center text-gray-500 min-w-25"
             onClick={goToPrevious}
           >
             <Expand className="text-gray-500" />
             <p className="headline-small">이전 문제</p>
           </div>
           <div
-            className="flex items-center justify-center text-gray-500"
+            className="flex items-center justify-center text-gray-500 min-w-25"
             onClick={goToNext}
           >
             <p className="headline-small">다음 문제</p>
             <Expand className="text-gray-500 transform -scale-x-100" />
           </div>
 
-          <Link 
-            to={`/solving/${problemId}`} 
+          <Link
+            to={`/solving/${problemId}`}
             state={{
               selectedLessonName,
               selectedSubject,
@@ -165,15 +162,17 @@ const SolutionAnalysisHeader = ({
               problemList,
               selectedUnitId,
             }}
-            className=""
           >
-            <Button variant="solid">다시 풀어보기</Button>
+            <Button variant="outline" className="min-w-35">
+              다시 풀어보기
+            </Button>
           </Link>
           <Button
             variant="solid"
             onClick={() => {
               setIsFavoriteModalOpen(!isFavoriteModalOpen);
             }}
+            className="min-w-35"
           >
             즐겨찾기 추가
           </Button>

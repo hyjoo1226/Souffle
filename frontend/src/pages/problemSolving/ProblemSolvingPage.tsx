@@ -56,6 +56,9 @@ const ProblemSolvingPage = () => {
 
   const goToNext = () => {
     if (problemIndex < problemList.length - 1) {
+      solutionRef.current?.resetCanvas();
+      answerRef.current?.resetCanvas();
+      setIscorrect(null);
       const next = problemIndex + 1;
       const nextProblem = problemList[next];
 
@@ -74,6 +77,9 @@ const ProblemSolvingPage = () => {
 
   const goToPrevious = () => {
     if (problemIndex > 0) {
+      solutionRef.current?.resetCanvas();
+      answerRef.current?.resetCanvas();
+      setIscorrect(null);
       const prev = problemIndex - 1;
       const prevProblem = problemList[prev];
 
@@ -147,15 +153,17 @@ const ProblemSolvingPage = () => {
     stepsData.forEach(({ blob, file_name }) => {
       formData.append("files", blob, file_name);
     });
-
     const used = stepMeta.reduce(
       (acc: number, s: { step_time: number }) => acc + s.step_time,
       0
     );
     const lastGap = Math.max(0, timing.solveTime - used);
 
-    // 마지막 step에 보정 적용
-    stepMeta[stepMeta.length - 1].step_time = lastGap;
+    if (stepMeta.length > 0) {
+      stepMeta[stepMeta.length - 1].step_time = lastGap;
+    }
+    // // 마지막 step에 보정 적용
+    // stepMeta[stepMeta.length - 1].step_time = lastGap;
 
     // fullStep 이미지 파일 추가
     if (fullStep?.blob) {
@@ -239,7 +247,7 @@ const ProblemSolvingPage = () => {
             <div className="col-span-7 h-[calc(100vh-150px)] p-4">
               <SolutionArea ref={solutionRef} />
               <div className="flex overflow-hidden w-fit p-4">
-                {/* 오답 리스트 정렬 버튼 */}
+                {/* 복습 리스트 정렬 버튼 */}
                 {tabs.map((tab, i) => (
                   <button
                     key={tab}

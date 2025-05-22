@@ -28,7 +28,7 @@ const StudyTimeChart = () => {
   // weekOffset 변경 시 selectedDate 계산
   useEffect(() => {
     const today = new Date();
-    const targetDate = addDays(today, weekOffset * -7); // 주 단위 이동
+    const targetDate = addDays(today, weekOffset * 7); // 주 단위 이동
     setSelectedDate(format(targetDate, "yyyy-MM-dd"));
   }, [weekOffset]);
 
@@ -48,7 +48,7 @@ const StudyTimeChart = () => {
   const chartData =
     studyTimeData?.map((record) => ({
       date: record.date,
-      studyTime: record.total_solve_time,
+      studyTime: record.total_solve_time / 60,
     })) ?? [];
 
   // 주차 라벨 텍스트
@@ -93,7 +93,7 @@ const StudyTimeChart = () => {
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" tick={{ fontSize: 12 }} />
           <YAxis unit="분" />
-          <Tooltip formatter={(val: number) => `${val}분`} />
+          <Tooltip formatter={(val: number) => `${val.toFixed(1)}분`} />
           <Area
             type="linear"
             dataKey="studyTime"

@@ -12,13 +12,15 @@ import { useNavigate } from "react-router-dom";
 
 const ProblemSelectPage = () => {
   const [categoryData, setCategoryData] = useState<any[]>([]); // 카테고리 데이터 상태
-  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(null);
+  const [selectedLessonId, setSelectedLessonId] = useState<number | null>(6);
   const [selectedLessonName, setSelectedLessonName] = useState<string | null>(
-    null
+    "다항식의 연산"
   );
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
-  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<string | null>(
+    "공통수학1"
+  );
+  const [selectedUnit, setSelectedUnit] = useState<string | null>("다항식");
+  const [selectedUnitId, setSelectedUnitId] = useState<number | null>(2);
   // 선택된 카테고리 ID 상태
   const [problemList, setProblemList] = useState<any[]>([]); // 문제 리스트 상태
   const [progressRate, setProgressRate] = useState<number | null>(null); // 진도율 상태
@@ -29,12 +31,20 @@ const ProblemSelectPage = () => {
 
   const sortedProblemList = [...problemList].sort((a, b) => {
     switch (sortType) {
-      case "accuracy-desc":
-        return b.problem_avg_accuracy - a.problem_avg_accuracy;
-      case "accuracy-asc":
-        return a.problem_avg_accuracy - b.problem_avg_accuracy;
-      case "unsolved":
-        return (a.correct_count >= 1 ? 1 : 0) - (b.correct_count >= 1 ? 1 : 0);
+      case "accuracy-desc": {
+        const diff = b.problem_avg_accuracy - a.problem_avg_accuracy;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
+      case "accuracy-asc": {
+        const diff = a.problem_avg_accuracy - b.problem_avg_accuracy;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
+      case "unsolved": {
+        const aSolved = a.correct_count >= 1 ? 1 : 0;
+        const bSolved = b.correct_count >= 1 ? 1 : 0;
+        const diff = aSolved - bSolved;
+        return diff !== 0 ? diff : a.inner_no - b.inner_no;
+      }
       case "default":
       default:
         return a.inner_no - b.inner_no;
@@ -89,6 +99,14 @@ const ProblemSelectPage = () => {
     handleCategoryClick();
   }, []); // 컴포넌트 마운트 시 카테고리 데이터 요청
 
+  useEffect(() => {
+    if (selectedLessonId === null) {
+      setProblemList([]);
+    } else {
+      fetchProblemList();
+    }
+  }, [selectedLessonId]);
+
   return (
     <div className="h-screen grid grid-cols-12 py-5 gap-x-4 ">
       <div className="col-span-5 flex flex-col gap-4 h-full">
@@ -113,7 +131,7 @@ const ProblemSelectPage = () => {
               {progressRate !== null && accuracyRate !== null ? (
                 <div className="flex items-center justify-center gap-15">
                   <div className="flex flex-col gap-3 items-center">
-                    <p className="headline-small text-gray-700">단원 학습율</p>
+                    <p className="headline-small text-gray-700">단원 학습률</p>
                     <LearningStatusChart selectedData={progressRate} />
                   </div>
                   <div className="flex flex-col gap-3 items-center">
@@ -153,7 +171,17 @@ const ProblemSelectPage = () => {
         {/* 문제 리스트 */}
         <div className="flex flex-col h-screen overflow-y-auto">
           <div className="flex justify-end">
-            <div className="flex body-small text-gray-700 w-60">
+            <div className="flex body-small text-gray-700 w-80">
+              <p
+                onClick={() => setSortType("default")}
+                className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
+                  sortType === "default"
+                    ? "bg-white text-primary-500 border-primary-500"
+                    : ""
+                }`}
+              >
+                번호순
+              </p>
               <p
                 onClick={() => setSortType("accuracy-desc")}
                 className={`flex justify-center flex-1 py-2.5 px-3.5 bg-gray-100 border border-gray-200 cursor-pointer ${
@@ -186,38 +214,49 @@ const ProblemSelectPage = () => {
               </p>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto">
-            {sortedProblemList.map((problem, index) => (
-              <div key={index} className="flex px-4 py-4 mt-4 ">
-                <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
-                  <p
-                    className="body-medium text-gray-700"
-                    onClick={() => {
-                      handleProblemClick(problem.problem_id, problem.inner_no);
-                    }}
-                  >
-                    {`${selectedLessonName} ${problem.inner_no}번 문제`}
-                  </p>
-                  <div
-                    className={`rounded-[8px] px-1.5 py-1 caption-small ${
-                      problem.correct_count >= 1
-                        ? "bg-primary-500 text-white"
-                        : "bg-unsolved text-white"
-                    }`}
-                  >
-                    {problem.correct_count >= 1 ? "해결" : "미해결"}
+          <div className="flex-1 overflow-y-scroll scrollbar-visible">
+            {selectedLessonId === null ? (
+              <div className="flex justify-center items-center h-full w-full text-gray-400 body-medium">
+                단원을 선택해주세요.
+              </div>
+            ) : (
+              sortedProblemList.map((problem, index) => (
+                <div key={index} className="flex px-4 py-4 mt-4 ">
+                  <div className="basis-4/7 flex pl-12 justify-items-start items-center gap-1.5">
+                    <p
+                      className="body-medium text-gray-700"
+                      onClick={() => {
+                        handleProblemClick(
+                          problem.problem_id,
+                          problem.inner_no
+                        );
+                      }}
+                    >
+                      {`${selectedLessonName} ${problem.inner_no}번 문제`}
+                    </p>
+                    <div
+                      className={`rounded-[8px] px-1.5 py-1 caption-small ${
+                        problem.correct_count >= 1
+                          ? "bg-primary-500 text-white"
+                          : ""
+                      }`}
+                    >
+                      {problem.correct_count >= 1 ? "정답" : ""}
+                    </div>
+                  </div>
+                  <div className="basis-2/7 flex justify-center items-center">
+                    <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
+                  </div>
+                  <div className="basis-1/7 flex justify-center items-center">
+                    <p className="body-medium text-gray-700">
+                      {problem.problem_avg_accuracy != null
+                        ? `${problem.problem_avg_accuracy}%`
+                        : "0%"}
+                    </p>
                   </div>
                 </div>
-                <div className="basis-2/7 flex justify-center items-center">
-                  <p className="body-medium text-gray-700">{`${problem.correct_count} / ${problem.try_count}`}</p>
-                </div>
-                <div className="basis-1/7 flex justify-center items-center">
-                  <p className="body-medium text-gray-700">{`${
-                    problem.problem_avg_accuracy * 100
-                  }%`}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

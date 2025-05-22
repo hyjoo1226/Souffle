@@ -19,6 +19,10 @@ const ProblemCategory = ({
   // console.log(categoryData);
   const handleCategoryClick = () => {
     setCategoryOpen(!categoryOpen); // 카테고리 열기 상태 토글
+    setSelectedUnit(null);
+    setSelectedUnit(null);
+    setSelectedLessonName(null);
+    setSelectedLessonId(null);
   };
   return (
     <div className="relative flex flex-col gap-5">
@@ -39,7 +43,7 @@ const ProblemCategory = ({
         <img src="/icons/down.png" alt="" className="w-9 h-9" />
       </div>
       {/* 아코디언 */}
-      <div className="absolute z-50  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
+      <div className="absolute z-10  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
         {categoryOpen && (
           <AccordianList
             categoryOpen={categoryOpen}

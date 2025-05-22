@@ -49,8 +49,8 @@ const ReviewNoteItem = ({
           </p>
 
           {problem.user.correct_count > 0 && (
-            <span className="text-[12px] px-2 py-[2px] rounded-full bg-primary-100 text-primary-500">
-              해결
+            <span className="text-[12px] px-2 py-[2px] rounded-full w-[40px] shrink-0 bg-primary-100 text-primary-500">
+              정답
             </span>
           )}
         </div>
