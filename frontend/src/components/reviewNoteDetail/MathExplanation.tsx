@@ -13,6 +13,34 @@ type Part =
 
 const TOKEN_REGEX = /(##(.*?)##)|\\\((.+?)\\\)|(\[IMAGE\])/g;
 
+function renderWithLatex(text: string, keyPrefix = "") {
+  const regex = /\\\((.+?)\\\)/g;
+  const elements = [];
+  let lastIndex = 0;
+  let match;
+  let idx = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (lastIndex < match.index) {
+      elements.push(
+        <span key={`${keyPrefix}-text-${idx}`}>{text.slice(lastIndex, match.index)}</span>
+      );
+      idx++;
+    }
+    elements.push(
+      <InlineMath key={`${keyPrefix}-latex-${idx}`} math={match[1]} />
+    );
+    lastIndex = match.index + match[0].length;
+    idx++;
+  }
+  if (lastIndex < text.length) {
+    elements.push(
+      <span key={`${keyPrefix}-text-${idx}`}>{text.slice(lastIndex)}</span>
+    );
+  }
+  return elements;
+}
+
 const MathExplanation = ({ text, images = [] }: MathExplanationProps) => {
   const parts: Part[] = [];
   let lastIndex = 0;
@@ -59,7 +87,7 @@ const MathExplanation = ({ text, images = [] }: MathExplanationProps) => {
               key={index}
               className="headline-small text-gray-800"
             >
-              {part.value}
+              {renderWithLatex(part.value, `subtitle-${index}`)}
             </div>
           );
         }
