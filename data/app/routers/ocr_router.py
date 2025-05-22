@@ -1,74 +1,25 @@
 # app/routers/ocr_router.py
-from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
-from typing import List, Dict, Any, Optional
-import io
+from fastapi import APIRouter, Depends, Query, HTTPException
 from app.models.ocr_schema import (
     AnswerOCRRequest, AnswerOCRResponse,
     AnalysisOCRRequest, AnalysisOCRResponse,
-    AnalysisV2Request, AnalysisV2Response,
     StepValidationResult
 )
 from app.services.ocr import get_ocr_engine
 from app.services.analysis_service import analyze_equation_steps
-from app.services.analysis_service_v2 import analyze_with_openai
 from app.services.result_saver import load_latest_analysis
 from app.core.exceptions import error_to_http_exception, OCRError
-from app.core.config import settings
 import tempfile
 import httpx
 import os
 import logging
 import json
 import re
-import pathlib
 
 # 로거 설정
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/ocr", tags=["OCR"])
-
-# 문제 데이터 캐시
-_problem_data_cache = None
-
-def load_problem_data() -> List[Dict[str, Any]]:
-    """문제 데이터를 로드하여 리스트로 반환"""
-    global _problem_data_cache
-    
-    if _problem_data_cache is not None:
-        return _problem_data_cache
-    
-    try:
-        data_path = pathlib.Path("C:/FreeStyleProject/S12P31A304/data/static/csvjson.json")
-        if not data_path.exists():
-            # 상대 경로로 시도
-            data_path = pathlib.Path("static/csvjson.json")
-            if not data_path.exists():
-                logger.warning(f"문제 데이터 파일을 찾을 수 없습니다: {data_path}")
-                return []
-        
-        with open(data_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            _problem_data_cache = data
-            logger.info(f"{len(data)}개의 문제 데이터를 로드했습니다.")
-            return data
-    except Exception as e:
-        logger.error(f"문제 데이터 로드 실패: {str(e)}")
-        return []
-
-def find_problem_by_id(problem_id: str) -> Optional[Dict[str, Any]]:
-    """문제 ID로 문제 데이터 찾기"""
-    problems = load_problem_data()
-    
-    # 문제 ID로 찾기
-    for problem in problems:
-        problem_data = problem.get("row_to_json", {})
-        db_problem_id = str(problem_data.get("id", ""))
-        problem_no = problem_data.get("problemNo", "")
-        
-        if db_problem_id == problem_id or problem_no == problem_id:
-            return problem_data
-    
-    return None
 
 
 @router.post("/answer", response_model=AnswerOCRResponse)
@@ -126,20 +77,12 @@ async def analyze_ocr_steps(request: AnalysisOCRRequest):
 
         # 문제 ID 가져오기
         problem_id = str(request.problem_id) or "unknown_problem"
-        
-        # 문제 데이터 찾기
-        problem_data = find_problem_by_id(problem_id)
-        if problem_data:
-            logger.info(f"문제 ID {problem_id}에 대한 문제 데이터를 찾았습니다.")
-        else:
-            logger.warning(f"문제 ID {problem_id}에 대한 문제 데이터를 찾을 수 없습니다.")
 
         # 수식 분석 수행 - 스냅샷 분석 방식 (시간 정보도 함께 전달)
         result = await analyze_equation_steps(
             image_paths=image_paths, 
             grade="grade_1",
             problem_id=problem_id,
-            problem_data=problem_data,  # 문제 데이터 전달
             step_times=step_times,  # 단위: 초(sec)
             total_solve_time=request.total_solve_time,  # 단위: 초(sec)
             understand_time=request.understand_time,  # 단위: 초(sec)
@@ -241,7 +184,6 @@ async def analyze_ocr_steps(request: AnalysisOCRRequest):
     except Exception as e:
         # 예외 처리
         raise error_to_http_exception(e)
-
 
 
 @router.get("/health")

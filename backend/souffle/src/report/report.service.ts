@@ -146,8 +146,7 @@ export class ReportService {
   }
 
   // 자정마다 모든 유저 리포트 생성
-//  @Cron('0 15 * * *')
-  @Cron('45 0 * * *')
+  @Cron('0 15 * * *')
   async scheduledReportGeneration() {
     const allUsers = await this.userRepository.find();
 
