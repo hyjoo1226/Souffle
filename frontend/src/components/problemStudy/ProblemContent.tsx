@@ -2,11 +2,12 @@ import { ReactComponent as Cancel } from "@/assets/icons/Cancel.svg";
 import { ReactComponent as BoardMarkars } from "@/assets/icons/BoardMarkars.svg";
 import { ReactComponent as Magnetic } from "@/assets/icons/Magnetic.svg";
 import { useEffect, useState } from "react";
+import { InlineMath } from "react-katex";
 
 interface Problem {
   id: number;
   title: string;
-  sentence: string[];  // [텍스트, 텍스트, ...], 사이사이에 blanks
+  sentence: string[]; // [텍스트, 텍스트, ...], 사이사이에 blanks
   blanks: string[];
   choices: string[][];
 }
@@ -16,8 +17,37 @@ interface ProblemContentProps {
   userAnswer: string[];
   onChoiceClick: (blankIndex: number, choice: string) => void;
   onCancelAnswer: (blankIndex: number) => void;
-  showResultMark: 'none' | 'correct' | 'wrong';
+  showResultMark: "none" | "correct" | "wrong";
   isCorrect: boolean;
+}
+
+function renderWithLatex(text: string, keyPrefix = "") {
+  // \( ... \) 패턴 감지
+  const regex = /\\\((.+?)\\\)/g;
+  const elements = [];
+  let lastIndex = 0;
+  let match;
+  let idx = 0;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (lastIndex < match.index) {
+      elements.push(
+        <span key={`${keyPrefix}-text-${idx}`}>{text.slice(lastIndex, match.index)}</span>
+      );
+      idx++;
+    }
+    elements.push(
+      <InlineMath key={`${keyPrefix}-latex-${idx}`} math={match[1]} />
+    );
+    lastIndex = match.index + match[0].length;
+    idx++;
+  }
+  if (lastIndex < text.length) {
+    elements.push(
+      <span key={`${keyPrefix}-text-${idx}`}>{text.slice(lastIndex)}</span>
+    );
+  }
+  return elements;
 }
 
 const ProblemContent = ({
@@ -26,7 +56,7 @@ const ProblemContent = ({
   onChoiceClick,
   onCancelAnswer,
   showResultMark,
-  isCorrect
+  isCorrect,
 }: ProblemContentProps) => {
   const [activeBlankIndex, setActiveBlankIndex] = useState(0);
 
@@ -34,6 +64,7 @@ const ProblemContent = ({
     setActiveBlankIndex(0);
   }, [problem?.id]);
 
+  // 문제 데이터 누락/이상 방어
   if (
     !problem ||
     !Array.isArray(problem.blanks) ||
@@ -50,13 +81,11 @@ const ProblemContent = ({
     );
   }
 
-  if (!problem) {
-    return (
-      <div className="col-span-9 px-4">
-        <p className="body-medium text-red-500">문제를 불러오는 중입니다...</p>
-      </div>
-    );
-  }
+  // choices 인덱스 방어
+  const currentChoices =
+    Array.isArray(problem.choices) && Array.isArray(problem.choices[activeBlankIndex])
+      ? problem.choices[activeBlankIndex]
+      : [];
 
   const renderSentenceWithBlanks = () => {
     const content = [];
@@ -67,7 +96,7 @@ const ProblemContent = ({
       lines.forEach((line, idx) => {
         content.push(
           <span key={`text-${i}-${idx}`} className="text-gray-700">
-            {line}
+            {renderWithLatex(line, `sentence-${i}-${idx}`)}
           </span>
         );
         if (idx < lines.length - 1) {
@@ -100,14 +129,14 @@ const ProblemContent = ({
 
   return (
     <div className="col-span-9 px-4 relative flex flex-col justify-between">
-      {showResultMark === 'wrong' && (
+      {showResultMark === "wrong" && (
         <img
           src="/icons/false.png"
           alt="틀림"
           className="absolute -top-10 -left-3 w-30 h-40"
         />
       )}
-      {showResultMark === 'correct' && (
+      {showResultMark === "correct" && (
         <img
           src="/icons/true.png"
           alt="맞음"
@@ -143,8 +172,16 @@ const ProblemContent = ({
               <button
                 key={index}
                 className={`px-4 py-1 rounded border
-                  ${activeBlankIndex === index ? "bg-primary-100 border-primary-500" : "border-gray-300"}
-                  ${userAnswer[index] ? "text-primary-700 font-semibold" : "text-gray-500"}`}
+                  ${
+                    activeBlankIndex === index
+                      ? "bg-primary-100 border-primary-500"
+                      : "border-gray-300"
+                  }
+                  ${
+                    userAnswer[index]
+                      ? "text-primary-700 font-semibold"
+                      : "text-gray-500"
+                  }`}
                 onClick={() => !isCorrect && setActiveBlankIndex(index)}
                 disabled={isCorrect}
               >
@@ -155,14 +192,17 @@ const ProblemContent = ({
 
           {/* 현재 빈칸의 보기 */}
           <div className="flex gap-2 w-full justify-center">
-            {problem.choices[activeBlankIndex].map((choice, idx) => (
+            {currentChoices.map((choice, idx) => (
               <button
                 key={idx}
                 className={`border-1 border-gray-300 px-4 py-2 rounded 
-                  ${userAnswer[activeBlankIndex] === choice ? "bg-primary-100 border-primary-500 text-primary-700" : "border-gray-400 text-gray-500"}
+                  ${
+                    userAnswer[activeBlankIndex] === choice
+                      ? "bg-primary-100 border-primary-500 text-primary-700"
+                      : "border-gray-400 text-gray-500"
+                  }
                   hover:bg-primary-50`}
                 onClick={() => onChoiceClick(activeBlankIndex, choice)}
-                // disabled={!!userAnswer[activeBlankIndex] || isCorrect}
                 disabled={isCorrect}
               >
                 {choice}
