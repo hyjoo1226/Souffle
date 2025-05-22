@@ -1,43 +1,51 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
-import { VitePWA } from 'vite-plugin-pwa'
+import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-import svgr from 'vite-plugin-svgr';
+import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
-export default defineConfig({
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd());
+  console.log("BE URL: ", env.VITE_APP_API_URL);
+  return {
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      injectRegister: "auto",
+      registerType: "autoUpdate",
       workbox: {
+        navigateFallback: "/index.html",
         navigateFallbackDenylist: [
-          /^\/auth\//,
+          /^\/api\/v1\/auth\//,
+          /^\/api\/v1\/auth\//,
           /^\/swagger/,
           /^\/docs/,
           /^\/openapi.json/,
+          /^\/popup-login\.html(?:\?.*)?$/,
         ],
       },
-      includeAssets: ['favicon.svg', 'robots.txt'],
+      includeAssets: ["favicon.svg", "robots.txt"],
       manifest: {
-        name: 'Souffle',
-        short_name: 'Souffle',
-        description: 'AI 기반 수학 풀이 학습 서비스',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
-        display: 'standalone',
-        start_url: '/',
+        name: "Souffle",
+        short_name: "Souffle",
+        description: "AI 기반 수학 풀이 학습 서비스",
+        theme_color: "#ffffff",
+        background_color: "#ffffff",
+        display: "standalone",
+        start_url: "/",
         icons: [
           {
-            src: 'icons/icon-192x192.png',
-            sizes: '192x192',
-            type: 'image/png',
+            src: "icons/icon-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
           },
           {
-            src: 'icons/icon-512x512.png',
-            sizes: '512x512',
-            type: 'image/png',
+            src: "icons/icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
           },
         ],
       },
@@ -45,17 +53,19 @@ export default defineConfig({
     tailwindcss(),
     svgr({
       svgrOptions: {
-        exportType: 'named',
+        exportType: "named",
         ref: true,
         svgo: false,
         titleProp: true,
       },
-      include: '**/*.svg',
+      include: "**/*.svg",
     }),
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
-    }
-  }
+      "@": path.resolve(__dirname, "src"),
+    },
+  },
+  envPrefix: "VITE_",
+  };
 });

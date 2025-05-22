@@ -1,4 +1,4 @@
-// SolutionNote.tsx(오답노트)에 들어가는 필기 영역을 구현한 컴포넌트
+// SolutionNote.tsx(복습노트)에 들어가는 필기 영역을 구현한 컴포넌트
 import { useState, useEffect, useRef } from 'react';
 import { ReactComponent as Eraser } from "@/assets/icons/Eraser.svg";
 import { ReactComponent as Pencil } from "@/assets/icons/Pencil.svg";
@@ -15,9 +15,10 @@ interface Point {
 interface CanvasAreaProps {
   title: string;
   initialStrokes?: Point[][];  // 정규화된 초기 스트로크
+  onStrokesChange?: (strokes: Point[][]) => void;
 }
 
-export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
+export default function CanvasArea({ title, initialStrokes, onStrokesChange }: CanvasAreaProps) {
   const [mode, setMode] = useState<Mode>('draw');
   const canvasRef        = useRef<HTMLCanvasElement|null>(null);
   const ctxRef           = useRef<CanvasRenderingContext2D|null>(null);
@@ -74,18 +75,6 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
     });
   };
 
-  // 정규화된 스트로크를 JSON 파일로 저장
-  const handleSave = () => {
-    const data = { strokes: strokesRef.current };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
-    a.download = 'strokes.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   // "전체 지우기" 동작 함수
   const handleClearAll = () => {
     strokesRef.current = [];
@@ -110,17 +99,11 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
     }
   }, [initialStrokes]);
 
-  // mock JSON 로드
   useEffect(() => {
-    const url = new URL('../../mocks/strokes.json', import.meta.url).href;
-    fetch(url)
-      .then(res => res.json())
-      .then(data => {
-        strokesRef.current = data.strokes;
-        redrawAllStrokes();
-      })
-      .catch(console.error);
-  }, []);
+    if (onStrokesChange) {
+      onStrokesChange(strokesRef.current); // 필기 내용이 변경될 때마다 전달
+    }
+  }, [strokesRef.current]);
 
   // 캔버스 초기 설정
   useEffect(() => {
@@ -203,6 +186,11 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
       if (isDrawingRef.current && mode === 'draw') {
         strokesRef.current.push([...currentStrokeRef.current]);
         currentStrokeRef.current = [];
+
+        // stroke 변경을 외부로 전달!
+        if (onStrokesChange) {
+          onStrokesChange([...strokesRef.current]);
+        }
       }
       isDrawingRef.current = false;
     };
@@ -220,6 +208,13 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
     };
   }, [mode]);
 
+  useEffect(() => {
+    if (initialStrokes && initialStrokes.length) {
+      strokesRef.current = initialStrokes;
+      redrawAllStrokes();
+    }
+  }, [initialStrokes]);
+
   return (
     <div className="w-1/2 relative">
       <div className="absolute top-6 left-4 flex gap-3.5">
@@ -233,12 +228,6 @@ export default function CanvasArea({ title, initialStrokes }: CanvasAreaProps) {
             className={mode==='erase' ? 'bg-gray-200 rounded-full' : ''}
             onClick={handleEraserClick}
           />
-          <button
-            onClick={handleSave}
-            className="px-2 py-1 bg-primary-500 text-white rounded text-xs"
-          >
-            저장
-          </button>
         </div>
       </div>
       {showEraserModal && (

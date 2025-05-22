@@ -28,9 +28,9 @@ export function drawBlocksOnCanvas(canvas: HTMLCanvasElement, blocks: any[]) {
 
   for (const block of blocks) {
     for (const stroke of block.strokes) {
-      const isLong = stroke.duration > 2000;
-      ctx.strokeStyle = isLong ? "red" : "black";
-      ctx.lineWidth = isLong ? 3 : 1.5;
+      // const isLong = stroke.duration > 2000;
+      // ctx.strokeStyle = isLong ? "red" : "black";
+      // ctx.lineWidth = isLong ? 3 : 1.5;
 
       // 각 획을 그리기
       ctx.beginPath();
@@ -64,24 +64,24 @@ export const createStroke = (
 
 export const shouldCreateNewBlock = (
   first: { x: number; y: number; time: number },
-  lastPoint: { x: number; y: number } | null,
-  lastStrokeTime: number | null
+  lastPoint: { x: number; y: number } | null
+  // lastStrokeTime: number | null
 ) => {
   const distance = lastPoint
     ? Math.hypot(first.x - lastPoint.x, first.y - lastPoint.y)
     : 0;
-  const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
+  // const timeGap = lastStrokeTime ? first.time - lastStrokeTime : 0;
   const movedLeft = lastPoint && first.x + 70 < lastPoint.x;
   const movedDown = lastPoint && first.y > lastPoint.y + 10;
 
-  return distance > 100 || timeGap > 3000 || (movedLeft && movedDown);
+  return distance > 100 || (movedLeft && movedDown);
 };
 
 export const updateBlocksWithStroke = ({
   stroke,
   blocks,
   lastPoint,
-  lastStrokeTime,
+  // lastStrokeTime,
   lastBlockId,
 }: {
   stroke: {
@@ -103,8 +103,8 @@ export const updateBlocksWithStroke = ({
     blocks.length === 0 ||
     shouldCreateNewBlock(
       { ...stroke.start, time: stroke.timestamp },
-      lastPoint,
-      lastStrokeTime
+      lastPoint
+      // lastStrokeTime
     ) ||
     !newBlocks.find((b) => b.block_id === lastBlockId);
 
@@ -194,8 +194,8 @@ export function getPointerUpHandler(
       blocks.length === 0 ||
       shouldCreateNewBlock(
         { ...stroke.start, time: stroke.timestamp },
-        lastPoint,
-        lastStrokeTime
+        lastPoint
+        // lastStrokeTime
       ) ||
       !blocks.find((b) => b.block_id === lastBlockId);
 
@@ -233,7 +233,7 @@ export async function generateAnswerImage(
   const answerBlob = await new Promise<Blob>((resolve) =>
     canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
   );
-  window.open(URL.createObjectURL(answerBlob));
+  // window.open(URL.createObjectURL(answerBlob));
   return answerBlob;
 }
 
@@ -280,9 +280,9 @@ export async function generateStepImages(
 
     const stepNumber = i; // step1부터 시작
     const stepFileName = `step${String(stepNumber).padStart(2, "0")}.jpg`;
-    console.log("개수보자", snapshot.length);
+    // console.log("개수보자", snapshot.length);
 
-    window.open(URL.createObjectURL(stepBlob));
+    // window.open(URL.createObjectURL(stepBlob));
 
     steps.push({
       step_number: stepNumber,
@@ -304,7 +304,7 @@ export async function generateFullStepImage(
   const fullStepBlob = await new Promise<Blob>((resolve) =>
     canvas.toBlob((blob) => resolve(blob!), "image/jpeg")
   );
-  window.open(URL.createObjectURL(fullStepBlob));
+  // window.open(URL.createObjectURL(fullStepBlob));
 
   return {
     file_name: "full_step.jpg",

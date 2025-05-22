@@ -1,15 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { FileService } from 'src/files/files.service';
+import { OcrService } from 'src/ocr/ocr.service';
 import { Submission } from './entities/submission.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Problem } from '../problems/entities/problem.entity';
 import { SubmissionStep } from './entities/submission-step.entity';
-import { FileService } from 'src/files/files.service';
-import { OcrService } from 'src/ocr/ocr.service';
-import { CreateSubmissionDto } from './dto/create-submission.dto';
 import { AnalysisService } from 'src/analyses/analyses.service';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
+import { NoteFolder } from 'src/notes/entities/note-folder.entity';
+import { UserCategoryProgress } from 'src/users/entities/user-category-progress.entity';
+import { Category } from 'src/categories/entities/category.entity';
+import { NoteContent } from 'src/notes/entities/note-content.entity';
+import { CreateSubmissionDto } from './dto/create-submission.dto';
 
 @Injectable()
 export class SubmissionService {
@@ -20,10 +24,18 @@ export class SubmissionService {
     private userRepository: Repository<User>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
+    @InjectRepository(NoteContent)
+    private noteContentRepository: Repository<NoteContent>,
     @InjectRepository(SubmissionStep)
     private submissionStepRepository: Repository<SubmissionStep>,
     @InjectRepository(UserProblem)
     private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(NoteFolder)
+    private noteFolderRepository: Repository<NoteFolder>,
+    @InjectRepository(Category)
+    private categoryRepository: Repository<Category>,
+    @InjectRepository(UserCategoryProgress)
+    private userCategoryProgressRepository: Repository<UserCategoryProgress>,
     private fileService: FileService,
     private ocrService: OcrService,
     private analysisService: AnalysisService,
@@ -31,18 +43,19 @@ export class SubmissionService {
 
   // 풀이 데이터 전송 API
   async createSubmission(
+    userId,
     submissionDto: CreateSubmissionDto,
     files: Express.Multer.File[],
   ) {
-    // 유저조회 - 현재는 인증 로직 없으므로 직접 할당
     const user = await this.userRepository.findOneBy({
-      id: submissionDto.user_id,
+      id: userId,
     });
     if (!user) throw new NotFoundException('사용자를 찾을 수 없습니다.');
 
     // 문제 조회
-    const problem = await this.problemRepository.findOneBy({
-      id: submissionDto.problem_id,
+    const problem = await this.problemRepository.findOne({
+      where: { id: submissionDto.problem_id },
+      relations: ['category'],
     });
     if (!problem) throw new NotFoundException('문제를 찾을 수 없습니다.');
 
@@ -119,25 +132,19 @@ export class SubmissionService {
       console.error('풀이분석 큐 등록 실패:', error.message);
     }
 
-    // user_problem 테이블 생성/갱신
-    await this.userProblemRepository.query(
-      `
-    INSERT INTO user_problem (user_id, problem_id, try_count, correct_count, last_submission_id)
-    VALUES ($1, $2, $3, $4, $5)
-    ON CONFLICT (user_id, problem_id) 
-    DO UPDATE SET
-      try_count = user_problem.try_count + 1,
-      correct_count = user_problem.correct_count + $4,
-      last_submission_id = $5
-    `,
-      [
-        submissionDto.user_id,
-        submissionDto.problem_id,
-        1,
-        submission.isCorrect ? 1 : 0,
-        savedSubmission.id,
-      ],
-    );
+    // 오답노트에 추가
+    const noteFolder = await this.noteFolderRepository.findOne({
+      where: {
+        category: { id: problem.category.id },
+        type: 2,
+      },
+      relations: ['category'],
+    });
+    if (!noteFolder) {
+      throw new NotFoundException(
+        '해당 카테고리의 오답노트 폴더를 찾을 수 없습니다.',
+      );
+    }
 
     // 동기 OCR 처리
     try {
@@ -151,25 +158,88 @@ export class SubmissionService {
       console.error('OCR 변환 실패로 채점 생략');
       savedSubmission.isCorrect = null;
       await this.submissionRepository.save(savedSubmission);
-      return this.updateStatsAndReturnResponse(problem, savedSubmission);
+      return this.updateStatsAndReturnResponse(
+        problem,
+        savedSubmission,
+        userId,
+      );
     }
-    // // OCR 변환 요청 큐 등록
-    // await this.ocrService.addOcrJob({
-    //   answer_image_url: savedSubmission.answerImageUrl,
-    //   submission_id: savedSubmission.id,
-    //   problem_answer: problem.answer,
-    // });
 
-    // 문제 통계 갱신
-    return this.updateStatsAndReturnResponse(problem, savedSubmission);
+    // user_problem 테이블 생성/갱신
+    await this.userProblemRepository.query(
+      `
+  INSERT INTO user_problem 
+    (user_id, problem_id, try_count, correct_count, last_submission_id, wrong_note_folder_id)
+  VALUES ($1, $2, $3, $4, $5, $6)
+  ON CONFLICT (user_id, problem_id) 
+  DO UPDATE SET
+    try_count = user_problem.try_count + 1,
+    correct_count = user_problem.correct_count + $4,
+    last_submission_id = $5,
+    wrong_note_folder_id = CASE WHEN $4 = 0 THEN $6 ELSE user_problem.wrong_note_folder_id END
+  `,
+      [
+        submissionDto.user_id,
+        submissionDto.problem_id,
+        1,
+        submission.isCorrect ? 1 : 0,
+        savedSubmission.id,
+        noteFolder.id,
+      ],
+    );
+
+    const userProblem = await this.userProblemRepository.findOne({
+      where: {
+        user: { id: submissionDto.user_id },
+        problem: { id: submissionDto.problem_id },
+      },
+    });
+    if (!userProblem) {
+      throw new NotFoundException('user_problem이 생성되지 않았습니다.');
+    }
+    // note Content 없으면 생성
+    const existingContent = await this.noteContentRepository.findOne({
+      where: { user_problem: { id: userProblem.id } },
+    });
+    if (!existingContent) {
+      const newContent = this.noteContentRepository.create({
+        user_problem: userProblem,
+        solution_strokes: [],
+        concept_strokes: [],
+      });
+      await this.noteContentRepository.save(newContent);
+    }
+
+    // 해당 단원의 진도가 있는지 확인
+    const progress = await this.userCategoryProgressRepository.findOne({
+      where: {
+        user: { id: userId },
+        category: { id: problem.category.id },
+      },
+    });
+    if (!progress) {
+      await this.userCategoryProgressRepository.save({
+        user: { id: userId },
+        category: { id: problem.category.id },
+        solveTime: 0,
+        progressRate: 0.0,
+        testAccuracy: 0.0,
+      });
+    }
+
+    // 통계 갱신
+    return this.updateStatsAndReturnResponse(problem, savedSubmission, userId);
   }
 
   // 통계 갱신 후 리턴
   private async updateStatsAndReturnResponse(
     problem: Problem,
     savedSubmission: Submission,
+    userId: number,
   ) {
     await this.updateProblemStatistics(problem.id);
+    await this.updateCategoryProgress(userId, problem.category.id);
+    await this.updateCategoryStatistics(problem.category.id);
     const updatedProblem = await this.problemRepository.findOneBy({
       id: problem.id,
     });
@@ -192,23 +262,114 @@ export class SubmissionService {
     const stats = await this.submissionRepository
       .createQueryBuilder('submission')
       .select([
-        'AVG(CAST(CASE WHEN submission.isCorrect IS NOT NULL THEN submission.isCorrect ELSE NULL END AS integer)) * 100 AS avgAccuracy',
-        'AVG(submission.totalSolveTime) AS avgTotalSolveTime',
-        'AVG(submission.understandTime) AS avgUnderstandTime',
-        'AVG(submission.solveTime) AS avgSolveTime',
-        'AVG(submission.reviewTime) AS avgReviewTime',
+        'AVG(CAST(CASE WHEN submission.isCorrect IS NOT NULL THEN submission.isCorrect ELSE NULL END AS integer)) * 100 AS "avgAccuracy"',
+        'AVG(submission.totalSolveTime) AS "avgTotalSolveTime"',
+        'AVG(submission.understandTime) AS "avgUnderstandTime"',
+        'AVG(submission.solveTime) AS "avgSolveTime"',
+        'AVG(submission.reviewTime) AS "avgReviewTime"',
       ])
       .where('submission.problemId = :problemId', { problemId })
       .getRawOne();
 
+    await this.problemRepository.query(
+      `UPDATE problems SET "avgAccuracy" = $1 WHERE id = $2`,
+      [Math.round(Number(stats.avgAccuracy) * 10) / 10, problemId],
+    );
     await this.problemRepository.update(problemId, {
-      avgAccuracy: stats.avgAccuracy
-        ? Math.round(stats.avgAccuracy * 10) / 10
-        : 0,
-      avgTotalSolveTime: Math.round(stats.avgTotalSolveTime) || 0,
-      avgUnderstandTime: Math.round(stats.avgUnderstandTime) || 0,
-      avgSolveTime: Math.round(stats.avgSolveTime) || 0,
-      avgReviewTime: Math.round(stats.avgReviewTime) || 0,
+      avgTotalSolveTime:
+        stats.avgTotalSolveTime !== null &&
+        !isNaN(Number(stats.avgTotalSolveTime))
+          ? Math.round(Number(stats.avgTotalSolveTime))
+          : 0,
+      avgUnderstandTime:
+        stats.avgUnderstandTime !== null &&
+        !isNaN(Number(stats.avgUnderstandTime))
+          ? Math.round(Number(stats.avgUnderstandTime))
+          : 0,
+      avgSolveTime:
+        stats.avgSolveTime !== null && !isNaN(Number(stats.avgSolveTime))
+          ? Math.round(Number(stats.avgSolveTime))
+          : 0,
+      avgReviewTime:
+        stats.avgReviewTime !== null && !isNaN(Number(stats.avgReviewTime))
+          ? Math.round(Number(stats.avgReviewTime))
+          : 0,
+    });
+  }
+
+  // 해당 유저의 카테고리 통계 갱신 로직
+  private async updateCategoryProgress(userId: number, categoryId: number) {
+    const categorySubmissions = await this.submissionRepository.find({
+      where: {
+        user: { id: userId },
+        problem: { category: { id: categoryId } },
+      },
+      relations: ['problem'],
+    });
+
+    const totalProblemsInCategory = await this.problemRepository.count({
+      where: { category: { id: categoryId } },
+    });
+    const solvedProblems = new Set(
+      categorySubmissions.map((sub) => sub.problem.id),
+    ).size;
+    const correctSubmissions = categorySubmissions.filter(
+      (sub) => sub.isCorrect,
+    ).length;
+    const totalSolveTime = categorySubmissions.reduce(
+      (sum, sub) => sum + (sub.totalSolveTime || 0),
+      0,
+    );
+
+    let progress = await this.userCategoryProgressRepository.findOne({
+      where: {
+        user: { id: userId },
+        category: { id: categoryId },
+      },
+    });
+    if (!progress) {
+      progress = this.userCategoryProgressRepository.create({
+        user: { id: userId },
+        category: { id: categoryId },
+        solveTime: 0,
+        progressRate: 0.0,
+        testAccuracy: 0.0,
+      });
+    }
+
+    progress.solveTime = totalSolveTime;
+    progress.progressRate = totalProblemsInCategory
+      ? Number(((solvedProblems / totalProblemsInCategory) * 100).toFixed(1))
+      : 0;
+    progress.testAccuracy = categorySubmissions.length
+      ? Number(
+          ((correctSubmissions / categorySubmissions.length) * 100).toFixed(1),
+        )
+      : 0;
+
+    await this.userCategoryProgressRepository.save(progress);
+  }
+
+  // 전체 카테고리 통계 갱신
+  private async updateCategoryStatistics(categoryId: number) {
+    const stats = await this.submissionRepository
+      .createQueryBuilder('submission')
+      .select('AVG("submission"."isCorrect"::int) * 100', 'avgAccuracy')
+      .innerJoin(
+        'submission.problem',
+        'problem',
+        'problem.categoryId = :categoryId',
+        { categoryId },
+      )
+      .getRawOne();
+
+    const avgAccuracyValue =
+      stats.avgAccuracy !== null && !isNaN(Number(stats.avgAccuracy))
+        ? Number(Number(stats.avgAccuracy).toFixed(1))
+        : 0;
+
+    await this.categoryRepository.update(categoryId, {
+      avgAccuracy: avgAccuracyValue,
     });
   }
 
@@ -237,6 +398,8 @@ export class SubmissionService {
         step_time: step.stepTime,
         step_valid: step.isValid,
         step_feedback: step.stepFeedback,
+        step_latex: step.latex,
+        step_current_latex: step.currentLatex,
       })),
       time: {
         total_solve_time: submission.totalSolveTime,

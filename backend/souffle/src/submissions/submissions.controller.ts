@@ -9,7 +9,8 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { SubmissionService } from './submissions.service';
+import { UseGuards, Req } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import {
   ApiTags,
   ApiOperation,
@@ -18,8 +19,7 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { UseGuards, Req } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { SubmissionService } from './submissions.service';
 
 @ApiTags('submission')
 @Controller('api/v1/submissions')
@@ -111,7 +111,11 @@ export class SubmissionController {
       steps: body.steps,
     };
 
-    return this.submissionService.createSubmission(submissionDto, files);
+    return this.submissionService.createSubmission(
+      userId,
+      submissionDto,
+      files,
+    );
   }
 
   // 풀이 분석 조회 요청 API

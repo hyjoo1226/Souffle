@@ -9,7 +9,7 @@ export class AddToFolderDto {
 
   @ApiProperty({ example: 5, description: '오답노트 폴더 ID' })
   @IsInt()
-  @Min(4) // 1,2,3은 고정 폴더 (즐겨찾기, 공통수학1, 공통수학2)
+  @Min(4)
   folderId: number;
 
   @ApiProperty({

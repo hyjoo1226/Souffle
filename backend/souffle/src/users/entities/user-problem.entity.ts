@@ -6,6 +6,8 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
@@ -39,6 +41,12 @@ export class UserProblem {
 
   @Column({ nullable: true })
   last_submission_id: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(() => NoteContent, (noteContent) => noteContent.user_problem)
   noteContents: NoteContent[];

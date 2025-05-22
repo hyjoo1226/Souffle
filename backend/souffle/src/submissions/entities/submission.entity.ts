@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -68,8 +69,11 @@ export class Submission extends BaseEntity {
   @Column({ type: 'boolean', nullable: true, default: null })
   analysisFailed: boolean | null;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 
   @OneToMany(
     () => SubmissionStep,

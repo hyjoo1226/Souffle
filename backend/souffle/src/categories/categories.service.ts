@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull, In } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
+import { UserService } from 'src/users/users.service';
 import { Category } from './entities/category.entity';
 import { Problem } from 'src/problems/entities/problem.entity';
-import { UserService } from 'src/users/users.service';
-import { UserProblem } from 'src/users/entities/user-problem.entity';
+import { Concept } from 'src/concepts/entities/concept.entity';
 
 @Injectable()
 export class CategoryService {
@@ -13,8 +13,8 @@ export class CategoryService {
     private categoryRepository: Repository<Category>,
     @InjectRepository(Problem)
     private problemRepository: Repository<Problem>,
-    @InjectRepository(UserProblem)
-    private userProblemRepository: Repository<UserProblem>,
+    @InjectRepository(Concept)
+    private conceptRepository: Repository<Concept>,
     private usersService: UserService,
   ) {}
   // 전체 단원 조회 API
@@ -31,7 +31,6 @@ export class CategoryService {
         id: node.id,
         name: node.name,
         type: node.type,
-        // progress_rate: node.progressRate,
         children: node.children ? buildTree(node.children) : [],
       }));
 
@@ -97,10 +96,25 @@ export class CategoryService {
     );
     await queryRunner.release();
 
-    // // 하위 모든 단원에 속한 문제 조회
-    // const problems = await this.problemRepository.find({
-    //   where: { category: { id: In(categoryIds.map((c) => c.id)) } },
-    // });
+    // 개념
+    const concepts = await this.conceptRepository.find({
+      where: { category: { id: categoryId } },
+      relations: ['images'],
+      order: { order: 'ASC' },
+    });
+    const formattedConcepts = concepts.map((concept) => ({
+      id: concept.id,
+      title: concept.title,
+      description: concept.description,
+      order: concept.order,
+      images: concept.images
+        .sort((a, b) => a.order - b.order)
+        .map((image) => ({
+          id: image.id,
+          url: image.imageUrl,
+          order: image.order,
+        })),
+    }));
 
     // 문제별 통계
     const problemsWithStats = await this.problemRepository
@@ -133,9 +147,8 @@ export class CategoryService {
     return {
       category_id: category.id,
       avg_accuracy: category.avgAccuracy,
-      learning_content: category.learningContent,
-      concept_explanation: category.conceptExplanation,
       user: userStats,
+      concepts: formattedConcepts,
       problem: problemsWithStats,
     };
   }

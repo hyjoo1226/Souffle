@@ -10,9 +10,7 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { NoteService } from './notes.service';
 import { AuthGuard } from '@nestjs/passport';
-import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,6 +19,8 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { NoteService } from './notes.service';
+import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 import {
   UpdateNoteFolderDto,
   UpdateNoteFolderOrderDto,
@@ -69,11 +69,11 @@ export class NoteController {
       },
     },
   })
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('folder')
   async getFolders(@Req() req, @Query('type') type?: number) {
-    // const userId = req.user.id;
-    const userId = 1;
+    const userId = req.user.id;
+
     return this.noteService.getNoteFolderTree(userId, type);
   }
 
@@ -96,9 +96,12 @@ export class NoteController {
   })
   @ApiResponse({
     status: 201,
-    description: '생성된 폴더 정보',
+    description: '생성된 폴더 id',
     schema: {
-      $ref: '#/components/schemas/NoteFolder',
+      type: 'object',
+      properties: {
+        id: { type: 'integer', example: 123 },
+      },
     },
   })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
@@ -125,8 +128,15 @@ export class NoteController {
   async updateFolderName(
     @Param('folder_id') folderId: number,
     @Body() updateDto: UpdateNoteFolderDto,
+    @Req() req,
   ) {
-    return this.noteService.updateNoteFolderName(folderId, updateDto.name);
+    const userId = req.user.id;
+
+    return this.noteService.updateNoteFolderName(
+      folderId,
+      userId,
+      updateDto.name,
+    );
   }
 
   // 폴더 순서 변경 API
@@ -142,9 +152,13 @@ export class NoteController {
   async updateFolderOrder(
     @Param('folder_id') folderId: number,
     @Body() updateDto: UpdateNoteFolderOrderDto,
+    @Req() req,
   ) {
+    const userId = req.user.id;
+
     return this.noteService.updateNoteFolderOrder(
       folderId,
+      userId,
       updateDto.sort_order,
     );
   }
@@ -156,8 +170,10 @@ export class NoteController {
   @ApiResponse({ status: 404, description: '폴더를 찾을 수 없음' })
   @UseGuards(AuthGuard('jwt'))
   @Delete('folder/:folder_id')
-  async deleteNoteFolder(@Param('folder_id') folderId: number) {
-    return this.noteService.deleteNoteFolder(folderId);
+  async deleteNoteFolder(@Param('folder_id') folderId: number, @Req() req) {
+    const userId = req.user.id;
+
+    return this.noteService.deleteNoteFolder(folderId, userId);
   }
 
   // 문제 오답노트에 추가 API
@@ -287,7 +303,7 @@ export class NoteController {
   })
   @ApiResponse({ status: 404, description: '문제 정보 없음' })
   @UseGuards(AuthGuard('jwt'))
-  @Get('detail/:user_problem_id')
+  @Get('content/:user_problem_id')
   async getProblemDetail(@Param('user_problem_id') userProblemId: number) {
     return this.noteService.getProblemDetail(Number(userProblemId));
   }

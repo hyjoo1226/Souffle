@@ -15,11 +15,11 @@ import { SubmissionStep } from 'src/submissions/entities/submission-step.entity'
     BullModule.registerQueue({
       name: 'analysis-queue',
       defaultJobOptions: {
-        attempts: 3, // 최대 3번 시도
-        backoff: { type: 'exponential', delay: 5000 }, // 5초, 10초, 20초 간격 재시도
-        removeOnComplete: true, // 완료된 작업은 큐에서 자동 삭제
-        removeOnFail: false, // 실패한 작업은 큐에 남김 (디버깅/모니터링용)
-        timeout: 60000, // 60초 이상 걸리면 타임아웃 처리
+        attempts: 3,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+        timeout: 60000,
       },
     }),
     BullBoardModule.forFeature({

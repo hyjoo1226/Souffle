@@ -207,9 +207,10 @@ async def generate_batch_feedback(
         for step_num, prev, curr in api_required_steps
     ])
     
-    # 사용자 프롬프트 최적화 - 간결하고 직관적으로
+    # 사용자 프롬프트 최적화 - 수식 변환 품질 평가 추가
     filled_prompt = (
-        f"다음 수식 변화에서 발생한 오류를 각 단계별로 분석해주세요:\n\n"
+        f"다음 수식 변화에서 발생한 오류를 각 단계별로 분석해주세요. " 
+        f"수식 텍스트 변환이 잘 되지 않았다고 판단되는 경우, 그 이유를 설명하고 수식 이미지 품질 개선 방법을 제안해주세요.\n\n"
         f"{steps_text}"
     )
     
@@ -217,7 +218,7 @@ async def generate_batch_feedback(
     try:
         client = AsyncOpenAI(api_key=api_key)
         response = await client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": filled_prompt}
@@ -315,18 +316,19 @@ async def generate_feedback(step_data: Dict[str, Any]) -> str:
         # 시스템 프롬프트 최적화 - 필수 요소만 포함
         system_prompt = f"{persona}\n\n{instruction}".strip()
 
-        # 사용자 프롬프트 최적화 - 간결하고 직관적으로
+        # 사용자 프롬프트 최적화 - 수식 변환 품질 평가 추가
         filled_prompt = (
             f"[분석]\n"
             f"[이전] {prev_expr}\n"
             f"[현재] {curr_expr}\n"
-            f"\n위 수식 변화의 오류를 찾아 학생이 이해하기 쉽게 설명해주세요."
+            f"\n위 수식 변화의 오류를 찾아 학생이 이해하기 쉽게 설명해주세요. "
+            f"만약 수식 텍스트 변환이 잘 되지 않았다고 판단되면, 그 이유를 설명하고 이미지 품질 개선 방법을 제안해주세요."
         )
         
         # OpenAI API 호출
         client = AsyncOpenAI(api_key=api_key)
         response = await client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": filled_prompt}

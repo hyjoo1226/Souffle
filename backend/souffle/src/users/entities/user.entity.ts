@@ -12,6 +12,9 @@ import { UserCategoryProgress } from './user-category-progress.entity';
 import { UserProblem } from './user-problem.entity';
 import { NoteFolder } from 'src/notes/entities/note-folder.entity';
 import { UserAuthentication } from './user-authentication.entity';
+import { UserScoreStat } from './user-score-stat.entity';
+import { UserReport } from './user-report.entity';
+import { ConceptQuizSubmission } from 'src/concepts/entities/concept-quiz-submission.entity';
 
 @Entity({ name: 'users' })
 export class User extends BaseEntity {
@@ -24,6 +27,12 @@ export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255, nullable: true })
   profileImage: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+
   @OneToMany(() => Submission, (submission) => submission.user)
   submissions: Submission[];
 
@@ -35,6 +44,16 @@ export class User extends BaseEntity {
 
   @OneToMany(() => NoteFolder, (noteFolder) => noteFolder.user)
   notes: NoteFolder[];
+
   @OneToMany(() => UserAuthentication, (auth) => auth.user)
   authentications: UserAuthentication[];
+
+  @OneToMany(() => UserScoreStat, (scoreStat) => scoreStat.user)
+  scoreStats: UserScoreStat[];
+
+  @OneToMany(() => UserReport, (report) => report.user)
+  reports: UserReport[];
+
+  @OneToMany(() => ConceptQuizSubmission, (submission) => submission.user)
+  conceptQuizSubmissions: ConceptQuizSubmission[];
 }

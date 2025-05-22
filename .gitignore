@@ -1,6 +1,4 @@
-volumes/**/*
-!volumes/.gitkeep
-
-uploads/**/*
-!uploads/.gitkeep
-
+volumes/
+uploads/
+frontend/dist/
+pg_raw_backup_*.tar.gz

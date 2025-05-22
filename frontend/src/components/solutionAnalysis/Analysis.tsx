@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { ReactComponent as Expand } from '@/assets/icons/Expand.svg';
 import { ReactComponent as Close } from '@/assets/icons/Close.svg';
+import MathExplanation from '@/components/reviewNoteDetail/MathExplanation';
 
 type Explanation = {
     explanation_answer: string;
@@ -74,7 +75,7 @@ const Analysis = ({ aiAnalysis, weakness, explanation }: Props) => {
 
                             {/* 해설 텍스트 영역 */}
                             <div className="overflow-y-auto max-h-[60vh] text-sm text-gray-700 whitespace-pre-line leading-relaxed break-words pr-2 scrollbar-none">
-                                {explanation.explanation_description || "해설 설명이 없습니다."}
+                                <MathExplanation text={explanation.explanation_description || "해설이 없습니다."} />
                             </div>
                         </div>
                     </div>

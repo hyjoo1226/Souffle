@@ -10,8 +10,6 @@ export class OcrController {
     @Body()
     body: {
       answer_image_url: string;
-      // submission_id: number;
-      // problem_answer: string;
     },
   ) {
     // 동기 방식 OCR 변환 요청
@@ -21,12 +19,4 @@ export class OcrController {
 
     return { answer_convert };
   }
-  // {
-  //   // 큐에 작업 추가 요청
-  //   return this.ocrService.addOcrJob({
-  //     answer_image_url: body.answer_image_url,
-  //     submission_id: body.submission_id,
-  //     problem_answer: body.problem_answer,
-  //   });
-  // }
 }
