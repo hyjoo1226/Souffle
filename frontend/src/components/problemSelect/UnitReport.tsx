@@ -27,10 +27,6 @@ const UnitReport = ({ selectedUnitId }: { selectedUnitId: number }) => {
         >
           개념 학습 하기
         </Button>
-
-        {/* <Button variant="solid" size="md">
-          진단 받기
-        </Button> */}
       </div>
     </div>
   );
