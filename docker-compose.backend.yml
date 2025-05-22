@@ -1,0 +1,78 @@
+services:
+  backend:
+    build: ./backend/souffle
+    container_name: backend
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      PORT: ${BE_PORT}
+      NODE_ENV: ${NODE_ENV}
+
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
+
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET_KEY: ${GOOGLE_CLIENT_SECRET_KEY}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL}
+
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
+    networks:
+      - internal
+    volumes:
+      - /srv/souffle/uploads:/app/uploads
+
+  db:
+    image: postgres:14
+    container_name: db
+    environment:
+      POSTGRES_USER: ssafy
+      POSTGRES_PASSWORD: ssafy1234
+      POSTGRES_DB: app
+    volumes:
+      - /srv/souffle/volumes/db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ssafy"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
+    networks:
+      - internal
+
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
+    networks:
+      - internal
+
+networks:
+  public:
+  internal:
+

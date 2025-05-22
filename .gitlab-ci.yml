@@ -1,0 +1,130 @@
+variables:
+  GIT_STRATEGY: clone
+  GIT_CLEAN_FLAGS: none
+
+stages:
+  - build
+  - backup
+  - test
+  - deploy
+
+before_script:
+  - echo "Checking static/popup-login.html..."
+  - '[ -d static/popup-login.html ] && echo "Found directory instead of file. Removing it..." && rm -rf static/popup-login.html || echo "No directory to clean."'
+
+build-be:
+  stage: build
+  tags: [deploy]
+  script:
+    - docker-compose -f docker-compose.backend.yml build backend
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(be-dev|main|master)$/'
+
+build-data:
+  stage: build
+  tags: [deploy]
+  script:
+    - docker-compose -f docker-compose.data.yml build data
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(data-dev|main|master)$/'
+
+build-fe:
+  stage: build
+  tags: [deploy]
+  script:
+    - echo "VITE_APP_API_URL=$VITE_APP_API_URL" > frontend/.env.production
+    - docker build --no-cache -t frontend:ci -f frontend/Dockerfile ./frontend
+    - docker create --name frontend-builder frontend:ci
+    - rm -rf frontend/dist
+    - mkdir -p frontend/dist
+    - docker cp frontend-builder:/app/dist/. ./frontend/dist/
+    - docker rm frontend-builder
+  artifacts:
+    paths:
+      - frontend/dist/
+    expire_in: 1 hour
+
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^(fe-dev|main|master)$/'
+    
+backup-db:
+  stage: backup
+  tags: [deploy]
+  script:
+    - mkdir -p ci-backup
+    - docker exec db pg_dump -U ssafy -d app > db-backup.sql
+
+    - docker exec db bash -c "pg_basebackup -U ssafy -Ft -z -D /tmp && mv /tmp/base.tar.gz /tmp/db-base.tar.gz"
+    - docker cp db:/tmp/db-base.tar.gz ./db-data.tar.gz
+    - docker exec db rm -f /tmp/db-base.tar.gz
+
+    - tar czf db-backup.tar.gz db-backup.sql
+    - mv db-backup.tar.gz ci-backup/
+    - mv db-data.tar.gz ci-backup/
+  artifacts:
+    paths:
+      - ci-backup/db-backup.tar.gz
+      - ci-backup/db-data.tar.gz
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
+    
+integration-test:
+  stage: test
+  tags: [deploy]
+  needs:
+    - job: build-fe
+      artifacts: true
+    - job: build-be
+    - job: build-data
+    - job: backup-db
+  script:
+    - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
+    - find /srv/souffle/volumes/db_data -mindepth 1 -delete
+    - tar xzf ci-backup/db-backup.tar.gz
+    - tar --strip-components=1 -xzf ci-backup/db-data.tar.gz -C /srv/souffle/volumes/db_data
+    - docker-compose -f docker-compose.ci.yml up -d db redis
+    - |
+      for i in {1..10}; do echo "db healthcheck... ($i/10)"; docker exec db psql -U ssafy -d app -c "SELECT 1;" && break || sleep 3; done
+        
+    - '[ -f frontend/dist/index.html ] || (echo "dist missing" && ls -la frontend && exit 1)'
+    - docker-compose -f docker-compose.ci.yml up -d frontend caddy
+    - docker cp ./frontend/dist/. caddy:/srv/
+    - docker-compose -f docker-compose.ci.yml up -d backend data
+    - docker restart caddy
+    - |
+      for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf http://localhost:8000/data/api/v1/health && break || sleep 3; done || (echo "data healthcheck failed" && docker logs backend && exit 1)
+    - |
+      for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf http://localhost:4000/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
+    - |
+      for i in {1..10}; do echo "frontend healthcheck... ($i/10)"; curl -sSf http://localhost && break || sleep 3; done || (echo "frontend healthcheck failed" && docker logs caddy && exit 1)
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "master"'
+
+deploy:
+  stage: deploy
+  tags: [deploy]
+  script:
+    - docker-compose -f docker-compose.ci.yml down --remove-orphans || true
+    - find /srv/souffle/volumes/db_data -mindepth 1 -delete
+    - tar xzf ci-backup/db-backup.tar.gz
+    - tar --strip-components=1 -xzf ci-backup/db-data.tar.gz -C /srv/souffle/volumes/db_data
+    - docker-compose -f docker-compose.ci.yml up -d db redis
+    - |
+      for i in {1..10}; do echo "db healthcheck... ($i/10)"; docker exec db psql -U ssafy -d app -c "SELECT 1;" && break || sleep 3; done
+
+    - '[ -f frontend/dist/index.html ] || (echo "dist missing" && ls -la frontend && exit 1)'
+    - docker-compose -f docker-compose.ci.yml up -d frontend caddy
+    - docker cp ./frontend/dist/. caddy:/srv/
+    - docker-compose -f docker-compose.ci.yml up -d backend data
+    - docker restart caddy
+    - |
+      for i in {1..10}; do echo "data healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/data/api/v1/health && break || sleep 3; done || (echo "data healthcheck failed" && docker logs data && exit 1)
+    - |
+      for i in {1..10}; do echo "backend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr/health && break || sleep 3; done || (echo "backend healthcheck failed" && docker logs backend && exit 1)
+    - |
+      for i in {1..10}; do echo "frontend healthcheck... ($i/10)"; curl -sSf https://www.souffle.kr && break || sleep 3; done || (echo "frontend healthcheck failed" && docker logs caddy && exit 1)
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
