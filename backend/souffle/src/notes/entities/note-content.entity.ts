@@ -20,15 +20,15 @@ export class NoteContent {
   @JoinColumn({ name: 'user_problem_id' })
   user_problem: UserProblem;
 
-  @Column('jsonb')
+  @Column({ type: 'jsonb', nullable: true })
   solution_strokes: Array<Array<{ x: number; y: number }>>;
 
-  @Column('jsonb')
+  @Column({ type: 'jsonb', nullable: true })
   concept_strokes: Array<Array<{ x: number; y: number }>>;
 
   @CreateDateColumn()
-  created_at: Date;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updated_at: Date;
+  updatedAt: Date;
 }

@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/users/entities/user.entity';
-import { UserService } from 'src/users/users.service';
-import { UserAuthentication } from 'src/users/entities/user-authentication.entity';
 import { UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { UserService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
+import { UserAuthentication } from 'src/users/entities/user-authentication.entity';
 
 @Injectable()
 export class AuthService {

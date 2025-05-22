@@ -1,14 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { NoteFolder } from './entities/note-folder.entity';
-import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
+import { IsNull } from 'typeorm';
 import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NoteFolder } from './entities/note-folder.entity';
 import { UserProblem } from 'src/users/entities/user-problem.entity';
 import { NoteContent } from './entities/note-content.entity';
-import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
 import { Submission } from 'src/submissions/entities/submission.entity';
 import { SubmissionStep } from 'src/submissions/entities/submission-step.entity';
+import { NoteStrokesResponseDto } from './dto/note-strokes.dto';
+import { CreateNoteFolderDto } from './dto/create-note-folder.dto';
 
 @Injectable()
 export class NoteService {
@@ -28,7 +29,11 @@ export class NoteService {
   // 오답노트 폴더 조회 API
   async getNoteFolderTree(userId: number, type?: number) {
     const folders = await this.noteFolderRepository.find({
-      where: { user: { id: userId }, ...(type && { type }) },
+      where: [
+        { user: { id: userId }, ...(type && { type }) },
+        { user: IsNull() },
+      ],
+      order: { sort_order: 'ASC' },
     });
 
     const folderIds = folders.map((f) => f.id);
@@ -51,14 +56,33 @@ export class NoteService {
         parent_id: f.parent_id,
       }),
     );
+
+    const roots: any[] = [];
     folders.forEach((f) => {
+      const folderObj = folderMap.get(f.id);
       if (f.parent_id) {
         const parent = folderMap.get(f.parent_id);
-        if (parent) parent.children.push(folderMap.get(f.id));
+        if (parent) parent.children.push(folderObj);
+      } else {
+        roots.push(folderObj);
       }
     });
 
-    return folders.filter((f) => !f.parent_id).map((f) => folderMap.get(f.id));
+    // 상위 폴더 문제 개수
+    function accumulateProblemCount(folder: any): number {
+      if (!folder.children || folder.children.length === 0) {
+        return folder.problem_count;
+      }
+      let sum = folder.problem_count;
+      for (const child of folder.children) {
+        sum += accumulateProblemCount(child);
+      }
+      folder.problem_count = sum;
+      return sum;
+    }
+    roots.forEach(accumulateProblemCount);
+
+    return roots;
   }
 
   // 폴더별 문제 개수 조회 메서드
@@ -78,6 +102,10 @@ export class NoteService {
       .groupBy(`up.${folderField}`)
       .getRawMany();
 
+    if (!folderIds.length) {
+      return {};
+    }
+
     return counts.reduce((acc, curr) => {
       acc[curr.folder_id] = parseInt(curr.count, 10);
       return acc;
@@ -86,7 +114,6 @@ export class NoteService {
 
   // 오답노트 폴더 생성 API
   async createNoteFolder(userId: number, createFolderDto: CreateNoteFolderDto) {
-    // 같은 부모 아래에서 가장 큰 sort_order 값 찾기
     const maxOrderResult = await this.noteFolderRepository
       .createQueryBuilder('folder')
       .select('MAX(folder.sort_order)', 'maxOrder')
@@ -100,11 +127,9 @@ export class NoteService {
           : {},
       )
       .getRawOne();
-    // 최대값 + 1 또는 0 (첫 번째 폴더인 경우)
+
     const nextSortOrder =
       maxOrderResult.maxOrder !== null ? maxOrderResult.maxOrder + 1 : 0;
-
-    // 새 폴더 생성
     const newFolder = this.noteFolderRepository.create({
       name: createFolderDto.name,
       type: createFolderDto.type,
@@ -115,43 +140,70 @@ export class NoteService {
       sort_order: nextSortOrder,
     });
 
-    // 저장 및 반환
-    return this.noteFolderRepository.save(newFolder);
+    const savedFolder = await this.noteFolderRepository.save(newFolder);
+
+    return { folder_id: savedFolder.id };
   }
 
   // 폴더 이름 변경 API
-  async updateNoteFolderName(folderId: number, name: string) {
+  async updateNoteFolderName(folderId: number, userId: number, name: string) {
     const folder = await this.noteFolderRepository.findOne({
       where: { id: folderId },
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
+
+    if (folder.type === 1 && folder.parent_id === null) {
+      throw new BadRequestException(
+        '즐겨찾기 최상위 폴더는 삭제할 수 없습니다.',
+      );
+    }
+
+    if (folder.user_id === null) {
+      throw new BadRequestException('공통 폴더의 이름은 변경할 수 없습니다.');
+    }
+
+    if (folder.user_id !== userId) {
+      throw new BadRequestException('자신의 폴더만 수정할 수 있습니다.');
+    }
 
     folder.name = name;
     return this.noteFolderRepository.save(folder);
   }
 
   // 폴더 순서 변경 API
-  async updateNoteFolderOrder(folderId: number, sort_order: number) {
-    // 이동할 폴더 찾기
+  async updateNoteFolderOrder(
+    folderId: number,
+    userId: number,
+    sort_order: number,
+  ) {
     const folder = await this.noteFolderRepository.findOne({
       where: { id: folderId },
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
 
-    // 원래 순서와 새 순서 저장
+    if (folder.type === 1 && folder.parent_id === null) {
+      throw new BadRequestException(
+        '즐겨찾기 최상위 폴더의 순서는 변경할 수 없습니다.',
+      );
+    }
+
+    if (folder.user_id === null) {
+      throw new BadRequestException('공통 폴더의 순서는 변경할 수 없습니다.');
+    }
+
+    if (folder.user_id !== userId) {
+      throw new BadRequestException('자신의 폴더만 순서를 변경할 수 있습니다.');
+    }
+
     const originalOrder = folder.sort_order;
     const newOrder = sort_order;
 
-    // 순서가 같으면 변경 없음
     if (originalOrder === newOrder) {
       return folder;
     }
-
-    // 같은 유저의 같은 부모 아래의 폴더들만 조정
     const queryBuilder = this.noteFolderRepository.createQueryBuilder();
     queryBuilder.where('user_id = :userId', { userId: folder.user_id });
 
-    // 부모 ID 조건 추가 (null 고려)
     if (folder.parent_id === null) {
       queryBuilder.andWhere('parent_id IS NULL');
     } else {
@@ -160,7 +212,6 @@ export class NoteService {
       });
     }
 
-    // 폴더를 위로 이동
     if (newOrder < originalOrder) {
       await queryBuilder
         .update(NoteFolder)
@@ -168,9 +219,7 @@ export class NoteService {
         .andWhere('sort_order >= :newOrder', { newOrder })
         .andWhere('sort_order < :originalOrder', { originalOrder })
         .execute();
-    }
-    // 폴더를 아래로 이동
-    else {
+    } else {
       await queryBuilder
         .update(NoteFolder)
         .set({ sort_order: () => 'sort_order - 1' })
@@ -178,22 +227,29 @@ export class NoteService {
         .andWhere('sort_order <= :newOrder', { newOrder })
         .execute();
     }
-
-    // 이동할 폴더의 순서 변경
     folder.sort_order = newOrder;
     return this.noteFolderRepository.save(folder);
   }
 
   // 폴더 삭제 API
-  async deleteNoteFolder(folderId: number) {
+  async deleteNoteFolder(folderId: number, userId: number) {
     const folder = await this.noteFolderRepository.findOne({
       where: { id: folderId },
     });
     if (!folder) throw new NotFoundException('폴더를 찾을 수 없습니다.');
 
-    // 고정 폴더(예: id 0, 1, 2)는 삭제 불가
-    if ([0, 1, 2].includes(folderId)) {
-      throw new BadRequestException('고정 폴더는 삭제할 수 없습니다.');
+    if (folder.type === 1 && folder.parent_id === null) {
+      throw new BadRequestException(
+        '즐겨찾기 최상위 폴더는 삭제할 수 없습니다.',
+      );
+    }
+
+    if (folder.user_id === null) {
+      throw new BadRequestException('공통 폴더는 삭제할 수 없습니다.');
+    }
+
+    if (folder.user_id !== userId) {
+      throw new BadRequestException('자신의 폴더만 삭제할 수 있습니다.');
     }
 
     await this.noteFolderRepository.delete(folderId);
@@ -235,19 +291,7 @@ export class NoteService {
       throw new BadRequestException('유효하지 않은 폴더 유형입니다.');
     }
 
-    // note_content 생성 (없는 경우)
     const savedUserProblem = await this.userProblemRepository.save(userProblem);
-    const existingContent = await this.noteContentRepository.findOne({
-      where: { user_problem: { id: savedUserProblem.id } },
-    });
-    if (!existingContent) {
-      const newContent = this.noteContentRepository.create({
-        user_problem: savedUserProblem,
-        solution_strokes: [],
-        concept_strokes: [],
-      });
-      await this.noteContentRepository.save(newContent);
-    }
 
     return savedUserProblem;
   }
@@ -351,6 +395,8 @@ export class NoteService {
         'c.name AS category_name',
         'p."innerNo" AS inner_no',
         'p.type AS problem_type',
+        'p.content AS content',
+        'p.choice AS choice',
         'up.try_count AS try_count',
         'up.correct_count AS correct_count',
         'up.last_submission_id AS last_submission_id',
@@ -368,6 +414,8 @@ export class NoteService {
       category_name: result.category_name,
       inner_no: result.inner_no,
       problem_type: result.problem_type,
+      content: result.content,
+      choice: result.choice,
       user: {
         try_count: result.try_count,
         correct_count: result.correct_count,
@@ -378,7 +426,6 @@ export class NoteService {
 
   // 노트의 문제 상세 조회 API
   async getProblemDetail(userProblemId: number) {
-    // user_problem
     const userProblem = await this.userProblemRepository.findOne({
       where: { id: userProblemId },
       relations: ['problem', 'problem.book', 'problem.category'],
@@ -388,7 +435,6 @@ export class NoteService {
       throw new NotFoundException('문제 정보를 찾을 수 없습니다.');
     }
 
-    // note_content
     const noteContent = await this.noteContentRepository.findOne({
       where: { user_problem: { id: userProblemId } },
     });
@@ -398,7 +444,6 @@ export class NoteService {
       where: { id: userProblem.last_submission_id },
     });
 
-    // submission_steps
     const submissionSteps = lastSubmission
       ? await this.submissionStepRepository.find({
           where: { submission: { id: lastSubmission.id } },
@@ -443,12 +488,17 @@ export class NoteService {
       full_step_image_url: lastSubmission?.fullStepImageUrl,
       is_correct: lastSubmission?.isCorrect,
       ai_analysis: lastSubmission?.aiAnalysis,
+      weakness: lastSubmission?.weakness,
 
       // 제출 단계 정보
       submission_steps: submissionSteps.map((step) => ({
         step_number: step.stepNumber,
+        step_image_url: step.stepImageUrl,
+        step_time: step.stepTime,
         step_valid: step.isValid,
         step_feedback: step.stepFeedback,
+        step_latex: step.latex,
+        step_current_latex: step.currentLatex,
       })),
     };
   }
@@ -472,7 +522,6 @@ export class NoteService {
       categoryId,
     ]);
 
-    // 계층 구조로 변환
     const categoryMap = new Map();
     categories.forEach((c) =>
       categoryMap.set(c.id, {
@@ -482,7 +531,6 @@ export class NoteService {
       }),
     );
 
-    // 부모-자식 관계 설정
     categories.forEach((c) => {
       if (c.parent_id && categoryMap.has(c.parent_id)) {
         const category = categoryMap.get(c.id);
@@ -490,7 +538,17 @@ export class NoteService {
       }
     });
 
-    // 루트 카테고리 반환
     return categoryMap.get(categoryId);
+  }
+
+  // 새 유저를 위한 폴더 생성
+  async createDefaultFoldersForUser(userId: number): Promise<void> {
+    const favoriteFolder = await this.noteFolderRepository.save({
+      user: { id: userId },
+      type: 1,
+      name: '즐겨찾기',
+      parent: null,
+      sort_order: 0,
+    });
   }
 }

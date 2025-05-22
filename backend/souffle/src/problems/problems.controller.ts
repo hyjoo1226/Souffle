@@ -1,8 +1,8 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { ProblemService } from './problems.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { ProblemService } from './problems.service';
 
 @ApiTags('problems')
 @Controller('api/v1/problems')

@@ -21,7 +21,7 @@ export class HealthController {
   @HealthCheck()
   check() {
     return this.health.check([
-      // PostgreSQL 연결 확인 (TypeORM 이름 기준)
+      // PostgreSQL 연결 확인
       () => this.db.pingCheck('database'),
 
       // Redis TCP 연결 확인

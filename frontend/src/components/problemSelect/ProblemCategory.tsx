@@ -8,14 +8,21 @@ const ProblemCategory = ({
   setSelectedLessonId,
   selectedLessonName,
   setSelectedLessonName,
+  selectedSubject,
+  setSelectedSubject,
+  selectedUnit,
+  setSelectedUnit,
+  setSelectedUnitId,
 }: CategoryProps) => {
   const [categoryOpen, setCategoryOpen] = useState(false); // 카테고리 열기 상태
-  const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
 
   // console.log(categoryData);
   const handleCategoryClick = () => {
     setCategoryOpen(!categoryOpen); // 카테고리 열기 상태 토글
+    setSelectedUnit(null);
+    setSelectedUnit(null);
+    setSelectedLessonName(null);
+    setSelectedLessonId(null);
   };
   return (
     <div className="relative flex flex-col gap-5">
@@ -36,7 +43,7 @@ const ProblemCategory = ({
         <img src="/icons/down.png" alt="" className="w-9 h-9" />
       </div>
       {/* 아코디언 */}
-      <div className="absolute z-50  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
+      <div className="absolute z-10  top-15 left-0 shadow-lg rounded-[20px] bg-white w-full">
         {categoryOpen && (
           <AccordianList
             categoryOpen={categoryOpen}
@@ -47,6 +54,7 @@ const ProblemCategory = ({
             setSelectedLessonName={setSelectedLessonName}
             setSelectedSubject={setSelectedSubject}
             setSelectedUnit={setSelectedUnit}
+            setSelectedUnitId={setSelectedUnitId}
           />
         )}
       </div>

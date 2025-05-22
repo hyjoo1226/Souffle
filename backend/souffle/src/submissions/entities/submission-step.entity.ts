@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
   CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Submission } from './submission.entity';
 
@@ -39,8 +40,14 @@ export class SubmissionStep extends BaseEntity {
   latex: string;
 
   @Column({ type: 'text', nullable: true })
+  currentLatex: string;
+
+  @Column({ type: 'text', nullable: true })
   stepFeedback: string;
 
-  @CreateDateColumn({ type: 'timestamp' })
+  @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

@@ -1,12 +1,47 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Souffle</title>
+    <style>
+      html,
+      body {
+        /* height: 100%; */
+        margin: 0;
+        padding: 0;
+      }
+      #splash {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        width: 100vw;
+        background: #ebf2fe;
+        overflow: hidden;
+      }
+    </style>
   </head>
   <body>
+    <div id="splash">
+      <img
+        src="/icons/loading.gif"
+        style="width: 200px; height: 200px"
+        alt="로딩"
+      />
+      <div
+        style="
+          color: #8390fa;
+          font-size: 1.1rem;
+          margin-top: 1.25rem;
+          font-family: Pretendard, sans-serif;
+        "
+      >
+        수업 준비중
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
