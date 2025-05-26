@@ -33,7 +33,7 @@
 
 | 분야  | 기술 스택                             |
 | ----- | ------------------------------------- |
-| FE    | React, TypeScript, HTML, Tailwind CSS |
+| FE    | React, TypeScript                     |
 | BE    | NestJS, FastAPI                       |
 | AI    | pytorch, huggingface                  |
 | DB    | PostgreSQL, Redis                     |
