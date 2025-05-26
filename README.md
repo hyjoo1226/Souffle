@@ -1,36 +1,118 @@
-# 멀티모달 AI와 함께하는 수학 풀이 분석 서비스 - SOUFFLE
+# SOUFFLE
 
-## 프로젝트 특징
+![소개사진](exec/img/메인.png)
+
+## 📌 프로젝트 소개
+
+### 멀티모달 AI와 함께하는 수학 풀이 분석 서비스
+
+<br>
+
 1. 수식 입력을 입력 시간과 영역에 따라 분리하여 수식 OCR의 정확성 향상
 2. 순차적으로 정리된 수식을 분석하여 풀이 접근 방식을 파악
 3. 취약 개념과 실수 요인들을 정리하여 사용자에게 제공
+   <br>
+   <br>
 
-## 주요 기능
-1. 문제 선택 및 풀이 기능(이미지를 텍스트로 변환)
-2. 입력 로그를 바탕으로 풀이 분석하여 피드백 및 취약점 제시
-3. 오답노트 기능
-4. 개인별 학습 리포트 
+### 1️⃣ 프로젝트 기간
 
-## 프로젝트 산출물
-### 1. 와이어프레임 및 목업(Figma)
-[Figma](https://www.figma.com/design/GBfV0HixUuzLokHHzjOdH8/%EC%9E%90%EC%9C%A8%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8?node-id=0-1&t=PZQVrt0SEjF4bzPC-1)
+2025.04.14 ~ 2025.05.22
 
-### 2. 요구사항 명세
-[요구사항 명세](https://patch-country-94e.notion.site/1dc539f595068033a4cfd3c3b61192b3)
+### 2️⃣ 팀원 소개
 
-### 3. 설계
-[ERD](https://patch-country-94e.notion.site/ERD-1d5539f5950681b9b189c8b73de0a52d)
-[API](https://patch-country-94e.notion.site/API-Doc-1d5539f5950681cf96afcabb17b04247?pvs=74)
+| 이름   | 역할  | 구현 기능                                                             |
+| ------ | ----- | --------------------------------------------------------------------- |
+| 방성준 | FE    | Wifeframe 작성, 웹앱 디자인 및 FE 개발, 수식 이미지 분할, 캔버스 구현 |
+| 이승주 | FE    | Wifeframe 작성, 웹앱 디자인 및 FE 개발, 수식 이미지 분할, 캔버스 구현 |
+| 주현호 | BE    | DB 설계 및 관리, API 명세서 작성, BE 개발                             |
+| 김승우 | Infra | 배포 환경 구축, DB 적재 및 파싱 자동화                                |
+| 남기운 | AI    | OCR 모델 고도화, 유저 지표 및 종합분석 리포트 프롬프팅                |
+| 윤상흠 | AI    | 풀이 분석 모델 학습, OCR 모델 API 연동, OpenAI LLM 파이프라인 설계    |
 
-## 기술 스택 및 개발환경
-- FE: React, Typescript
-- BE: NestJS 11.0.6, FastAPI
-- DB: PostgreSQL 17.4, Redis
-- Infra: Docker, Caddy
-- AI : pytorch, huggingface
+### 3️⃣ 기술 스택
 
-## 팀원 및 역할
+| 분야  | 기술 스택                             |
+| ----- | ------------------------------------- |
+| FE    | React, TypeScript, HTML, Tailwind CSS |
+| BE    | NestJS, FastAPI                       |
+| AI    | pytorch, huggingface                  |
+| DB    | PostgreSQL, Redis                     |
+| Infra | Docker, Caddy                         |
 
-|윤상흠(팀장)|김승우|남기운|방성준|이승주|주현호|
-|:---:|:---:|:---:|:---:|:---:|:---:|
-|Data|Intra|Data|FrontEnd|FrontEnd|BackEnd|
+## 📌 요구사항 명세서
+
+- [요구사항 명세서](<exec/요구사항 명세서.pdf>)
+
+## 📌 아키텍처 다이어그램
+
+![시스템 아키텍처](exec/img/시스템아키텍처.png)
+
+<br>
+
+## 📌 플로우 차트
+
+![플로우 차트](exec/img/유저%20플로우.png)
+
+<br>
+
+## 📌 와이어프레임(MVP)
+
+![와이어 프레임](<exec/img/와이어프레임(MVP).png>)
+
+<br>
+
+## 📌 API 명세서
+
+- [API 명세서](<exec/API 명세서.pdf>)
+  <br>
+
+## 📌 ERD 다이어그램
+
+![ERD](exec/img/ERD.png)
+
+<br>
+
+## 📌 메인 로직
+
+![메인 로직](exec/img/메인%20로직.png)
+
+<br>
+
+## 📌 주요 기능
+
+### 1.회원가입, 로그인
+
+![로그인](exec/img/주요기능/1.로그인.gif)
+
+### 2.문제 풀이
+
+![문제풀이](exec/img/주요기능/2.문제풀이.gif)
+
+### 3.풀이 분석
+
+![풀이분석](exec/img/주요기능/3.풀이분석.gif)
+
+### 4.복습 노트
+
+![복습노트](exec/img/주요기능/4.복습노트.gif)
+![복습노트](exec/img/주요기능/5.복습노트2.gif)
+
+### 5.개념 학습
+
+![개념학습](exec/img/주요기능/6.개념학습.gif)
+
+### 6.내 학습 현황
+
+![내 학습 현황](exec/img/주요기능/7.내풀이현황.gif)
+
+### 7. 평가 리포트
+
+![평가리포트](exec/img/주요기능/8.리포트.gif)
+
+<br>
+
+### 📌 배포
+
+- 서비스 URL: https://www.souffle.kr/
+- 배포 기간: 2025.04.29 ~ 2025.05.28
+- [포팅 매뉴얼](exec/Building_Manual.md)
