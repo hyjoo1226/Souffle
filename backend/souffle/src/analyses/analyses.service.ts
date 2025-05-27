@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bull';
 import { Queue } from 'bull';
 
@@ -21,6 +21,14 @@ export class AnalysisService {
     review_time: number;
   }) {
     // 큐에 분석 작업 추가
+    try {
     return await this.analysisQueue.add('analyze', data);
+  } catch (error) {
+    if (error.message.includes('ECONNREFUSED') || error.message.includes('Redis')) {
+      // Redis 연결 실패
+      throw new ServiceUnavailableException('분석 서버 연결에 문제가 있습니다. 잠시 후 다시 시도해주세요.');
+    }
+    throw error;
+  }
   }
 }
